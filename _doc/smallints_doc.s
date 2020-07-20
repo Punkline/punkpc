@@ -1,34 +1,11 @@
-/*## Header:
 # --- Small Integer extraction and insertion macros
 # - these translate a relatively human-readable syntax into rlwinm and rlwimi instructions
 # - 'extr' may be used in cases that rlwinm would be needed to extract a small int from a large int
 # - 'insr' may be used in cases that rlwimi would be needed to insert a small int into a large int
 
-##*/
-/*## Attributes:
-# --- Class Methods ---
 
-# --- extr  regout, regin, mask
-# Extract a zero-shifted small integer from another integer using just a mask input
-# - writes a rlwinm instruction from given input
-# - can be used to abstract away all of the rotation math in 'rlwinm' behind a mask input
-# regout : the output GPR for this operation
-# regin  : the input GPR for this operation
-# mask   : 32-bit mask of (unshifted) small int container in 'regin' contents
-# - null masks cause the immediate '0' to be generated
+# --- Example use of the smallints module:
 
-# --- insr regout, regin, mask
-# Insert a zero-shifted small integer into another integer using just a mask input
-# - writes a rlwimi instruction from given input
-# - can be used with exactly the same mask used by 'extr'
-# - when combined with 'extr' -- this creates an i/o utility for packing/unpacking small ints
-
-# --- extr. regout, regin, mask
-# --- insr. regout, regin, mask
-# - variants compare result to 0 in cr0 using rlwinm. or rlwimi. (with a '.' )
-
-##*/
-/*## Examples:
 .include "./punkpc/smallints.s"
 
 mMyMask=0x0001FF80
@@ -72,13 +49,24 @@ insr r3, r0, mMyMask   # r3 = packed 10-bit integer  (from r0)
 # ... 50033BF0
 
 
-##*/
+# --- Module attributes:
+# --- Class Methods -------------------------------------------------------------------------------
 
-.ifndef extr.included; extr.included=0; .endif; .ifeq extr.included; extr.included = 1
-  .macro extr rA,rB,mask=0,i=32,dot;.if \mask;.ifeq (\mask)&1;extr \rA,\rB,(\mask)>>1,\i-1,\dot;
-      .else;rlwinm\dot \rA,\rB,(\i)&31,\mask;.endif;.else;li \rA,0;.endif;
-  .endm;.macro extr.,rA,rB,m;extr \rA,\rB,\m,,.;.endm;
-  .macro insr rA,rB,mask=0,i=0,dot;.if \mask;.ifeq (\mask)&1;insr \rA,\rB,(\mask)>>1,\i+1,\dot;
-      .else;rlwimi\dot \rA,\rB,(\i)&31,\mask<<(\i&31);.endif;.endif;
-  .endm;.macro insr.,rA,rB,m;extr \rA,\rB,\m,,.;.endm;
-.endif
+# --- extr  regout, regin, mask
+# Extract a zero-shifted small integer from another integer using just a mask input
+# - writes a rlwinm instruction from given input
+# - can be used to abstract away all of the rotation math in 'rlwinm' behind a mask input
+# regout : the output GPR for this operation
+# regin  : the input GPR for this operation
+# mask   : 32-bit mask of (unshifted) small int container in 'regin' contents
+# - null masks cause the immediate '0' to be generated
+
+# --- insr regout, regin, mask
+# Insert a zero-shifted small integer into another integer using just a mask input
+# - writes a rlwimi instruction from given input
+# - can be used with exactly the same mask used by 'extr'
+# - when combined with 'extr' -- this creates an i/o utility for packing/unpacking small ints
+
+# --- insr. regout, regin, mask
+# - variants compare result to 0 in cr0 using rlwinm. or rlwimi. (with a '.' )
+

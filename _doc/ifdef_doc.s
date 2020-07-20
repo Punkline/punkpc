@@ -1,27 +1,10 @@
-/*## Header:
 # --- ifdef - alternative to .ifdef that prevents errors caused by '\' in .ifdef statements
 # - a bug in the .ifdef directive causes '\' to be uninterpretable when trying to escape arguments
 # - ifdef provides a safer alternative
 
-##*/
-/*## Attributes:
-# --- Class Properties ---
 
-# --- def  - bool is True if given name has been defined
-# --- ndef - not def -- inverse of def
-# these globals can be used as evaluable properties in .if statements
+# --- Example use of the ifdef module:
 
-
-# --- Class Methods ---
-
-# --- ifdef  name
-# Checks if name exists by passing it to altmacro mode, and resetting back to noaltmacro mode
-# name : a name that contains '\'
-# - altmacro mode does not require '\' when escaping arguments
-#   - the parsing bug is bypassed by reading the name as an argument and escaping it internally
-
-##*/
-/*## Examples:
 .include "./punkpc/ifdef.s"
 # - load the 'ifdef' module in this example so that we can use its global method 'ifdef'
 
@@ -154,9 +137,17 @@ myObj
 # attempting to retrieve the value as a string will return the literal property name, instead
 
 
-##*/
-.ifndef ifdef.included; ifdef.included = 0; .endif; .ifeq ifdef.included; ifdef.included = 1
-  .macro ifdef,sym;.altmacro;ifdef.alt \sym;.noaltmacro;.endm;
-  .macro ifdef.alt,sym;def=0;.ifdef sym;def=1;.endif;ndef=def^1;.endm;
-.endif
-/**/
+# --- Module attributes:
+# --- Class Properties ----------------------------------------------------------------------------
+
+# --- def  - bool is True if given name has been defined
+# --- ndef - not def -- inverse of def
+# these globals can be used as evaluable properties in .if statements
+
+
+# --- ifdef  name
+# Checks if name exists by passing it to altmacro mode, and resetting back to noaltmacro mode
+# name : a name that contains '\'
+# - altmacro mode does not require '\' when escaping arguments
+#   - the parsing bug is bypassed by reading the name as an argument and escaping it internally
+

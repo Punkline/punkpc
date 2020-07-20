@@ -1,19 +1,25 @@
+/*## Header:
 # --- Enumerator Tools
-# Basic tools for enumerating indices and mask bools
+# Basic tools for assigning indices and mask bools to a list of symbol names
 
+##*/
+/*## Attributes:
 # Volatile Working Properties:
 # --- i - volatile loop counter
 # --- a - volatile argument flag
 
-# Static Properties:
-# --- enum.count - shared index counter
-# --- enum.step - shared index step
-# --- enumb.count - shared boolean index counter
-# --- enumb.step - shared boolean index step
-# --- enumb.mask - generated combination of masks with their boolean TRUE/FALSE values
-# --- enumb.crf - output crf mask, for using mtcrf instructions to load in enumb.mask
+# --- Class Properties ---
 
-# Static Methods:
+# --- enum.count  - shared index counter
+# --- enum.step   - shared index step
+# --- enumb.count - shared boolean index counter
+# --- enumb.step  - shared boolean index step
+# --- enumb.mask  - generated combination of masks with their boolean TRUE/FALSE values
+# --- enumb.crf   - output crf mask, for using mtcrf instructions to load in enumb.mask
+
+
+# --- Class Methods ---
+
 # --- enum        sym, sym, ...
 # An enumerator tool that lets you assign iterations of a counting number to a sequence of names
 #  - if sym starts with an symbol-friendly character, then it will be assigned a step in the count
@@ -29,9 +35,11 @@
 # A method that evaluates given symbol names, and uses their aliases to build a combined mask
 #  - if 'Sym' does not exist, but 'mSym' does - then value is assumed false
 
+##*/
 /*## Examples:
+.include "./punkpc/enum.s"
 
-# Enumerations:
+# --- ENUMERATIONS ---
 enum A B C D  # enumerate given symbols with a count; starting with 0, and incrementing by +1
 enum E F G H  # ... next call will continue previous enumerations...
 # >>>  A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7
@@ -50,7 +58,7 @@ enum (sp.xWorkspace),+4,VelX,VelY,RotX,RotY,RGBA
 # etc..
 
 
-# Bool Enumerations:
+# --- BOOL ENUMERATIONS ---
 enumb Enable, UseIndex, IsStr
 # state the bool symbol names you want to use:
 # >>> bEnable   = 31; mEnable   = 0x00000001
@@ -74,7 +82,8 @@ rlwimi r0, r0, bIsStr-bC, mC
 # insert bIsStr into bC in a single register/instruction
 
 
-# Bool Mask generator:
+# --- BOOL MASK GENERATOR ---
+
 enumb Enable, UseIndex, IsStr       # state the bool symbol names you want to use
 Enable = 1; UseIndex = 1;           # set some boolean values as T/F
 # unassigned bool IsStr is assumed to be 0
@@ -93,9 +102,7 @@ bf- bEnable, 0f
 bf- bIsStr, 1f; nop; 1:
 bt+ bUseIndex, 0f; nop; 0:
 # once in the CR, each bool can be referenced by name in 'bf' or 'bt' branch instructions
-
 ##*/
-
 
 .ifndef enum.included; enum.included = 0; .endif; .ifeq enum.included; enum.included = 1
 .include "./punkpc/ifdef.s"
