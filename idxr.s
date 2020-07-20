@@ -1,6 +1,13 @@
-.ifndef xr.included; xr.included=0; .endif; .ifeq xr.included; xr.included = 1; xr.reg=0
-.include "./punkpc/xev.s"
-.macro idxr, xr; .irp s,len,beg,dep,end,idx,reg; xr.\s=-1;.endr; .irpc c,\xr; xr.len=xr.len+1
-.ifc (,\c; xr.dep=xr.dep+1; .if xr.dep==0; xr.beg=xr.len+1; xr.end=-1; .endif; .endif
-.ifc ),\c; xr.dep=xr.dep-1; .if xr.dep==-1; xr.end=xr.len-1; .endif; .endif
-.endr; xev 0,xr.beg-2,\xr; xr.idx=xev; xev xr.beg,xr.end,\xr; xr.reg=xev;.endm;.endif
+.ifndef idxr.included;  idxr.included=0;.endif;
+.ifeq idxr.included;  idxr.included = 2;idxr.r=0
+  .include "./punkpc/xev.s"
+  .macro idxr,  xr:vararg
+    .irp s,  len,  beg,  dep,  end,  idx,  reg;  idxr.\s=-1;.endr;
+    .irpc c,  \xr;  idxr.len=idxr.len+1
+      .ifc (,  \c;  idxr.dep=idxr.dep+1
+        .if idxr.dep==0;  idxr.beg=idxr.len+1;idxr.end=-1;.endif;.endif;
+      .ifc ),  \c;  idxr.dep=idxr.dep-1
+        .if idxr.dep==-1;  idxr.end=idxr.len-1;.endif;.endif;.endr;xev 0, idxr.beg-2, \xr
+    idxr.x=xev;xev idxr.beg, idxr.end, \xr;idxr.r=xev
+  .endm;.endif;
+
