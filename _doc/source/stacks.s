@@ -1,9 +1,143 @@
+/*## Header:
 # --- Stacks
 # Create objects that can stack values, and pop or de-queue them
 # Stack objects use 'self' like a normal symbol that can be treated like a scalar variable
-# - this scalar variable interacts with the stack using object methods that can be called
+# - this scalar variable interacts with the stack structure using object methods that can be called
 
-/*## Example usage:
+##*/
+/*## Attributes:
+# --- Static Properties ---
+
+# --- stack.fill - default fill value for blank push streams and null init values
+# --- stack.size - default number of null elements to start in stack
+# --- stack.sss  - default maximum index
+# --- stack$     - stack ID counter
+
+
+# --- Constructor Method ---
+
+# --- stack  name, ...
+# Stack objects create index memory variables and stack I/O methods for a given namespace
+# - if multiple names are given, then multiple stacks are created
+# - you may modify stack.fill or stack.size to change the initial state of each stack
+#   - these arguments will return back to their defaults for the next call to the constructor
+#   - multiple stacks made with a single call will share the same properties
+
+
+# --- Object Properties:
+  # --- (self)    - scalar property buffers values for pushing and popping, as I/O interface
+  # --- .isStack  - unique non-0 stack ID helps keep track of this stack's existence, when inquired
+  # --- .sss      - stack index -- the maximum index of this stack object
+  # --- .ss       - stack index -- the highest index of this stack object (that has been written)
+  # --- .s        - stack index -- the current index of this stack object
+  # --- .pop      - outpipe memory of last popped value
+  # --- .deq      - outpipe memory of last dequeued value in pipe operation
+  # --- .q        - queue index -- the current bottom of pipe window
+  # --- .qq       - queue index -- the lowest index of this pipe window
+  # --- .qqq      - queue index -- the minimum index of this stack object
+
+
+# --- Object Methods:
+
+  # --- .push   val, ...
+  # Push value(s) to stack memory
+  # - if no value is given, self is used
+  # - multiple values can be stacked in the order given
+  # - value of self is cleared with self.fill value
+
+  # --- .push.mode  mode
+  # Change the way .push operates when encountering the edge of push memory
+  #  mode: incr : DEFAULT - push memory index so that pushed value can be stored
+  #  mode: nop  : do nothing, causing memory boundary to become a limit
+  # - nop may be useful for temporarily disabling pushing below the maximum
+
+  # --- .pop    sym, ...
+  # Copy self to pop stream output, and update self with top memorized push value
+  # - if no symbol is given, self.pop is used
+  # - multiple symbols will cause popped values to be assigned to each, in a sequence
+
+  # --- .deq    sym, ...
+  # Copy bottom memorized push value to deq stream output, ignoring self buffer
+  # - if no symbol is given, self.deq is used
+  # - multiple symbols will cause dequeued values to be assigned to each, in a sequenc
+
+  # --- .pop.mode  mode
+  # --- .deq.mode  mode
+  # Change the way .pop operates when colliding with bottom of queue
+  #  mode : null  : DEFAULT - freeze the stack index, and produce .fill values in pop stream
+  #  mode : rot   : rotate stack index back to highest memorized stack value
+  #  mode : cap   : continuously re-pop the last value in stack memory
+  #  mode : nop   : abort the pop operation, freezing index and pop stream entirely
+
+  # --- .s   idx
+  # Stack index function
+  # - sets index self.s
+  # - if no index is given, highest memory index is used
+  # - caps in range self.q ... self.ss
+
+  # --- .q   idx
+  # Queue index function
+  # - sets index self.q
+  # - if no index is given, lowest memory index is used
+  # - caps in range self.qq ... self.s
+
+  # --- .topget  sym, ...
+  # Assign value of current stack index memory to symbol(s)
+  # - this ignores the currently buffered value in self
+  # - if no symbol is given, self is used for assignment of memory value
+  # - if multiple symbols are given, they are all assigned the same value
+  # - if memory doesn't exist, then a .fill value is assigned instead
+
+  # --- .topset  val
+  # Assign a value to the current stack index memory
+  # - if no value is given, the value of self is used
+  # - else, this ignores the currently buffered value in self
+
+  # --- .new  size, fill
+  # Push stack index memory by size, filling it with given fill value
+  # - if no size is given, 1 is used
+  # - if no fill is given, self.fill is used
+
+  # --- .reset fill, start, size
+  # Reset the queue position to lowest memory, and the stack position according to given size
+  # - if a fill value is given, then the range will be filled, updating boundaries accordingly
+  # - at end of reset, minimum and maximum boundaries are checked, and idices are adjusted
+
+  # --- .purge ...
+  # Destroy the methods for this object
+  # - properties remain intact
+  # - if ... contains additional method names, they will be purged as well
+
+
+# --- Object Altmacro Methods:
+  # --- .pusha  val, ...
+  # --- .popa   sym, ...
+  # --- .deqa   sym, ...
+  # These object methods may be used within altmacro mode without reverting to noaltmacro mode
+
+
+# --- Static Methods ---
+
+# --- stack.fill   stack, start, size, fill
+# Fill a contiguous area in a stack, in altmacro mode
+#  stack : the stack to fill
+#  start : the index to begin fill at
+#   size : the number of elements to fill
+#   fill : the value to fill with
+
+# --- stack.oob  stack, method, behavior
+# A macro for plugging callbacks into a method event as a behavior
+#    stack : the stack to mutate
+#   method : the method to mutate
+# behavior : suffix of the static behavior name
+# - behavior callback must be called stack.oob.'method'.'behavior'
+# - intended to be used through various object '.mode' event methods
+
+##*/
+/*## Examples:
+.include "./punkpc/stacks.s"
+
+# --- BASICS ---
 
 stack a, b
 # create stacks 'a' and 'b'
@@ -71,6 +205,7 @@ a = 0
 # >>> 1, 2, 3, 4, 5
 # not adding 1 to the loop count and streaming directly from the buffer discards the popped value
 
+# --- NULL MODE (DEFAULT) ---
 
 a = 0x1337
 a.pop
@@ -85,10 +220,12 @@ a.push 1, 3, 3, 7
 .endr
 # >>> 1, 3, 3, 7,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0
 # default mode 'null' creates filler values when out of things to pop
-
+# - this is the mode that all new stacks are in when created
 
 a.s
 # if given no args, 'self.s' method will reset to highest available memory value
+
+# --- ROT MODE ---
 
 a.deq.mode rot
 # mutate stack 'b' de-queue method into a rotation method
@@ -104,6 +241,8 @@ a.deq.mode rot
 a.reset; a.s
 # self.reset restores default index values
 
+# --- CAP MODE ---
+
 a.deq.mode cap
 # - now the queue will stay at the last available value, instead of null or rotation
 
@@ -114,11 +253,14 @@ a.deq.mode cap
 .endr
 # >>> 1, 3, 3, 7,  7, 7, 7, 7,  7, 7, 7, 7,  7, 7, 7, 7
 
-## End of Examples */
+##*/
 
 
 
-.ifndef stack.included; stack.included=0; .endif; .ifeq stack.included; stack.included = 1
+.ifndef stack.included; stack.included=0; .endif; .ifeq stack.included; stack.included = 2
+# version 0.0.2
+# - added altmacro methods '.pusha' '.popa' and '.deqa'
+
 .include "./punkpc/sidx.s"
 .include "./punkpc/ifdef.s"
 
@@ -128,115 +270,11 @@ stack.size = 0          # default number of null elements to start in stack
 stack.sss = 1<<31-1     # default maximum index
 stack$ = 0              # stack ID counter
 
-# Constructor Method:
-# --- stack  name, size, fill
-# Stack objects create index memory variables and stack I/O methods for a given namespace
-#  name : name of this stack object
-#  size : initial count of blank elements in stack (0 if unspecified)
-#  fill : initial value of blank elements in stack (0 if unspecified)
-
-# Object Properties:
-  # --- (self)    - scalar property buffers values for pushing and popping, as I/O interface
-  # --- .isStack  - unique non-0 stack ID helps keep track of this stack's existence, when inquired
-  # --- .sss      - stack index -- the maximum index of this stack object
-  # --- .ss       - stack index -- the highest index of this stack object
-  # --- .s        - stack index -- the current index of this stack object
-  # --- .pop      - outpipe memory of last popped value
-  # --- .deq      - outpipe memory of last dequeued value in pipe operation
-  # --- .q        - queue index -- the current bottom of pipe window
-  # --- .qq       - queue index -- the lowest index of this pipe window
-  # --- .qqq      - queue index -- the minimum index of this stack object
-
-# Object Methods:
-
-  # --- .push   val, ...
-  # Push value(s) to stack
-  # - if no value is given, self is used
-  # - multiple values can be stacked in the order given
-  # - value of self is cleared with self.fill value
-
-  # --- .push.mode  mode
-  # Change the way .push operates when encountering the edge of push memory
-  #  mode: incr : DEFAULT - push memory index so that pushed value can be stored
-  #  mode: nop  : do nothing, causing memory boundary to become a limit
-  # - nop may be useful for temporarily disabling pushing below the maximum
-
-  # --- .pop    sym, ...
-  # Copy self to pop stream output, and update self with top memorized push value
-  # - if no symbol is given, self.pop is used
-  # - multiple symbols will cause popped values to be assigned to each, in a sequence
-
-  # --- .deq    sym, ...
-  # Copy bottom memorized push value to deq stream output, ignoring self buffer
-  # - if no symbol is given, self.deq is used
-  # - multiple symbols will cause dequeued values to be assigned to each, in a sequenc
-
-  # --- .pop.mode  mode
-  # --- .deq.mode  mode
-  # Change the way .pop operates when colliding with bottom of queue
-  #  mode : null  : DEFAULT - freeze the stack index, and produce .fill values in pop stream
-  #  mode : rot   : rotate stack index back to highest memorized stack value
-  #  mode : cap   : continuously re-pop the last value in stack memory
-  #  mode : nop   : abort the pop operation, freezing index and pop stream entirely
-
-  # --- .s   idx
-  # Stack index function
-  # - if no index is given, highest memory index is used
-  # - caps in range self.q ... self.ss
-
-  # --- .q   idx
-  # Queue index function
-  # - if no index is given, lowest memory index is used
-  # - caps in range self.qq ... self.s
-
-  # --- .topget  sym, ...
-  # Assign value of current stack index memory to symbol(s)
-  # - this ignores the currently buffered value in self
-  # - if no symbol is given, self is used for assignment of memory value
-  # - if multiple symbols are given, they are all assigned the same value
-  # - if memory doesn't exist, then a .fill value is assigned instead
-
-  # --- .topset  val
-  # Assign a value to the current stack index memory
-  # - if no value is given, the value of self is used
-  # - else, this ignores the currently buffered value in self
-
-  # --- .new  size, fill
-  # Push stack index memory by size, filling it with given fill value
-  # - if no size is given, 1 is used
-  # - if no fill is given, self.fill is used
-
-  # --- .reset fill, start, size
-  # Reset the queue position to lowest memory, and the stack position according to given size
-  # - if a fill value is given, then the range will be filled, updating boundaries accordingly
-  # - at end of reset, minimum and maximum boundaries are checked, and idices are adjusted
-
-  # --- .purge ...
-  # Destroy the methods for this object
-  # - properties remain intact
-  # - if ... contains additional method names, they will be purged as well
-
-
-# Static Methods:
-# --- stack.fill   stack, start, size, fill
-# Fill a contiguous area in a stack, in altmacro mode
-#  stack : the stack to fill
-#  start : the index to begin fill at
-#   size : the number of elements to fill
-#   fill : the value to fill with
-
-# --- stack.oob  stack, method, behavior
-# A macro for plugging callbacks into a method event as a behavior
-#    stack : the stack to mutate
-#   method : the method to mutate
-# behavior : suffix of the static behavior name
-# - behavior callback must be called stack.oob.'method'.'behavior'
-# - intended to be used through various object '.mode' event methods
 
 .macro stack.fill, stack, start, size, fill; LOCAL i, idx#
   idx = \start; i = \size; .if \stack\().sss < (idx+i); i = \stack\().sss - idx; .endif
   .if (idx <= \stack\().ss) && (\stack\().ss < (idx+i)); \stack\().ss = idx+i; .endif
-  .if i > 0; .rept i;$.ema \stack, %idx, <=\fill>;idx=idx+1;.endr; .endif
+  .if i > 0; .rept i;sidx.ema \stack, %idx, <=\fill>;idx=idx+1;.endr; .endif
 
 .endm; .macro stack.oob, stack, method, behavior; .purgem \stack\().oob.\method
   .macro \stack\().oob.\method, va:vararg; stack.cb.oob.\method\().\behavior \stack, \va; .endm
@@ -256,13 +294,13 @@ stack$ = 0              # stack ID counter
       .if \idx < \self\().qq;\self\().q=\self\().qq;.endif
 
 # topget/set create an I/O for interfacing with stack index
-    .endm; .macro \self\().topget, sym=\self, va:vararg; $.noalt2 /*
+    .endm; .macro \self\().topget, sym=\self, va:vararg; sidx.noalt2 /*
       */"<.ifdef \self>",\self\().s,/*
       */"<;\sym=\self>",\self\().s,/*
       */"<;.else;\sym=\self.fill;.endif>"
       .irp v,\va;.ifnb \v; \v=\sym;.endif; .endr
     .endm; .macro \self\().topset, val=\self
-      $.noalt \self,\self\().s,"< = \val>"
+      sidx.noalt \self,\self\().s,"< = \val>"
 
 # new pushes a fill value to n elements above stack
     .endm; .macro \self\().new, size=1, fill=\self\().fill
@@ -281,7 +319,7 @@ stack$ = 0              # stack ID counter
         .if \self\().s < \self\().sss
           .if \self\().s > \self\().ss; \self\().oob=1; \self\().oob.push \val
             .if \self\().oob; .exitm; .endif
-          .endif; $.ema \self, %\self\().s, <=\val>; \self\().s = \self\().s + 1
+          .endif; sidx.ema \self, %\self\().s, <=\val>; \self\().s = \self\().s + 1
           \self = \self\().fill; .endif; .endr; .noaltmacro
 
 # pop works with stack buffer, so both self and self.pop are updated
@@ -292,7 +330,7 @@ stack$ = 0              # stack ID counter
           .if \self\().oob; .exitm; .endif
         .endif; \self\().pop = \self; \sym = \self
           \self\().s = \self\().s - 1
-          $.ema <\self = \self>, %\self\().s; .endr; .noaltmacro
+          sidx.ema <\self = \self>, %\self\().s; .endr; .noaltmacro
 
 # de-queue works independently from stack buffer, so only self.deq is updated
     .endm; .macro \self\().deq, va:vararg=\self\().deq; .altmacro
@@ -300,7 +338,7 @@ stack$ = 0              # stack ID counter
         .if \self\().q+1 >= \self\().s
           \self\().oob=1; \self\().oob.deq \sym
           .if \self\().oob;.exitm;.endif;
-        .endif; $.ema <\self\().deq=\self>, %\self\().q
+        .endif; sidx.ema <\self\().deq=\self>, %\self\().q
         \sym = \self\().deq; \self\().q = \self\().q + 1
         .endr; .noaltmacro;
 
@@ -338,7 +376,7 @@ stack$ = 0              # stack ID counter
 # - this helps encourage recycling memory on queue depletion
 .endm; .macro stack.cb.oob.deq.null, stack, sym, va:vararg;
   .if \stack\().q == \stack\().s; \sym=\stack\().fill; \stack\().deq=\sym
-  .else; $.ema <\stack\().deq=\stack>, %\stack\().q; \sym=\stack\().deq;\stack\().reset,,0; .endif
+  .else; sidx.ema <\stack\().deq=\stack>, %\stack\().q; \sym=\stack\().deq;\stack\().reset,,0; .endif
 
 # incr increments push memory index by 1
 .endm; .macro stack.cb.oob.push.incr, stack, va:vararg;
@@ -351,7 +389,7 @@ stack$ = 0              # stack ID counter
 # rot resets the index to lowest/highest in order to rotate memory instead of collapsing or freezing
 .endm; .macro stack.cb.oob.pop.rot, stack, va:vararg; \stack\().s = \stack\().ss; \stack\().oob=0
 .endm; .macro stack.cb.oob.deq.rot, stack, sym, va:vararg;
-  $.ema <\stack\().deq=\stack>, %\stack\().q; \sym=\stack\().deq; \stack\().q = \stack\().qq; .endm
+  sidx.ema <\stack\().deq=\stack>, %\stack\().q; \sym=\stack\().deq; \stack\().q = \stack\().qq; .endm
 
 .endif
 /**/
