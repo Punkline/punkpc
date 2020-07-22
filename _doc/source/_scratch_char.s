@@ -12,12 +12,27 @@
 /*## Examples:
 ##*/
 
-#.include "./punkpc/str.s"
-.include "./punkpc/stacks.s"
+# Scratch notes:
+
+# Basic premise is actually very simple:
+# - make use of the ' escape literal to transform ascii literals into usable integer values
+# - build stacks out of strings parsed with the .irpc loop
+# - create procedurally-generated macros that map the output on a per-character basis for decoding
+
+# the complication comes with distinguishing problematic characters in the parse...
+# - many characters like ":;=\n#/**/\\ can cause issues in parsing
+#   - quotes, backslashes, semicolons and equals signs would be particularly useful to have
+# - try to develop an encoder macro that minimizes parsing failures, and provides alternatives
+
+# and also in deciding what parts of the codec-building process I want to make modular
+# - filters would be an easy quanta to build encoders/decoders out of by putting them in a sequence
+
+# --- a major complication is the shallow callstack that will be used to concat chars on decode
+# - parse will need to be designed in a way that can be "chugged" in "gulps"
+# - tweaking this may greatly impact parsing speed, because it will require redundant string copying
 
 
-
-
+# found a way to parse quotes in noaltmacro mode:
 .macro m, str:vararg
   test = 0
   .irpc c, "\str"
@@ -25,12 +40,15 @@
   .endr
 .endm
 
-
-
 m "Hello"
 .long test
+# this will detect quotes in an argument by returning a bool
+# - it does not use altmacro mode
+# - :vararg causes argument to act like a literal super-string, ignoring quotes
 
+## ---
 
+# can be applied to encoding with ':
 .macro m, str:vararg
 
   .irpc c, "\str";   test = 1
@@ -45,11 +63,83 @@ m "Hello"
   .byte \c
 .endm
 
-m "Hell:o"
-# this will parse quotes literally outside of altmacro mode!
+m "Hello"
+# >>> "Hello"
+# this will encode quotes literally outside of altmacro mode!
 # - quotes still have to be in pairs in order to be safe
 # - strings may risk interpretation like literals? needs more testing
 
+m "test" for "; literalprotection"  # <-- breaks
+# >>> Error: Unrecognized opcode: `literalprotection""'
+# yep -- unsafe for semicolons, just like altmacro mode...
+
+m " test for <altmacro container> support! "
+# >>> "testfor<altmacrocontainer>support!"
+# appears to lose spaces too, try allowing outer quotes as option?
+# - it seems outer quotes are stripped as though they were nesting --
+#   - but the internal quotes are just read linearly in a sequence
+
+## ---
+
+
+.macro m, str:vararg
+  .irpc c, \str
+    enc "'\c+0", "\c"  # 1st arg is used, 2nd arg just validates the quoted pair syntax logic
+    .byte i  # resulting encoding is printed as a byte
+  .endr
+.endm
+.macro enc, i, va:vararg
+  i = \i+0  # if c was a quote " then it collapses the rest of the args into the unused vararg
+# because of this, quotes will escape to "'+0" instead of "'c+0" -- causing the '+' to be encoded
+#  This creates the following predictable cases:
+# - i == an ascii encoded char besides "
+# - i == '+0 -- or "430" in decimal literals -- which is outside of 8-bit ascii range
+
+  .if i == 430; i = 34; .endif
+# this corrects the case of "  -- but doesn't need to if the number '430' is handled in some way
+
+.endm
+
+m "test" for "; literalprotection"
+# >>> test"for"; literalprotection
+m ""test" for ;" literalprotection""
+# >>> "test" for ;"literalprotection"
+# this way -- so long as the problematic literals are protected by quotes, they are valid
+# - unptotected spaces will always be trimmed, however
+
+m "	 !""$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+# problematic chars, even in protection:
+# 00 = null terminates string
+# 0A, 0B, 0C, 0D = newline whitespace breaks string
+# 1A = substitute
+# 1C, 1D, 1E = separators
+# 22 = double quotes - allowed, but will alter how subsequent chars are interpreted -- use pairs
+# 23 = comment symbol - breaks strings at a high level -- an expected incompatibility
+# 5C = backslash -- this creates a similar pattern that quotes make, causing them to be confused
+
+# -- otherwise, ascii 01...7F is parsable, which should cover the keyboard characters for inputs
+# --- need to make an exception for backslash, that's an important char
+
+## ---
+
+.macro m, str:vararg
+  .irpc c, \str
+    enc "'\c+1", "\c "  # offset by +1 is corrected on encoding, but not for quotes
+    .byte i            # this makes " and \ distinguishable
+  .endr
+.endm
+.macro enc, i, va:vararg
+  i = \i-1
+  .if i == 451; i = 34 # for case of "
+  .elseif i == 430; i = 92; .endif  # for case of \
+.endm
+
+m "	 !""$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+# -- this is only missing support for chars 00, 0A, 0B, 0C, 0D, 1A, 1C, 1D, 1E, and 23
+# -- the only accessable missing char is '#'
+
+# this should be acceptable for an input syntax in the encoder, if used with care of quote logic
+# - if I can add a buffer that starts checking chars coming after \, I can make an escape handler
 
 
 
@@ -65,18 +155,7 @@ m "Hell:o"
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+# --- below are my older notes, for reference
 
 
 
