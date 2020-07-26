@@ -31,6 +31,20 @@
 # - parse will need to be designed in a way that can be "chugged" in "gulps"
 # - tweaking this may greatly impact parsing speed, because it will require redundant string copying
 
+# Below are loose journaled attempts at creating a concept that works with these issues
+
+## ---
+
+# how to encode literals into ascii ints:
+.macro m, str
+  .irpc c, "\str"
+    enc "'\c"
+  .endr
+.endm
+.macro enc, c; .byte \c .endm
+m "Hello"
+
+## ---
 
 # found a way to parse quotes in noaltmacro mode:
 .macro m, str:vararg
@@ -141,15 +155,144 @@ m "	 !""$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTU
 # this should be acceptable for an input syntax in the encoder, if used with care of quote logic
 # - if I can add a buffer that starts checking chars coming after \, I can make an escape handler
 
+## ---
 
 
+# Creating an escape syntax that can handle escaping quotes to manipulate quote logic:
 
 
+.include "./punkpc/stacks.s"
+
+stack enc, enc.escaped
+# create a stack to buffer return chars and escape chars
 
 
+.macro m, str:vararg
+  enc.str \str
+  .rept enc.s
+    enc.deq; .byte enc.deq
+  .endr
+.endm
+.macro enc.str, str:vararg
+  enc.escaping = 0
+  .irpc c, \str
+    enc.char "'\c+1", "\c "
+    .if enc.escaping == 0; enc.push i; .endif
+  .endr
+.endm; .macro enc.char, i, va:vararg
+  i = \i-1
+  .if enc.escaping < 0; enc.escaping = 0; .endif # negative is a terminator state for escaping
+  .if enc.escaping;  enc.escape    # if in escaping mode, handle with the escape macro
+  .elseif i == 451; enc.escaping = -1;  i = 0x22  # skip un-escaped quotes
+  .elseif i == 430; enc.escaping = 1;   i = 0x4C  # begin escape sequence with backslash
+  .endif
+.endm; .macro enc.escape
+  # i is the query
+  # enc.escaping is a bool/int -- non-0 = escaping, and int = escape mode type
+  # 1 = single char escape entry   \\ \" \t \n \r
+  # 2, 3, 4 = octal ascii escape         \101
+  # 5, 6, 7 = decimal ascii escape       \d65
+  # 8, 9, 10 = hexadecimal ascii escape  \x41
+  .if enc.escaping == 1; enc.escape.beg     # handle char escape beginning
+  .elseif enc.escaping <= 4; enc.escape.oct # handle nth octal char
+  .elseif enc.escaping <= 7; enc.escape.dec # handle nth decimal char
+  .elseif enc.escaping <= 9; enc.escape.hex # handle nth hex char
+  .else; enc.escaping = 0; .endif  # handle else case
+.endm; .macro enc.escape.beg
+  .if i == 451;      enc.escaping = 0; i = 0x22  # case of " escape
+  .elseif i == 430;  enc.escaping = 0; i = 0x5C    # case of \ escape
+  .elseif (i >= 0x30) && (i <= 0x37); enc.escaping = 2 # case of oct escape
+    enc.escape  # recurse, because octals have no symbolic prefix
+  .elseif i == 0x64; enc.escaping = 5          # case of dec escape
+  .elseif i == 0x78; enc.escaping = 8          # case of hex escape
+  .elseif i == 0x74; enc.escaping = 0; i = 0x9 # case of tab escape
+  .elseif i == 0x72; enc.escaping = 0; i = 0xD # case of carriage return escape
+  .elseif i == 0x6E; enc.escaping = 0; i = 0xA # case of newline escape
+  .else; enc.escaping = 0; .endif  # handle else case
+.endm; .macro enc.escape.oct
+  enc.escaping = enc.escaping + 1
+  .if (i >= 0x30) && (i <= 0x37);  enc.escaped.push i & 7
+    .if enc.escaping >= 5; enc.escaping = 0; .endif
+  .else; enc.escaping = 0; .endif;
+  .if enc.escaping == 0; i = 0
+    .rept enc.escaped.s
+      enc.escaped.deq enc.escaped
+      i = i << 3 | enc.escaped
+    .endr # ascii has been built from octal sequence
+  .endif
+.endm; .macro enc.escape.dec
+  enc.escaping = enc.escaping + 1
+  .if (i >= 0x30) && (i <= 0x39);  enc.escaped.push i & 15
+    .if enc.escaping >= 8; enc.escaping = 0; .endif
+  .else; enc.escaping = 0; .endif
+  .if enc.escaping == 0; i = 0
+    .rept enc.escaped.s
+      enc.escaped.deq enc.escaped
+      i = i * 10 + enc.escaped
+    .endr # ascii has been built from decimal sequence
+  .endif
+.endm; .macro enc.escape.hex
+  enc.escaping = enc.escaping + 1
+  .if (i >= 0x30) && (i <= 0x39);  enc.escaped.push (i & 15)
+  .else; i = i - 0x37
+    .if (i >= 10) && (i <= 15);  enc.escaped.push i
+    .else; i = i - 0x20;
+      .if (i >= 10) && (i <= 15);  enc.escaped.push i
+      .else; enc.escaping = 0
+  .endif; .endif; .endif
+  # accepts capital or lower-case a-f in addition to decimals
+  .if enc.escaping >= 10; enc.escaping = 0; .endif
+  .if enc.escaping == 0; i = 0
+    .rept enc.escaped.s
+      enc.escaped.deq enc.escaped
+      i = i << 4 | enc.escaped
+    .endr # ascii has been built from hex sequence
+  .endif
+.endm
 
 
+m """Hello World"""
+# >>> Hello World
+# - quotes are now ignored in the encoding, but remain syntactically
 
+m "\\"
+# >>> \
+# backslash escapes backslash literally
+
+m "\""
+# >>> "
+# it can escape quotes literally, but only if the escaped quote doesn't interrupt pairing logic
+
+m "\\ \""
+# >>> \ "
+
+m "\"test\" for ; \"literalprotection\""
+# >>> "test" for ; "literal protection"
+# - possible to control literal quotation logic now by using dummy " marks
+#   - anything between a pair of quotes is protected
+#     - escaped quotes do not count in the pairing logic
+#   - only literally backslashed " marks will be encoded without risk of syntax errors
+#     - backslashes internal to a quote pair may create errors
+
+m "\000	\012\013\014\015\031\032\033\034 !\"\043$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+# >>> 00010203 04050607 ... 7C7D7E7F
+# all 128 chars in this range can now be encoded in the input string
+
+m "\x80\x81\x82\x83" "\d132\d133\206\207"
+# >>> 80818283 84858687
+# hexadecimal, decimal, and octal characters can be used to escape un-typable characters
+
+m "\n\r\t"
+# >>> 0A0D09
+# specially recognized lower-case-only escape characters
+
+m "\d'A"
+# using \d with the ' escape is not supported, but interestingly it half-works
+# - this will produce a null and then translate the escaped decimal ascii for 'A
+# >>> 0041
+# - this would be just like using...
+m "\000A"
+# >>> 0041
 
 
 
