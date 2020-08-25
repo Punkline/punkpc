@@ -35,7 +35,7 @@
 
 .ifndef myClass.included
   # if this is the first time this module has been included, this symbol will not yet exist
-  # this statement has no '\' in it, so it's safe for a regular '.ifdef' directive
+  # this statement has no '\' in it, so it's safe for a regular '.ifdef' or '.ifndef' directive
 
   myClass.included = 0
   # default global version number = null
@@ -43,60 +43,88 @@
 
 .endif;
 
+# Now, we are absolutely sure that the symbol 'myClass.included' at the very least EXISTS
+# if it is 0 however, then it needs to be initialized
+
+
 .ifeq myClass.included
 # check to see if the variable is still null
-# if null, then install the module:
 # - if it isn't null, then another version was installed by some other inclusion of this module
 
+# if null, then install the module:
   myClass.included = 1
   # The version must be set to a non-0 number when installed
-  # you may optionally modify the version to reflect updates to a module
+  # you may optionally modify the version to reflect any updates made to a module
   # - this may be useful for distinguishing nuanced version differences, for compatibility reasons
-  # - regardless of number; the quality of not being zero signifies an installed module
+  # - regardless of number; the quality of not being zero signifies that it is installed
 
+
+  # At this point in the .ifeq block...
+  # We are committed to initializing the class module, so we need to create the constructor.
+
+  # First we make an instance counter:
   myClass$ = 0
-  # an index counter is used to assign unique IDs to each object generated from the 'myClass' class
+  # this counter is used to assign unique IDs to each object generated from the 'myClass' class
   # - these can be fashioned into pointers, with some extra work
-  # - I use '$' suffixes to denote list index symbols -- but it can be called anything
+  # - I use '$' suffixes to denote a 'scalar index' -- but that's just a personal habit
 
 
   # Macros inside of a module can be thought of as class methods if they use a common namespace
-  # - they will only be installed once, with the module
+  # - they will only be installed once because of the myClass.included symbol
 
   # Each object of this 'myClass' class will have a unique name with its own methods and properties
 
   .macro myClass, self, ppt=0, cb="emit_string"
-    # This object constructor will create a 'myClass' object instance
+    # This object constructor will create a 'myClass' class of object. An instance of 'myClass'.
     # if the object already exists by the given name 'self', then its attributes are updated
-    # - the object will be given the name given as the 'self' argument
+    # - 'self' will become the name of the newly instantiated object
 
     # like the module block, we have to use .ifdef to check if self exists
     # --- The problem here is that the escaped, terminated name is '\self\()'
     # - this contains '\' chars, and can't be checked by .ifdef without creating errors
 
     ifdef \self\().ismyClass
-    # --- Calling ifdef will update the 'def' and 'ndef' bools
-    # --- It will always return in .noaltmacro mode
+    # --- Calling ifdef will update the global 'def' and 'ndef' properties
+    # - you can check these like bools with regular .if statements, to avoid using .ifdef or .ifndef
+    # - macro will always return in .noaltmacro mode
 
     .if ndef;
+    # By using 'ndef' with a regular '.if' directive...
+    #  we can check to see if \self\().ismyClass exists, and not invoke errors from the '\'
+    # - .ismyClass property identifies this namespace as belonging to 'myClass'
+
+
       myClass$ = myClass$ + 1
       \self\().ismyClass = myClass$
-      # if self isn't a myClass yet, then generate an ID for it
-      # - this check comes from the update 'ndef' property, which was assigned by 'ifdef'
+      # Use the instance counter to assign a unique ID to '.ismyClass' -- to identify the object by
 
     .elseif def;
+    # else, if the object already exists and is a member of 'myClass'...
+
       .purgem \self
       .purgem \self\().myMethod
-      # if self IS a myClass already, then purge the methods we created for it last time
+      # ... then just purge the method attributes so that we can redefine them with new arguments
 
-    .endif;
+    .endif
+
+
+    # At this point, the object is ready to be defined -- regardless if it's new or old
+    # - for this example, we'll make an object that memorizes a value and emits it using a callback
 
     \self = \ppt
-    # assign property of self to constructor argument 'ppt'
+    # The constructor will create a main object property out of the given 'ppt' argument
+    # - this property can be read or written to, but it will start out with the value of '\ppt'
+
+
+    # Now the constructor will build a method for this object...
 
     .macro \self
-      # main method will recall attribute memory it was built with
+      # main method will recall the '\cb' argument that it was built with
+      # - 'cb' is a 'callback' -- where the name is used to invoke a macro
+      # - 'self' passes the name of this object to the macro so that its main property can be used
       \cb \self
+
+      # This will cause the main property of this object to be invoked by whatever callback is given
 
     .endm
     .macro \self\().myMethod, prpt=\ppt, cbk="\cb"
@@ -109,8 +137,12 @@
     .endm;  # end of last object method
   .endm;  # end of constructor method
 .endif;  # end of module block
+
+
 # this example module is now safe to import using .include "./path/file.ext"
 # - without 'ifdef' the process of naming objects would be more of a headache
+
+
 
 # Here are some callback functions to test the above module with:
 .macro emit_word, i;  .long \i;  .endm
@@ -122,7 +154,7 @@ myClass myObj, 1, emit_word
 # - it has a value of 1, and emits it as a word when called
 
 myClass otherObj, myObj, emit_4byte
-# create a new object out of the main property value of 'myObj'
+# create a second object out of the main property value of the first object
 # - it evaluates myObj's main property and copies its value, emitting it as 4 repeated bytes
 
 myObj
