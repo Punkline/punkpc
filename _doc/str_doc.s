@@ -131,17 +131,17 @@ lit s, Error Message
 s.lit str.errors
 # >>> Error : Error
 # >>> Error : Message
-# Passing  Hello World to 'str.errors' with '.lit' will cause each argument to be read separately
+# Passing  Error Message to 'str.errors' with '.lit' will cause each argument to be read separately
 
 s.str str.errors
 # >>> Error : Error Message
-# Passing  Hello Wolrd  to str.errors with '.str' will enquote the whole argument string
+# Passing  Error Message  to str.errors with '.str' will enquote the whole argument string
 
 
 # 'str.error' is a variation of 'str.errors' that concatenates multiple strings into one error:
 s.lit str.error
 # >>> Error : ErrorMessage
-# - spaces are trimmed between Hello and World arguments
+# - spaces are trimmed between Error and Message arguments
 
 s.str str.error
 # >>> Error : Error Message
@@ -171,7 +171,7 @@ myFloats.lit
 # Use the .altmacro directive to switch to altmacro mode
 # - this just changes the way macro calls are made, and is otherwise just a simple boolean switch
 # - never switch to altmacro mode if you don't know you'll be able to switch back before returning
-#   - if you must find what mode you are in procedurally, use the 'ifalt' module tp create a semspr
+#   - if you must find what mode you are in procedurally, use the 'ifalt' module to create a sensor
 
 # When in altmacro mode, you must use  <alt strings>  instead of  "quoted strings"
 # - these take the place of  "quoted strings"  when handling  <string memory>  vs  literal memory
