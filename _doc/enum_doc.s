@@ -70,6 +70,32 @@ bf- bIsStr, 1f; nop; 1:
 bt+ bUseIndex, 0f; nop; 0:
 # once in the CR, each bool can be referenced by name in 'bf' or 'bt' branch instructions
 
+# --- ENUM PREFIXES -------------------------------------------------------------------------------
+enum.pfx "myNamespace.", -4, (0x10), A, B, C, D
+.byte myNamespace.A, myNamespace.B, myNamespace.C, myNamespace.D
+# - pfx allows first argument to create a prefix substring added to the beginning of each input name
+# - doesn't need to be in quotes, but it makes the syntax a bit more readible and doesn't interfere
+
+# --- ENUMERATOR OBJECTS --------------------------------------------------------------------------
+
+enum.new myStruct, "struct."  # creates an enumerator object called 'myStruct'
+# - the second argument creates a prefix name that gets attached to the beginning of each input name
+
+enum.new myRegs  # creates an enumerator object called 'myRegs'
+# - a blank second argument will use a 'blank' prefix that generates the given symbol names directly
+myRegs +1, (r3), rPrev, rNext, rColor, rData, rStr, rID, rPriority, rBools
+myStruct +4, xPrev, xNext, xColor, xData, xStr, +1, xID, xPriority, +2, xBools
+
+lwz rPrev,     struct.xPrev(r3)     # 0x00
+lwz rNext,     struct.xNext(r3)     # 0x04
+lwz rColor,    struct.xColor(r3)    # 0x08
+lwz rData,     struct.xData(r3)     # 0x0C
+lwz rStr,      struct.xStr(r3)      # 0x10
+lbz rID,       struct.xID(r3)       # 0x14
+lbz rPriority, struct.xPriority(r3) # 0x15
+lhz rBools,    struct.xBools(r3)    # 0x16
+# load struct vars into named registers using named offsets
+
 
 # --- Module attributes:
 # Volatile Working Properties:
