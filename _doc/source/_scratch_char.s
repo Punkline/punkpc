@@ -41,8 +41,11 @@
     enc "'\c"
   .endr
 .endm
-.macro enc, c; .byte \c .endm
-m "Hello"
+
+.macro enc, c; .byte \c; .endm
+m Hello
+# >>> 48656C6C 6F
+# >>> Hello
 
 ## ---
 
@@ -266,7 +269,7 @@ m "\""
 m "\\ \""
 # >>> \ "
 
-m "\"test\" for ; \"literalprotection\""
+m "\"test\" for ; \"literal protection\""
 # >>> "test" for ; "literal protection"
 # - possible to control literal quotation logic now by using dummy " marks
 #   - anything between a pair of quotes is protected
@@ -274,7 +277,7 @@ m "\"test\" for ; \"literalprotection\""
 #   - only literally backslashed " marks will be encoded without risk of syntax errors
 #     - backslashes internal to a quote pair may create errors
 
-m "\000	\012\013\014\015\031\032\033\034 !\"\043$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+m "\000\x01\x02\x03\x04\x05\x06\x07\x08	\012\013\014\015\d014\d015\d016\d017\d018\d019\d020\d021\d022\d023\d024\031\032\033\034\035\036\037 !\"\043$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7F"
 # >>> 00010203 04050607 ... 7C7D7E7F
 # all 128 chars in this range can now be encoded in the input string
 
