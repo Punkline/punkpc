@@ -16,6 +16,12 @@
 
 ##*/
 /*## Attributes:
+# --- Class Property ---
+
+# --- sidx - an input/output buffer for getting and setting values to an indexed scalar symbol
+
+
+
 # --- Class Methods ---
 
 # --- sidx.alt    <prefix>, i, <suffix>, ...
@@ -38,9 +44,24 @@
 # - using these directly requires a stricter input syntax, but may be faster than the other methods
 
 # You may optionally append a 2, 3, or 4 to these method names to scale the number of args:
-# --- sidx.alt2 p, i, s,  i2, s2,  ...
-# --- sidx.alt3 p, i, s,  i2, s2,  i3, s3,  ...
-# --- sidx.alt4 p, i, s,  i2, s2,  i3, s3,  i4, s4,  ...
+# --- sidx.alt2   p, i, s,  i2, s2,  ...
+# --- sidx.alt3   p, i, s,  i2, s2,  i3, s3,  ...
+# --- sidx.alt4   p, i, s,  i2, s2,  i3, s3,  i4, s4,  ...
+
+# --- sidx.get    p, i
+# - use this to quickly save the value of a target scalar index symbol to the 'sidx' property
+
+# --- sidx.set    p, i
+# - use this to quickly write the value of the 'sidx' property to a target scalar index symbol
+
+# You may alos optionally append a 2, 3, or 4 to these get/set method names;
+# --- sidx.get2   p, i, i2
+# --- sidx.get3   p, i, i2, i3
+# --- sidx.get4   p, i, i2, i3, i4
+# --- sidx.set2   p, i, i2
+# --- sidx.set3   p, i, i2, i3
+# --- sidx.set4   p, i, i2, i3, i4
+# - use 'sidx' property to input/output values from various scalar symbols this way
 
 ##*/
 /*## Examples:
@@ -54,22 +75,52 @@ myClass$4.myObj$5 = 6
 
 sidx.toalt3 myNamespace, myIndex, "<=myClass>", classID, .myObj, objID
 .long myNamespace$3
+# >>> 00000006
 # now in altmacro mode...
 
 sidx.alt3 myNamespace, myIndex, <=myClass>, classID, .myObj, objID
 .long myNamespace$3
+# >>> 00000006
 # still in altmacro mode...
 
 sidx.noalt3 myNamespace, myIndex, <=myClass>, classID, .myObj, objID
 .long myNamespace$3
+# >>> 00000006
 # back to noaltmacro mode...
 
 sidx.noalt3 myNamespace, myIndex, "<=myClass>", classID, .myObj, objID
 .long myNamespace$3
+# >>> 00000006
+
+
+# You can also use a simpler I/O interface in noaltmacro mode using the .get and .set methods:
+
+idx = 1000
+sidx = 5
+# sidx is our input parameter, idx is the index we want to assign it to
+
+sidx.set mykeys, idx
+.long mykeys$1000
+# >>> 00000005
+
+sidx = 0
+# clear sidx property to demonstrate return update from .get ...
+
+sidx.get mykeys, idx
+.long sidx
+# >>> 00000005
+# sidx property has been updated from .get
+
+sidx.set4 mykeys, idx, idx, idx, idx
+.long mykeys$1000$1000$1000$1000
+# >>> 00000005
+# example of a complex index
 
 ##*/
 
 .ifndef sidx.included; sidx.included = 0; .endif; .ifeq sidx.included; sidx.included = 2
+# version 0.0.3:
+# - added get/set methods
 # version 0.0.2:
 # - refactored namespace to match module name
 
@@ -103,6 +154,25 @@ sidx.noalt3 myNamespace, myIndex, "<=myClass>", classID, .myObj, objID
 .endm;.macro sidx.toalt4,p,i,s,i2,s2,i3,s3,va:vararg
   .altmacro;sidx.ema4 \p,%\i,\s,%\i2,\s2,%\i3,\s3,%\i4,\s4,\va
 .endm # methods for emitting up to 4 evaluated index args
+
+.macro sidx.get,p,i; .altmacro; sidx.ema <sidx=\p>, %\i;
+  .noaltmacro; .endm
+.macro sidx.get2,p,i,i2; .altmacro; sidx.ema2 <sidx=\p>, %\i,,%\i2;
+  .noaltmacro; .endm
+.macro sidx.get3,p,i,i2,i3; .altmacro; sidx.ema3 <sidx=\p>, %\i,,%\i2,,%\i3;
+  .noaltmacro; .endm
+.macro sidx.get4,p,i,i2,i3,i4; .altmacro; sidx.ema4 <sidx=\p>, %\i,,%\i2,,%\i3,,%\i4;
+  .noaltmacro; .endm
+.macro sidx.set,p,i; .altmacro; sidx.ema \p, %\i,<=sidx>;
+  .noaltmacro; .endm
+.macro sidx.set2,p,i,i2; .altmacro; sidx.ema2 \p, %\i,,%\i2,<=sidx>;
+  .noaltmacro; .endm
+.macro sidx.set3,p,i,i2,i3; .altmacro; sidx.ema3 \p, %\i,,%\i2,,%\i3,<=sidx>;
+  .noaltmacro; .endm
+.macro sidx.set4,p,i,i2,i3,i4; .altmacro; sidx.ema4 \p, %\i,,%\i2,,%\i3,,%\i4,<=sidx>;
+  .noaltmacro; .endm
+
+
 .noaltmacro
 .endif
 /**/

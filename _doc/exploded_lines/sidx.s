@@ -76,6 +76,46 @@
     .altmacro
     sidx.ema4 \p, %\i, \s, %\i2, \s2, %\i3, \s3, %\i4, \s4, \va
   .endm;
+  .macro sidx.get,  p,  i
+    .altmacro
+    sidx.ema <sidx=\p>, %\i
+    .noaltmacro
+  .endm;
+  .macro sidx.get2,  p,  i,  i2
+    .altmacro
+    sidx.ema2 <sidx=\p>, %\i, , %\i2
+    .noaltmacro
+  .endm;
+  .macro sidx.get3,  p,  i,  i2,  i3
+    .altmacro
+    sidx.ema3 <sidx=\p>, %\i, , %\i2, , %\i3
+    .noaltmacro
+  .endm;
+  .macro sidx.get4,  p,  i,  i2,  i3,  i4
+    .altmacro
+    sidx.ema4 <sidx=\p>, %\i, , %\i2, , %\i3, , %\i4
+    .noaltmacro
+  .endm;
+  .macro sidx.set,  p,  i
+    .altmacro
+    sidx.ema \p, %\i, <=sidx>
+    .noaltmacro
+  .endm;
+  .macro sidx.set2,  p,  i,  i2
+    .altmacro
+    sidx.ema2 \p, %\i, , %\i2, <=sidx>
+    .noaltmacro
+  .endm;
+  .macro sidx.set3,  p,  i,  i2,  i3
+    .altmacro
+    sidx.ema3 \p, %\i, , %\i2, , %\i3, <=sidx>
+    .noaltmacro
+  .endm;
+  .macro sidx.set4,  p,  i,  i2,  i3,  i4
+    .altmacro
+    sidx.ema4 \p, %\i, , %\i2, , %\i3, , %\i4, <=sidx>
+    .noaltmacro
+  .endm;
   .noaltmacro
 .endif
 
