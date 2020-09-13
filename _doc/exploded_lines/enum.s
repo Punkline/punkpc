@@ -2,12 +2,12 @@
   enum.included = 0
 .endif;
 .ifeq enum.included
-  enum.included = 2
+  enum.included = 3
   .include "./punkpc/ifdef.s"
   .include "./punkpc/xem.s"
   enum$=0
   enumb$=0
-  .macro enum.new,  self,  pfx
+  .macro enum.new,  self,  pfx,  varg:vararg
     ifdef \self\().isEnum
     .if ndef
       enum$ = enum$ + 1
@@ -36,9 +36,12 @@
           .endif;
         .endr;
       .endm;
+      .ifnb \varg
+        \self \varg
+      .endif;
     .endif;
   .endm;
-  .macro enumb.new,  self,  pfx
+  .macro enumb.new,  self,  pfx,  varg:vararg
     ifdef \self\().isEnumb
     .if ndef
       enumb$ = enumb$ + 1
@@ -88,6 +91,9 @@
           i=i<<4
         .endr;
       .endm;
+      .ifnb \varg
+        \self \varg
+      .endif;
     .endif;
   .endm;
   enum.new enum

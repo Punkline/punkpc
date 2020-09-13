@@ -78,13 +78,13 @@ enum.pfx "myNamespace.", -4, (0x10), A, B, C, D
 
 # --- ENUMERATOR OBJECTS --------------------------------------------------------------------------
 
-enum.new myStruct, "struct."  # creates an enumerator object called 'myStruct'
+enum.new myStruct, "struct.", +4, (0)  # creates an enumerator object called 'myStruct'
 # - the second argument creates a prefix name that gets attached to the beginning of each input name
 
-enum.new myRegs  # creates an enumerator object called 'myRegs'
+enum.new myRegs, "", -1, (r31)  # creates an enumerator object called 'myRegs'
 # - a blank second argument will use a 'blank' prefix that generates the given symbol names directly
-myRegs +1, (r3), rPrev, rNext, rColor, rData, rStr, rID, rPriority, rBools
-myStruct +4, xPrev, xNext, xColor, xData, xStr, +1, xID, xPriority, +2, xBools
+myRegs   rPrev, rNext, rColor, rData, rStr, rID, rPriority, rBools
+myStruct xPrev, xNext, xColor, xData, xStr, +1, xID, xPriority, +2, xBools
 
 lwz rPrev,     struct.xPrev(r3)     # 0x00
 lwz rNext,     struct.xNext(r3)     # 0x04
@@ -115,13 +115,48 @@ lhz rBools,    struct.xBools(r3)    # 0x16
 
 # --- Class Methods -------------------------------------------------------------------------------
 
-# --- enum        sym, sym, ...
+# --- enum        Sym, Sym, ...
 # An enumerator tool that lets you assign iterations of a counting number to a sequence of names
 #  - if sym starts with an symbol-friendly character, then it will be assigned a step in the count
 #  - if sym starts with a + or a -, it is considered as an argument step amount, for counter
 #  - if sym is (enclosed in parentheses) then it is considered as an argument index, to set counter
 
+# --- enumb       Sym, Sym, ...
+# Bool enumerator; creates aliases of given symbols to generate boolean indicies and masks
+#  - generated mSym = mask of this bool;              ex: mSym = 0x00040000
+#  - generated bSym = big-endian index of this bool;  ex: bSym = 13
+
 # --- enumb.mask  Sym, Sym, ...
 # A method that evaluates given symbol names, and uses their aliases to build a combined mask
 #  - if 'Sym' does not exist, but 'mSym' does - then value is assumed false
+
+# --- enum.pfx        pfx, Sym, Sym, ...
+# --- enumb.pfx       pfx, Sym, Sym, ...
+# --- enumb.mask.pfx  pfx, Sym, Sym, ...
+# Variations of the class methods that concatenate each symbol to a given prefix namespace
+
+
+
+# --- Constructor Methods -------------------------------------------------------------------------
+
+# --- enum.new   name, pfx, Sym, Sym, ...
+# A constructor for making objects that can perform an 'enum' method with a private counter
+# - if pfx is blank "", then it will be unused
+# - if symbols are not provided, they can be added later by invoking the new object by name
+
+# --- enumb.new  name, pfx, Sym, Sym, ...
+# A constructor for making objects that can perform 'enumb' and 'enumb.mask' methods
+
+# --- Object Properties ---------------------------------------------------------------------------
+# --- .count  - all of these are like internal versions of the Class Properties
+# --- .step
+# --- .mask
+# --- .crf
+# --- enum Object Methods -------------------------------------------------------------------------
+# --- (self)  Sym, Sym, ...
+    # Just like the 'enum.pfx' Class method, but also internalizes an optional prefix
+
+# --- enumb Object Methods ------------------------------------------------------------------------
+# --- .mask   Sym, Sym, ...
+    # Just like the 'enumb.mask.pfx' Class method, but internalizes an optional prefix
 

@@ -20,7 +20,7 @@
 
 # --- Class Methods ---
 
-# --- enum        sym, sym, ...
+# --- enum        Sym, Sym, ...
 # An enumerator tool that lets you assign iterations of a counting number to a sequence of names
 #  - if sym starts with an symbol-friendly character, then it will be assigned a step in the count
 #  - if sym starts with a + or a -, it is considered as an argument step amount, for counter
@@ -34,6 +34,42 @@
 # --- enumb.mask  Sym, Sym, ...
 # A method that evaluates given symbol names, and uses their aliases to build a combined mask
 #  - if 'Sym' does not exist, but 'mSym' does - then value is assumed false
+
+# --- enum.pfx        pfx, Sym, Sym, ...
+# --- enumb.pfx       pfx, Sym, Sym, ...
+# --- enumb.mask.pfx  pfx, Sym, Sym, ...
+# Variations of the class methods that concatenate each symbol to a given prefix namespace
+
+
+
+# --- Constructor Methods ---
+
+# --- enum.new   name, pfx, Sym, Sym, ...
+# A constructor for making objects that can perform an 'enum' method with a private counter
+# - if pfx is blank "", then it will be unused
+# - if symbols are not provided, they can be added later by invoking the new object by name
+
+# --- enumb.new  name, pfx, Sym, Sym, ...
+# A constructor for making objects that can perform 'enumb' and 'enumb.mask' methods
+
+  # --- Object Properties ---
+
+  # --- .count  - all of these are like internal versions of the Class Properties
+  # --- .step
+  # --- .mask
+  # --- .crf
+
+  # --- enum Object Methods ---
+    # --- (self)  Sym, Sym, ...
+    # Just like the 'enum.pfx' Class method, but also internalizes an optional prefix
+
+  # --- enumb Object Methods ---
+    # --- (self)  Sym, Sym, ...
+    # Just like the 'enumb.pfx' Class method, but internalizes an optional prefix
+
+    # --- .mask   Sym, Sym, ...
+    # Just like the 'enumb.mask.pfx' Class method, but internalizes an optional prefix
+
 
 ##*/
 /*## Examples:
@@ -111,13 +147,13 @@ enum.pfx "myNamespace.", -4, (0x10), A, B, C, D
 
 # --- ENUMERATOR OBJECTS ---
 
-enum.new myStruct, "struct."  # creates an enumerator object called 'myStruct'
+enum.new myStruct, "struct.", +4, (0)  # creates an enumerator object called 'myStruct'
 # - the second argument creates a prefix name that gets attached to the beginning of each input name
 
-enum.new myRegs  # creates an enumerator object called 'myRegs'
+enum.new myRegs, "", -1, (r31)  # creates an enumerator object called 'myRegs'
 # - a blank second argument will use a 'blank' prefix that generates the given symbol names directly
-myRegs +1, (r3), rPrev, rNext, rColor, rData, rStr, rID, rPriority, rBools
-myStruct +4, xPrev, xNext, xColor, xData, xStr, +1, xID, xPriority, +2, xBools
+myRegs   rPrev, rNext, rColor, rData, rStr, rID, rPriority, rBools
+myStruct xPrev, xNext, xColor, xData, xStr, +1, xID, xPriority, +2, xBools
 
 lwz rPrev,     struct.xPrev(r3)     # 0x00
 lwz rNext,     struct.xNext(r3)     # 0x04
@@ -131,7 +167,10 @@ lhz rBools,    struct.xBools(r3)    # 0x16
 
 ##*/
 
-.ifndef enum.included; enum.included = 0; .endif; .ifeq enum.included; enum.included = 2
+.ifndef enum.included; enum.included = 0; .endif; .ifeq enum.included; enum.included = 3
+# version 3
+# - added varargs to constructors, so initial settings can be added to enum generators
+# - updated documentation attributes
 # version 2
 # - added xem.s to module, for register names
 # - added *.pfx variants of old functions, to support prefix namespaces
@@ -147,7 +186,7 @@ enum$=0; enumb$=0  # these count the number of enumerator objects that have been
 
 # these constructors let you make an integer enumerator or a bool enumerator
 # - bool enumerators create names with m- and b- prefixes
-.macro enum.new, self, pfx
+.macro enum.new, self, pfx, varg:vararg
   ifdef \self\().isEnum
   .if ndef; enum$ = enum$ + 1; \self\().isEnum = enum$
     \self\().count=0;\self\().step=1
@@ -159,9 +198,10 @@ enum$=0; enumb$=0  # these count the number of enumerator objects that have been
             .ifc \c,  (;  \self\().count=\a;a=0;.endif;.endr;.exitm;.endr;
         .if a;  \pfx\a=\self\().count; \self\().count=\self\().count + \self\().step;.endif;.endr;
     .endm;
+    .ifnb \varg; \self \varg; .endif
   .endif
 .endm
-.macro enumb.new, self, pfx
+.macro enumb.new, self, pfx, varg:vararg
   ifdef \self\().isEnumb
   .if ndef; enumb$ = enumb$ + 1; \self\().isEnumb = enumb$
     \self\().count=31;\self\().step=-1;
@@ -187,6 +227,7 @@ enum$=0; enumb$=0  # these count the number of enumerator objects that have been
           i=i<<4;
         .endr;
     .endm;
+    .ifnb \varg; \self \varg; .endif
   .endif
 .endm; enum.new enum; enumb.new enumb
 
