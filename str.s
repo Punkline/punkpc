@@ -1,5 +1,5 @@
 .ifndef str.included;  str.included=0;.endif;
-.ifeq str.included;  str.included=1
+.ifeq str.included;  str.included=2
   .include "./punkpc/ifdef.s"
   .include "./punkpc/ifalt.s"
   str$=0;str.vacount=0;str.logic=0;str.force_litmem=0;str.mRead = 1;str.mWrite=0;str.mLitmem = 2
@@ -17,17 +17,17 @@
   .endm;.macro str,  self,  varg:vararg;  ifalt;ifalt;ifdef \self\().isStr
     .if ndef;  \self\().isStr = 0;.endif;ifalt.reset
     .if \self\().isStr == 0;  str$ = str$ + 1;\self\().isStr = str$;\self\().litmode=0
-      .altmacro;$_str.point$ \self, %\self\().isStr;ifalt.reset
+      \self\().isBlankStr=1;.altmacro;$_str.point$ \self, %\self\().isStr;ifalt.reset
       .macro \self\().conc,  va:vararg;  str.vacount \va
         str.logic \self, mWrite, mStrio, mSuffix;.altmacro
         .if str.vacount>1
           str.strbuf_quoteme \self, %str.logic, \va;.else;
-          str.strbuf_dispatch \self, %str.logic, \va;.endif;
+          str.strbuf_dispatch \self, %str.logic, \va;.endif;\self\().isBlankStr=0
       .endm;.macro \self\().pfx,  va:vararg;  str.vacount \va
         str.logic \self, mWrite, mStrio, mPrefix;.altmacro
         .if str.vacount>1
           str.strbuf_quoteme \self, %str.logic, \va;.else;
-          str.strbuf_dispatch \self, %str.logic, \va;.endif;
+          str.strbuf_dispatch \self, %str.logic, \va;.endif;\self\().isBlankStr=0
       .endm;.macro \self\().str,  va:vararg;  str.logic \self, mRead, mStrio, mSuffix
         .altmacro;str.strbuf_commasuf \self, %str.logic, \va
       .endm;.macro \self\().strq,  va:vararg;  str.logic \self, mRead, mStrio, mPrefix
@@ -36,17 +36,17 @@
         str.logic \self, mWrite, mLitio, mSuffix;.altmacro
         .if str.vacount>1
           str.strbuf_dispatch \self, %str.logic, , \va;.else;
-          str.strbuf_dispatch \self, %str.logic, \va;.endif;
+          str.strbuf_dispatch \self, %str.logic, \va;.endif;\self\().isBlankStr=0
       .endm;.macro \self\().pfxlit,  va:vararg;  str.vacount \va
         str.logic \self, mWrite, mLitio, mPrefix;.altmacro
         .if str.vacount>1
           str.strbuf_dispatch \self, %str.logic, , \va;.else;
-          str.strbuf_dispatch \self, %str.logic, \va;.endif;
+          str.strbuf_dispatch \self, %str.logic, \va;.endif;\self\().isBlankStr=0
       .endm;.macro \self\().lit,  va:vararg;  str.logic \self, mRead, mLitio, mSuffix
         .altmacro;str.strbuf_commasuf \self, %str.logic, \va
       .endm;.macro \self\().litq,  va:vararg;  str.logic \self, mRead, mLitio, mPrefix
         .altmacro;str.strbuf_commapre \self, %str.logic, \va
-      .endm;.macro \self\().clear;  str.buildstrmem \self
+      .endm;.macro \self\().clear;  str.buildstrmem \self;\self\().isblank=1
       .endm;.macro \self\().strbuf_event;  .endm;.endif;str.vacount \varg
     .if str.force_litmem;  str.vacount=2;.endif;str.force_litmem=0
     .if str.vacount>1

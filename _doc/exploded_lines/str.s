@@ -2,7 +2,7 @@
   str.included=0
 .endif;
 .ifeq str.included
-  str.included=1
+  str.included=2
   .include "./punkpc/ifdef.s"
   .include "./punkpc/ifalt.s"
   str$=0
@@ -61,6 +61,7 @@
       str$ = str$ + 1
       \self\().isStr = str$
       \self\().litmode=0
+      \self\().isBlankStr=1
       .altmacro
       $_str.point$ \self, %\self\().isStr
       ifalt.reset
@@ -73,6 +74,7 @@
         .else;
           str.strbuf_dispatch \self, %str.logic, \va
         .endif;
+        \self\().isBlankStr=0
       .endm;
       .macro \self\().pfx,  va:vararg
         str.vacount \va
@@ -83,6 +85,7 @@
         .else;
           str.strbuf_dispatch \self, %str.logic, \va
         .endif;
+        \self\().isBlankStr=0
       .endm;
       .macro \self\().str,  va:vararg
         str.logic \self, mRead, mStrio, mSuffix
@@ -103,6 +106,7 @@
         .else;
           str.strbuf_dispatch \self, %str.logic, \va
         .endif;
+        \self\().isBlankStr=0
       .endm;
       .macro \self\().pfxlit,  va:vararg
         str.vacount \va
@@ -113,6 +117,7 @@
         .else;
           str.strbuf_dispatch \self, %str.logic, \va
         .endif;
+        \self\().isBlankStr=0
       .endm;
       .macro \self\().lit,  va:vararg
         str.logic \self, mRead, mLitio, mSuffix
@@ -126,6 +131,7 @@
       .endm;
       .macro \self\().clear
         str.buildstrmem \self
+        \self\().isblank=1
       .endm;
       .macro \self\().strbuf_event
       .endm;

@@ -30,8 +30,9 @@
 
   # ---Object Properties:
 
-  # --- .isStr   - a unique ID for this buffer (can be used with str.point to pass a str name)
-  # --- .litmode - a read-only status of literal buffer memory mode type
+  # --- .isStr      - a unique ID for this buffer (can be used with str.point to pass a str name)
+  # --- .isBlankStr - a bool that is 0 (false) if the string buffer is thought to be empty
+  # --- .litmode    - a read-only status of literal buffer memory mode type
   # - litmode determines whether a buffer is a string or a literal string
 
 
@@ -404,7 +405,10 @@ str.point myPointer, myStrObjectHandler
 
 
 .ifndef str.included; str.included=0; .endif;
-.ifeq str.included; str.included=1;
+.ifeq str.included; str.included=2;
+# version 0.0.2
+# - added a lazy '.isBlankStr' flag update that can be used to help find empty buffers
+
 .include "./punkpc/ifdef.s"
 .include "./punkpc/ifalt.s"
 
@@ -451,6 +455,7 @@ str.mAltstr = 16; str.mNoalt=0
 .endm; .macro str, self, varg:vararg; ifalt
   ifalt;ifdef \self\().isStr; .if ndef; \self\().isStr = 0; .endif;ifalt.reset
   .if \self\().isStr == 0; str$ = str$ + 1; \self\().isStr = str$; \self\().litmode=0
+   \self\().isBlankStr=1
   # Most object methods are basically just a setup for a callback to a keyed handle
   # - str.logic sets up the callback key based on the conditions and operation type
   # - altmacro mode is then used to turn the logic into an evaluated decimal number
@@ -464,12 +469,14 @@ str.mAltstr = 16; str.mNoalt=0
     str.vacount \va; str.logic \self,mWrite,mStrio,mSuffix; .altmacro; .if str.vacount>1
       str.strbuf_quoteme \self, %str.logic, \va; .else;   # enquote if multiple arguments are given
       str.strbuf_dispatch \self, %str.logic, \va; .endif  # leave as is if >= 1 arguments are given
+      \self\().isBlankStr=0
       # - by passing to _quoteme variation, we attempt to wrap up arguments into a single arg
       # - .conclit can be used to handle multiple arguments differently
   .endm; .macro \self\().pfx, va:vararg
     str.vacount \va; str.logic \self,mWrite,mStrio,mPrefix; .altmacro; .if str.vacount>1
       str.strbuf_quoteme \self, %str.logic, \va; .else
       str.strbuf_dispatch \self, %str.logic, \va; .endif
+      \self\().isBlankStr=0
   .endm; .macro \self\().str, va:vararg
     str.logic \self,mRead,mStrio,mSuffix;.altmacro;str.strbuf_commasuf \self, %str.logic, \va
   .endm; .macro \self\().strq, va:vararg
@@ -478,12 +485,14 @@ str.mAltstr = 16; str.mNoalt=0
     str.vacount \va; str.logic \self,mWrite,mLitio,mSuffix; .altmacro; .if str.vacount>1
       str.strbuf_dispatch \self, %str.logic,,\va; .else   # pass varargs if multiple arguments
       str.strbuf_dispatch \self, %str.logic,\va; .endif   # pass single arg if possible
+      \self\().isBlankStr=0
       # - by passing a vararg, a space character must be generated on concatenation
       # - this is can be avoided by concatenating singular arguments instead of multiple arguments
   .endm; .macro \self\().pfxlit, va:vararg
     str.vacount \va; str.logic \self,mWrite,mLitio,mPrefix; .altmacro; .if str.vacount>1
       str.strbuf_dispatch \self, %str.logic,,\va; .else   # pass varargs if multiple arguments
       str.strbuf_dispatch \self, %str.logic,\va; .endif   # pass single arg if possible
+      \self\().isBlankStr=0
   .endm; .macro \self\().lit, va:vararg
     str.logic \self,mRead,mLitio,mSuffix;.altmacro;str.strbuf_commasuf \self, %str.logic, \va
   .endm; .macro \self\().litq, va:vararg;
@@ -492,7 +501,7 @@ str.mAltstr = 16; str.mNoalt=0
 # Splitting the cases into callbacks like this greatly reduces the number of string copies needed
 # - the events that invoke these callbacks are called 'str.strbuf_dispatch' and '.strbuf_event'
 #   - the event invokes a special rebuilder macro that is responsible for feeding it string inputs
-  .endm; .macro \self\().clear; str.buildstrmem \self
+  .endm; .macro \self\().clear; str.buildstrmem \self; \self\().isblank=1
   .endm; .macro \self\().strbuf_event;
   .endm; .endif;  str.vacount \varg; .if str.force_litmem; str.vacount=2; .endif; str.force_litmem=0
   .if str.vacount>1;  str.buildlitmem \self,,,\varg; .else;  str.buildstrmem \self, \varg; .endif

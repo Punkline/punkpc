@@ -320,8 +320,9 @@ str.point myPointer, myStrObjectHandler
 # - literal buffers may be re-quoted as strings if they contain no quotes internally
 
 # ---Object Properties:
-# --- .isStr   - a unique ID for this buffer (can be used with str.point to pass a str name)
-# --- .litmode - a read-only status of literal buffer memory mode type
+# --- .isStr      - a unique ID for this buffer (can be used with str.point to pass a str name)
+# --- .isBlankStr - a bool that is 0 (false) if the string buffer is thought to be empty
+# --- .litmode    - a read-only status of literal buffer memory mode type
   # - litmode determines whether a buffer is a string or a literal string
 
 # ---Object Methods:
