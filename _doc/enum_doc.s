@@ -6,6 +6,7 @@
 
 .include "./punkpc/enum.s"
 
+
 # --- ENUMERATIONS --------------------------------------------------------------------------------
 enum A B C D  # enumerate given symbols with a count; starting with 0, and incrementing by +1
 enum E F G H  # ... next call will continue previous enumerations...
@@ -70,11 +71,13 @@ bf- bIsStr, 1f; nop; 1:
 bt+ bUseIndex, 0f; nop; 0:
 # once in the CR, each bool can be referenced by name in 'bf' or 'bt' branch instructions
 
+
 # --- ENUM PREFIXES -------------------------------------------------------------------------------
 enum.pfx "myNamespace.", -4, (0x10), A, B, C, D
 .byte myNamespace.A, myNamespace.B, myNamespace.C, myNamespace.D
 # - pfx allows first argument to create a prefix substring added to the beginning of each input name
 # - doesn't need to be in quotes, but it makes the syntax a bit more readible and doesn't interfere
+
 
 # --- ENUMERATOR OBJECTS --------------------------------------------------------------------------
 
@@ -86,15 +89,32 @@ enum.new myRegs, "", -1, (r31)  # creates an enumerator object called 'myRegs'
 myRegs   rPrev, rNext, rColor, rData, rStr, rID, rPriority, rBools
 myStruct xPrev, xNext, xColor, xData, xStr, +1, xID, xPriority, +2, xBools
 
-lwz rPrev,     struct.xPrev(r3)     # 0x00
-lwz rNext,     struct.xNext(r3)     # 0x04
-lwz rColor,    struct.xColor(r3)    # 0x08
-lwz rData,     struct.xData(r3)     # 0x0C
-lwz rStr,      struct.xStr(r3)      # 0x10
-lbz rID,       struct.xID(r3)       # 0x14
-lbz rPriority, struct.xPriority(r3) # 0x15
-lhz rBools,    struct.xBools(r3)    # 0x16
+lwz rPrev,     struct.xPrev(r3)     # 0x00, r31
+lwz rNext,     struct.xNext(r3)     # 0x04, r30
+lwz rColor,    struct.xColor(r3)    # 0x08, r29
+lwz rData,     struct.xData(r3)     # 0x0C, r28
+lwz rStr,      struct.xStr(r3)      # 0x10, r27
+lbz rID,       struct.xID(r3)       # 0x14, r26
+lbz rPriority, struct.xPriority(r3) # 0x15, r25
+lhz rBools,    struct.xBools(r3)    # 0x16, r24
 # load struct vars into named registers using named offsets
+
+myRegs.reset
+myRegs rThis, rThat
+# the '.reset' method can be used to reset the counter/step back to its original settings
+
+lwz rThis, 0x00(r4)
+lwz rThat, 0x10(r4)
+stmw myRegs.last, 0x10(sp)
+# the '.last' property saves the last assigned count value, and can be used in stmw/lmw instructions
+
+myRegs.reset
+myRegs rThese, rThose, rSize
+lwz rThese, 0x0(r5)
+lwz rThose, 0x8(r4)
+li rSize, myStruct.count
+stmw myRegs.last, 0x20(sp)
+# the '.count' property memorizes the next count value to assign, and can be used to reference sizes
 
 
 # --- Module attributes:
@@ -148,10 +168,17 @@ lhz rBools,    struct.xBools(r3)    # 0x16
 # A constructor for making objects that can perform 'enumb' and 'enumb.mask' methods
 
 # --- Object Properties ---------------------------------------------------------------------------
-# --- .count  - all of these are like internal versions of the Class Properties
+# --- .last   - keeps memory of the last assigned count
+# --- .count  - these 4 properties are like internal versions of the Class Properties
 # --- .step
 # --- .mask
 # --- .crf
+# --- .count.reset - these keep the initial properties set by the object constructor
+# --- .step.reset  - they will be applied when using the '.reset' method
+# --- Object Methods ------------------------------------------------------------------------------
+# --- .reset
+    # resets the enumerator object back to its initial counter/step settings
+
 # --- enum Object Methods -------------------------------------------------------------------------
 # --- (self)  Sym, Sym, ...
     # Just like the 'enum.pfx' Class method, but also internalizes an optional prefix

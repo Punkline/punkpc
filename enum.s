@@ -1,19 +1,23 @@
 .ifndef enum.included;  enum.included = 0;.endif;
-.ifeq enum.included;  enum.included = 3
+.ifeq enum.included;  enum.included = 4
   .include "./punkpc/ifdef.s"
   .include "./punkpc/xem.s"
   enum$=0;enumb$=0
   .macro enum.new,  self,  pfx,  varg:vararg;  ifdef \self\().isEnum
     .if ndef;  enum$ = enum$ + 1;\self\().isEnum = enum$;\self\().count=0;\self\().step=1
+      \self\().last=0
       .macro \self,  va:vararg
         .irp a,  \va;  a=1
           .irpc c,  \a
             .irpc i,  -+
               .ifc \c,  \i;  \self\().step=\a;a=0;.endif;
               .ifc \c,  (;  \self\().count=\a;a=0;.endif;.endr;.exitm;.endr;
-          .if a;  \pfx\a=\self\().count;\self\().count=\self\().count + \self\().step
-          .endif;.endr;
-      .endm;.ifnb \varg;  \self \varg;.endif;.endif;
+          .if a;  \pfx\a=\self\().count;\self\().last=\self\().count
+            \self\().count=\self\().count + \self\().step;.endif;.endr;
+      .endm;.macro \self\().reset;  \self\().count = \self\().count.reset
+        \self\().step = \self\().step.reset
+      .endm;.ifnb \varg;  \self \varg;.endif;\self\().count.reset = \self\().count
+      \self\().step.reset = \self\().step;.endif;
   .endm;.macro enumb.new,  self,  pfx,  varg:vararg;  ifdef \self\().isEnumb
     .if ndef;  enumb$ = enumb$ + 1;\self\().isEnumb = enumb$;\self\().count=31
       \self\().step=-1
@@ -24,6 +28,7 @@
               .ifc \c,  \i;  \self\().step=\a;a=0;.endif;
               .ifc \c,  (;  \self\().count=\a;a=0;.endif;.endr;.exitm;.endr;
           .if a;  \pfx\()b\a = \self\().count;\pfx\()m\a = 0x80000000 >> \pfx\()b\a
+            \self\().last=\self\().count
             \self\().count = \self\().count + \self\().step;.endif;.endr;
       .endm;.macro \self\().mask,  va:vararg;  i=0
         .irp a,  \va;  ifdef \pfx\a
@@ -31,8 +36,11 @@
           .if ndef;  \pfx\()m\()\a=0;.endif;i=i | (\pfx\()m\a & (\pfx\a != 0));.endr;
         \self\().mask=i;\self\().crf=0
         .rept 8;  \self\().crf=(\self\().crf<<1)|!!(i&0xF)
-          i=i<<4;.endr;.endm;.ifnb \varg;  \self \varg;.endif;.endif;
-  .endm;enum.new enum;enumb.new enumb
+          i=i<<4;.endr;.endm;.macro \self\().reset;  \self\().count = \self\().count.reset
+        \self\().step = \self\().step.reset
+      .endm;.ifnb \varg;  \self \varg;.endif;\self\().count.reset = \self\().count
+      \self\().step.reset = \self\().step;.endif;
+  .endm;enum.new enum, "", +1, (0);enumb.new enumb, "", -1, (b31)
   .macro enum.pfx,  pfx,  va:vararg
     .irp a,  \va;  a=1
       .irpc c,  \a

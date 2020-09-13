@@ -54,10 +54,17 @@
 
   # --- Object Properties ---
 
-  # --- .count  - all of these are like internal versions of the Class Properties
-  # --- .step
-  # --- .mask
-  # --- .crf
+    # --- .last   - keeps memory of the last assigned count
+    # --- .count  - these 4 properties are like internal versions of the Class Properties
+    # --- .step
+    # --- .mask
+    # --- .crf
+    # --- .count.reset - these keep the initial properties set by the object constructor
+    # --- .step.reset  - they will be applied when using the '.reset' method
+
+  # --- Object Methods ---
+    # --- .reset
+    # resets the enumerator object back to its initial counter/step settings
 
   # --- enum Object Methods ---
     # --- (self)  Sym, Sym, ...
@@ -74,6 +81,7 @@
 ##*/
 /*## Examples:
 .include "./punkpc/enum.s"
+
 
 # --- ENUMERATIONS ---
 enum A B C D  # enumerate given symbols with a count; starting with 0, and incrementing by +1
@@ -139,11 +147,13 @@ bf- bIsStr, 1f; nop; 1:
 bt+ bUseIndex, 0f; nop; 0:
 # once in the CR, each bool can be referenced by name in 'bf' or 'bt' branch instructions
 
+
 # --- ENUM PREFIXES ---
 enum.pfx "myNamespace.", -4, (0x10), A, B, C, D
 .byte myNamespace.A, myNamespace.B, myNamespace.C, myNamespace.D
 # - pfx allows first argument to create a prefix substring added to the beginning of each input name
 # - doesn't need to be in quotes, but it makes the syntax a bit more readible and doesn't interfere
+
 
 # --- ENUMERATOR OBJECTS ---
 
@@ -155,23 +165,43 @@ enum.new myRegs, "", -1, (r31)  # creates an enumerator object called 'myRegs'
 myRegs   rPrev, rNext, rColor, rData, rStr, rID, rPriority, rBools
 myStruct xPrev, xNext, xColor, xData, xStr, +1, xID, xPriority, +2, xBools
 
-lwz rPrev,     struct.xPrev(r3)     # 0x00
-lwz rNext,     struct.xNext(r3)     # 0x04
-lwz rColor,    struct.xColor(r3)    # 0x08
-lwz rData,     struct.xData(r3)     # 0x0C
-lwz rStr,      struct.xStr(r3)      # 0x10
-lbz rID,       struct.xID(r3)       # 0x14
-lbz rPriority, struct.xPriority(r3) # 0x15
-lhz rBools,    struct.xBools(r3)    # 0x16
+lwz rPrev,     struct.xPrev(r3)     # 0x00, r31
+lwz rNext,     struct.xNext(r3)     # 0x04, r30
+lwz rColor,    struct.xColor(r3)    # 0x08, r29
+lwz rData,     struct.xData(r3)     # 0x0C, r28
+lwz rStr,      struct.xStr(r3)      # 0x10, r27
+lbz rID,       struct.xID(r3)       # 0x14, r26
+lbz rPriority, struct.xPriority(r3) # 0x15, r25
+lhz rBools,    struct.xBools(r3)    # 0x16, r24
 # load struct vars into named registers using named offsets
+
+myRegs.reset
+myRegs rThis, rThat
+# the '.reset' method can be used to reset the counter/step back to its original settings
+
+lwz rThis, 0x00(r4)
+lwz rThat, 0x10(r4)
+stmw myRegs.last, 0x10(sp)
+# the '.last' property saves the last assigned count value, and can be used in stmw/lmw instructions
+
+myRegs.reset
+myRegs rThese, rThose, rSize
+lwz rThese, 0x0(r5)
+lwz rThose, 0x8(r4)
+li rSize, myStruct.count
+stmw myRegs.last, 0x20(sp)
+# the '.count' property memorizes the next count value to assign, and can be used to reference sizes
 
 ##*/
 
-.ifndef enum.included; enum.included = 0; .endif; .ifeq enum.included; enum.included = 3
-# version 3
+.ifndef enum.included; enum.included = 0; .endif; .ifeq enum.included; enum.included = 4
+# version 0.0.4
+# - added '.reset' methods to enumerator objects
+# - added a '.last' and '.reset' property for enumerator objects
+# version 0.0.3
 # - added varargs to constructors, so initial settings can be added to enum generators
 # - updated documentation attributes
-# version 2
+# version 0.0.2
 # - added xem.s to module, for register names
 # - added *.pfx variants of old functions, to support prefix namespaces
 # - added a constructor, for instantiating enumerators with a private count, and name
@@ -189,16 +219,21 @@ enum$=0; enumb$=0  # these count the number of enumerator objects that have been
 .macro enum.new, self, pfx, varg:vararg
   ifdef \self\().isEnum
   .if ndef; enum$ = enum$ + 1; \self\().isEnum = enum$
-    \self\().count=0;\self\().step=1
+    \self\().count=0;\self\().step=1; \self\().last=0
     .macro \self, va:vararg;
       .irp a,  \va;  a=1
         .irpc c,  \a
           .irpc i,  -+
             .ifc \c,  \i;  \self\().step=\a;a=0;.endif;
             .ifc \c,  (;  \self\().count=\a;a=0;.endif;.endr;.exitm;.endr;
-        .if a;  \pfx\a=\self\().count; \self\().count=\self\().count + \self\().step;.endif;.endr;
-    .endm;
+        .if a;  \pfx\a=\self\().count; \self\().last=\self\().count
+          \self\().count=\self\().count + \self\().step;.endif;.endr;
+    .endm; .macro \self\().reset;
+      \self\().count = \self\().count.reset; \self\().step = \self\().step.reset
+    .endm
     .ifnb \varg; \self \varg; .endif
+    \self\().count.reset = \self\().count
+    \self\().step.reset = \self\().step
   .endif
 .endm
 .macro enumb.new, self, pfx, varg:vararg
@@ -214,22 +249,27 @@ enum$=0; enumb$=0  # these count the number of enumerator objects that have been
         .if a;
           \pfx\()b\a  = \self\().count
           \pfx\()m\a = 0x80000000 >> \pfx\()b\a
+          \self\().last=\self\().count
           \self\().count = \self\().count + \self\().step
         .endif
       .endr
     .endm; .macro \self\().mask, va:vararg;
-        i=0; .irp a,  \va;  ifdef \pfx\a
-          .if ndef;  \pfx\a=0;.endif; ifdef \pfx\()m\()\a
-          .if ndef;  \pfx\()m\()\a=0;.endif;
-          i=i | (\pfx\()m\a & (\pfx\a != 0));
-        .endr; \self\().mask=i;\self\().crf=0
-        .rept 8;  \self\().crf=(\self\().crf<<1)|!!(i&0xF)
-          i=i<<4;
-        .endr;
-    .endm;
+      i=0; .irp a,  \va;  ifdef \pfx\a
+        .if ndef;  \pfx\a=0;.endif; ifdef \pfx\()m\()\a
+        .if ndef;  \pfx\()m\()\a=0;.endif;
+        i=i | (\pfx\()m\a & (\pfx\a != 0));
+      .endr; \self\().mask=i;\self\().crf=0
+      .rept 8;  \self\().crf=(\self\().crf<<1)|!!(i&0xF)
+        i=i<<4;
+      .endr;
+    .endm; .macro \self\().reset;
+      \self\().count = \self\().count.reset; \self\().step = \self\().step.reset
+    .endm
     .ifnb \varg; \self \varg; .endif
+    \self\().count.reset = \self\().count
+    \self\().step.reset = \self\().step
   .endif
-.endm; enum.new enum; enumb.new enumb
+.endm; enum.new enum, "", +1, (0); enumb.new enumb, "", -1, (b31)
 
 # special, fake methods for creating generic prefixed lists
 .macro enum.pfx, pfx,  va:vararg
