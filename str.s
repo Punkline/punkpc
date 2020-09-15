@@ -1,5 +1,5 @@
 .ifndef str.included;  str.included=0;.endif;
-.ifeq str.included;  str.included=3
+.ifeq str.included;  str.included=4
   .include "./punkpc/ifdef.s"
   .include "./punkpc/ifalt.s"
   str$=0;str.vacount=0;str.logic=0;str.force_litmem=0;str.mRead = 1;str.mWrite=0;str.mLitmem = 2
@@ -146,6 +146,16 @@
       .ifb \va;  str.vacount=0;.endif;.endif;
     .if str.vacount;  \str\().\method \cb, \va
     .else;  \str\().\method \cb;.endif;
+  .endm;.macro str.conc,  str,  va:vararg;  str.point.get \str
+    str.point, str.write_handle, conc, \va
+  .endm;.macro str.pfx,  str,  va:vararg;  str.point.get \str
+    str.point, str.write_handle, pfx, \va
+  .endm;.macro str.conclit,  str,  va:vararg;  str.point.get \str
+    str.point, str.write_handle, conclit, \va
+  .endm;.macro str.pfxlit,  str,  va:vararg;  str.point.get \str
+    str.point, str.write_handle, pfxlit, \va
+  .endm;.macro str.clear,  str;  str.point.get \str;str.point, str.write_handle, clear
+  .endm;.macro str.write_handle,  str,  method,  va:vararg;  \str\().\method \va
   .endm;.macro str.strbuf_event$0,  self,  a,  str,  va:vararg;  str.buildstrmem \self, "\str\a"
   .endm;.macro str.strbuf_event$1,  self,  a,  str,  va:vararg;  \a "\str" \va
   .endm;.macro str.strbuf_event$2,  self,  a,  va:vararg;  str.buildlitmem \self, , "\a", \va

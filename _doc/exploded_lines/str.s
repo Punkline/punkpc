@@ -2,7 +2,7 @@
   str.included=0
 .endif;
 .ifeq str.included
-  str.included=3
+  str.included=4
   .include "./punkpc/ifdef.s"
   .include "./punkpc/ifalt.s"
   str$=0
@@ -377,6 +377,29 @@
     .else;
       \str\().\method \cb
     .endif;
+  .endm;
+  .macro str.conc,  str,  va:vararg
+    str.point.get \str
+    str.point, str.write_handle, conc, \va
+  .endm;
+  .macro str.pfx,  str,  va:vararg
+    str.point.get \str
+    str.point, str.write_handle, pfx, \va
+  .endm;
+  .macro str.conclit,  str,  va:vararg
+    str.point.get \str
+    str.point, str.write_handle, conclit, \va
+  .endm;
+  .macro str.pfxlit,  str,  va:vararg
+    str.point.get \str
+    str.point, str.write_handle, pfxlit, \va
+  .endm;
+  .macro str.clear,  str
+    str.point.get \str
+    str.point, str.write_handle, clear
+  .endm;
+  .macro str.write_handle,  str,  method,  va:vararg
+    \str\().\method \va
   .endm;
   .macro str.strbuf_event$0,  self,  a,  str,  va:vararg
     str.buildstrmem \self, "\str\a"

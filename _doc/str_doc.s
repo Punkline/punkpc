@@ -369,24 +369,33 @@ str.irpq myItems, ".hword ", 1, 2, 3
 #+ 0001 0002 0003 0009
 #+ 0001 0002 0003 0064
 
-# in addition to .irp, there are also remote methods for invoking .str, .strq, .lit, and .litq
+# in addition to .irp, there are also class methods for invoking object methods remotely
+Items = myItems.isStr
 str.lit  myItems, ".hword ", , 1, 2, 3
 #+ 000F1A2D 00080009 : .lit - arguments come after items, so an extra comma prefixes arguments
 #+ 00640001 00020003
-str.litq myItems, ".hword ", 1, 2, 3
+str.litq   Items, ".hword ", 1, 2, 3
 #+ 00010002 0003000F : .litq - items are enqued to given list of comma separated arguments
 #+ 1A2D0008 00090064
+
+# - as you can see, pointers can be used in place of string names here, as well
 
 str.str   myItems, ".ascii ", ", 1, 2, 3"; .byte 0; .align 3
 #+ 31352C36 3730312C : .str - passing multiple string args to a single .ascii directive
 #+ 382C392C 3130302C "15,6701,8,9,100, 1, 2, 3"  -- spaces are preserved from args, but not lits
 #+ 20312C20 322C2033
 #+ 00000000 00000000
-str.strq  myItems, ".ascii ", "1, 2, 3, "; .byte 0; .align 3
+str.strq    Items, ".ascii ", "1, 2, 3, "; .byte 0; .align 3
 #+ 312C2032 2C20332C : .strq
 #+ 2031352C 36373031 "1, 2, 3, 15,6701,8,9,100"
 #+ 2C382C39 2C313030
 #+ 00000000 00000000
+
+str.clear Items
+str.conc  Items, "Hello World"
+str.str   Items, .asciz; .align 2
+# >>> 48656C6C 6F20576F
+# >>> 726C6400
 
 
 # --- Module attributes:

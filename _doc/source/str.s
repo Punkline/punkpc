@@ -493,36 +493,48 @@ str.irpq myItems, ".hword ", 1, 2, 3
 #+ 0001 0002 0003 0009
 #+ 0001 0002 0003 0064
 
-# in addition to .irp, there are also remote methods for invoking .str, .strq, .lit, and .litq
+# in addition to .irp, there are also class methods for invoking object methods remotely
+Items = myItems.isStr
 str.lit  myItems, ".hword ", , 1, 2, 3
 #+ 000F1A2D 00080009 : .lit - arguments come after items, so an extra comma prefixes arguments
 #+ 00640001 00020003
-str.litq myItems, ".hword ", 1, 2, 3
+str.litq   Items, ".hword ", 1, 2, 3
 #+ 00010002 0003000F : .litq - items are enqued to given list of comma separated arguments
 #+ 1A2D0008 00090064
+
+# - as you can see, pointers can be used in place of string names here, as well
 
 str.str   myItems, ".ascii ", ", 1, 2, 3"; .byte 0; .align 3
 #+ 31352C36 3730312C : .str - passing multiple string args to a single .ascii directive
 #+ 382C392C 3130302C "15,6701,8,9,100, 1, 2, 3"  -- spaces are preserved from args, but not lits
 #+ 20312C20 322C2033
 #+ 00000000 00000000
-str.strq  myItems, ".ascii ", "1, 2, 3, "; .byte 0; .align 3
+str.strq    Items, ".ascii ", "1, 2, 3, "; .byte 0; .align 3
 #+ 312C2032 2C20332C : .strq
 #+ 2031352C 36373031 "1, 2, 3, 15,6701,8,9,100"
 #+ 2C382C39 2C313030
 #+ 00000000 00000000
+
+str.clear Items
+str.conc  Items, "Hello World"
+str.str   Items, .asciz; .align 2
+# >>> 48656C6C 6F20576F
+# >>> 726C6400
+
 
 ##*/
 
 
 
 .ifndef str.included; str.included=0; .endif;
-.ifeq str.included; str.included=3;
+.ifeq str.included; str.included=4;
+# version 0.0.4
+# - added high-level convenience macros for operating with write methods of objects through pointers
 # version 0.0.3
 # - fixed bug where commas would be added to strings when whitespace was added
 # - created a pointer.get feature, for handling both a str obj and a str pointer in the same way
 # - added high-level convenience macros for creating iterators out of strings or string pointers
-# - added high-level convenience macros for operating on read methods of objects through pointers
+# - added high-level convenience macros for operating with read methods of objects through pointers
 # version 0.0.2
 # - added a lazy '.isBlankStr' flag update that can be used to help find empty buffers
 
@@ -757,6 +769,18 @@ ndef=0; def=1 # if this is a literal number, then it can't be checked -- so we p
   .if str.vacount; \str\().\method \cb, \va
   .else;           \str\().\method \cb; .endif
   # these let objects be read by pointers
+
+.endm; .macro str.conc, str, va:vararg; str.point.get \str;
+  str.point, str.write_handle, conc, \va
+.endm; .macro str.pfx, str, va:vararg; str.point.get \str;
+  str.point, str.write_handle, pfx, \va
+.endm; .macro str.conclit, str, va:vararg; str.point.get \str;
+  str.point, str.write_handle, conclit, \va
+.endm; .macro str.pfxlit, str, va:vararg; str.point.get \str;
+  str.point, str.write_handle, pfxlit, \va
+.endm; .macro str.clear, str; str.point.get \str; str.point, str.write_handle, clear
+.endm; .macro str.write_handle, str, method, va:vararg; \str\().\method \va
+  # these let objects be written by pointers
 
 # Callback case-handler map:
 .endm; .macro str.strbuf_event$0, self,a,str,va:vararg # --- .conc    - "strmem"
