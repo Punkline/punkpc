@@ -90,8 +90,27 @@
 # --- str.point  id, macro, trailing...
 # Point to a string object by referencing a unique string ID stored in the 'self.isStr' property
 #   id       : an ID matching the '.isStr' property of an associated string
+#            - if id is blank, then the 'str.point' property will be used
 #   macro    : the name of a macro or directive to use when handling this string object name
 #   trailing : arguments that would come AFTER the output name argument; for macro call
+
+# --- str.point.get  str
+# str can be either a string object or a string pointer
+# - saves resulting string pointer in the 'str.point' property
+
+# --- str.irp        str, macro, trailing...
+# --- str.irpq       str, macro, leading...
+# These can be used to iterate through comma-separated-values saved in a string buffer
+# - str can be either a string object name or a string pointer/pointer name
+# - the macro is called once for EACH item
+# - the leading/trailing args are added to EACH item
+
+# --- str.str        str, macro, trailing...
+# --- str.strq       str, macro, leading...
+# --- str.lit        str, macro, trailing...
+# --- str.litq       str, macro, leading...
+# These can be used to invoke read operations from an object name or a pointer
+# - take care to add commas to your extra arguments, if appending item lists on read
 
 # --- str.error  str, ...
 # Turn multiple string arguments into a contiguous error message
@@ -100,6 +119,7 @@
 
 # --- str.errors str, ...
 # Turn multiple string arguments into a series of error messages
+
 
 
 # --- Callback Methods ---
@@ -400,12 +420,109 @@ str.point myPointer, myStrObjectHandler
 # >>> Error : You found me
 # The string has been reached from a numerical pointer value stored in 'myPointer'
 
+
+str.point.get myString;
+myPointer = str.point
+# You may use 'str.point.get' to handle either a string name or a string pointer like a pointer:
+# 'str.point' returns a pointer value that you can copy, or use directly
+
+str.point.get myString.isStr
+# the name of a valid string object can be used, or a string pointer ID from the '.isStr' property
+
+myString.conc " ... again!"
+
+str.point myPointer, myStrObjectHandler
+str.point str.point, myStrObjectHandler
+# >>> Error : You found me ... again!
+# >>> Error : You found me ... again!
+# these are both handled like pointers
+# - as you can see, the string can be updated in the meantime
+
+str.point, myStrObjectHandler
+# >>> Error : You found me ... again!
+# You can use the 'str.point' property automatically by just skipping the argument field with ','
+# - this is convenient, but may be syntactically confusing
+
+
+# --- DEFAULT STRING POINTER HANDLERS ---
+# These methods are built into the class module to make it easier to handle strings remotely
+
+str myItems, 15, 6701, 8, 9, 100
+str.irp myItems, "li r0, "
+# >>> li r0, 15
+# >>> li r0, 6701
+# >>> li r0, 8
+# >>> li r0, 9
+# >>> li r0, 100
+# '.irp' puts the string buffer through a .irp loop; giving each item to a macro or directive
+
+str.point.get myItems
+currentItems = str.point
+# - create an assembler-time pointer variable
+
+str.irp currentItems, "li r0, "
+# >>> li r0, 15
+# >>> li r0, 6701
+# >>> li r0, 8
+# >>> li r0, 9
+# >>> li r0, 100
+# These pointer functions can handle both string object names and pointers
+
+str otherItems, str.point, myItems.isStr, 32, 64
+currentItems = otherItems.isStr
+r = 3-1
+str.irp currentItems, "r=r+1;  li r, ",
+# >>> li r3, 8
+# >>> li r4, 8
+# >>> li r5, 32
+# >>> li r6, 64
+# The pointer can point to any string ID kept in another symbol, like 'currentItems'
+# Macros can also be passed to handle more complex processes via callbacks
+
+# Arguments can also be added to either end of each item:
+str.irp  myItems, ".hword ", 1, 2, 3
+#+ 000F 0001 0002 0003 : .irp - gives extra args to end of each item
+#+ 1A2D 0001 0002 0003
+#+ 0008 0001 0002 0003
+#+ 0009 0001 0002 0003
+#+ 0064 0001 0002 0003
+str.irpq myItems, ".hword ", 1, 2, 3
+#+ 0001 0002 0003 000F : .irpq - gives extra args to beginning of each item
+#+ 0001 0002 0003 1A2D
+#+ 0001 0002 0003 0008
+#+ 0001 0002 0003 0009
+#+ 0001 0002 0003 0064
+
+# in addition to .irp, there are also remote methods for invoking .str, .strq, .lit, and .litq
+str.lit  myItems, ".hword ", , 1, 2, 3
+#+ 000F1A2D 00080009 : .lit - arguments come after items, so an extra comma prefixes arguments
+#+ 00640001 00020003
+str.litq myItems, ".hword ", 1, 2, 3
+#+ 00010002 0003000F : .litq - items are enqued to given list of comma separated arguments
+#+ 1A2D0008 00090064
+
+str.str   myItems, ".ascii ", ", 1, 2, 3"; .byte 0; .align 3
+#+ 31352C36 3730312C : .str - passing multiple string args to a single .ascii directive
+#+ 382C392C 3130302C "15,6701,8,9,100, 1, 2, 3"  -- spaces are preserved from args, but not lits
+#+ 20312C20 322C2033
+#+ 00000000 00000000
+str.strq  myItems, ".ascii ", "1, 2, 3, "; .byte 0; .align 3
+#+ 312C2032 2C20332C : .strq
+#+ 2031352C 36373031 "1, 2, 3, 15,6701,8,9,100"
+#+ 2C382C39 2C313030
+#+ 00000000 00000000
+
 ##*/
 
 
 
 .ifndef str.included; str.included=0; .endif;
-.ifeq str.included; str.included=2;
+.ifeq str.included; str.included=3;
+# version 0.0.3
+# - fixed bug where commas would be added to strings when whitespace was added
+# - created a pointer.get feature, for handling both a str obj and a str pointer in the same way
+# - added high-level convenience macros for creating iterators out of strings or string pointers
+# - added high-level convenience macros for operating on read methods of objects through pointers
 # version 0.0.2
 # - added a lazy '.isBlankStr' flag update that can be used to help find empty buffers
 
@@ -560,21 +677,29 @@ str.mAltstr = 16; str.mNoalt=0
   # dispatcher helps correct the literal copying method according to macro mode
 
 .endm; .macro str.strbuf_quoteme, self, cb, va:vararg
-  .if nalt; .noaltmacro; \self\().strbuf_event \cb, "\va"
+  .if nalt; .noaltmacro;
+         \self\().strbuf_event \cb, "\va"
   .else; \self\().strbuf_event \cb, <\va>; .endif;
   # alternative to dispatcher passes quoted varargs - used in .conc and .pfx object methods
 
 .endm; .macro str.strbuf_commapre, self, cb, a, va:vararg
-  str.vacount \va; .if str.vacount
-    .if nalt; .noaltmacro; \self\().strbuf_event \cb, "\a", \va,
+  str.vacount \va; .if str.vacount == 1; .ifb \va; str.vacount = 0; .endif; .endif
+  .if str.vacount
+    .if nalt; .noaltmacro;
+           \self\().strbuf_event \cb, "\a", \va,
     .else; \self\().strbuf_event \cb, <\a>, \va,; .endif
-  .else; .if nalt; .noaltmacro; \self\().strbuf_event \cb, "\a"
-    .else; \self\().strbuf_event \cb, <\a>; .endif; .endif
+  .else;
+    .if nalt; .noaltmacro;
+           \self\().strbuf_event \cb, "\a"
+    .else; \self\().strbuf_event \cb, <\a>; .endif;
+  .endif
 .endm; .macro str.strbuf_commasuf, self, cb, a, va:vararg
   str.vacount \va; .if str.vacount
-    .if nalt; .noaltmacro; \self\().strbuf_event \cb, "\a", \va
+    .if nalt; .noaltmacro;
+           \self\().strbuf_event \cb, "\a", \va
     .else; \self\().strbuf_event \cb, <\a>, \va; .endif
-  .else; .if nalt; .noaltmacro; \self\().strbuf_event \cb, "\a"
+  .else; .if nalt; .noaltmacro;
+           \self\().strbuf_event \cb, "\a"
     .else; \self\().strbuf_event \cb, <\a>; .endif; .endif
   # special comma dispatchers isolate the first argument and enforce commas in the varargs
 
@@ -590,7 +715,7 @@ str.mAltstr = 16; str.mNoalt=0
   .else; .error "\str\conc"; .endif
   # convenience macros help in constructing error messages from multiple strings
 
-.endm; .macro str.point, point, m, va:vararg
+.endm; .macro str.point, point=str.point, m, va:vararg
   ifalt; str.vacount \va; .altmacro; str.point_evaluation %\point, <\m>, \va
 .endm; .macro str.point_evaluation, point, m, va:vararg
   ifalt.reset; .if alt; $_str.point$\point <\m>, \va; .else; $_str.point$\point "\m", \va; .endif
@@ -598,6 +723,40 @@ str.mAltstr = 16; str.mNoalt=0
   .macro $_str.point$\id, m, va:vararg;
     .if str.vacount; \m \self, \va; .else; \m \self; .endif; .endm
   # pointer macros help convert IDs into identifier methods
+
+.endm; .macro str.point.get, str;
+ndef=0; def=1 # if this is a literal number, then it can't be checked -- so we pre-empt the result
+.irpc c, \str;
+  .irpc n, 0123456789;
+    .ifc \c, \n; def=0; .endif;
+  .endr; .exitm;
+.endr; .if def; ifdef \str\().isStr; .endif # if not a literal number, see if it has a .isStr ID
+.if def; str.point = \str\().isStr; .else; str.point = \str; .endif
+# this can be used to check for either a string pointer or a string name, as an argument
+# - it returns a pointer value in str.point; and def=1 if the input was a valid string object
+
+.endm; .macro str.irp, str, va:vararg; str.point.get \str;  str.point, str.irp_handle, 0, \va
+.endm; .macro str.irpq, str, va:vararg; str.point.get \str; str.point, str.irp_handle, 1, \va
+.endm; .macro str.irp_handle, str, q, m, va:vararg
+  str str.irp ".irp item,"
+  str.vacount \va; .if str.vacount == 1; .ifb \va; str.vacount=0; .endif; .endif
+  .if str.vacount;
+    .if \q;  \str\().litq str.irp.conc; str.irp.conc "; \m \va, \item; .endr"
+    .else;   \str\().litq str.irp.conc; str.irp.conc "; \m \item, \va; .endr"; .endif
+  .else;     \str\().litq str.irp.conc; str.irp.conc "; \m \item; .endr";  .endif
+  str.irp.lit
+  # this allows comma separated items to be iterated through by a macro, directive, or instruction
+  # args can optionally be added to each iteration
+
+.endm; .macro str.str, str, va:vararg; str.point.get \str;  str.point, str.read_handle, str, \va
+.endm; .macro str.lit, str, va:vararg; str.point.get \str;  str.point, str.read_handle, lit, \va
+.endm; .macro str.strq, str, va:vararg; str.point.get \str; str.point, str.read_handle, strq, \va
+.endm; .macro str.litq, str, va:vararg; str.point.get \str; str.point, str.read_handle, litq, \va
+.endm; .macro str.read_handle, str, method, cb, va:vararg
+  str.vacount \va; .if str.vacount == 1; .ifb \va; str.vacount=0; .endif; .endif
+  .if str.vacount; \str\().\method \cb, \va
+  .else;           \str\().\method \cb; .endif
+  # these let objects be read by pointers
 
 # Callback case-handler map:
 .endm; .macro str.strbuf_event$0, self,a,str,va:vararg # --- .conc    - "strmem"

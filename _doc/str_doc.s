@@ -297,6 +297,98 @@ str.point myPointer, myStrObjectHandler
 # The string has been reached from a numerical pointer value stored in 'myPointer'
 
 
+str.point.get myString;
+myPointer = str.point
+# You may use 'str.point.get' to handle either a string name or a string pointer like a pointer:
+# 'str.point' returns a pointer value that you can copy, or use directly
+
+str.point.get myString.isStr
+# the name of a valid string object can be used, or a string pointer ID from the '.isStr' property
+
+myString.conc " ... again!"
+
+str.point myPointer, myStrObjectHandler
+str.point str.point, myStrObjectHandler
+# >>> Error : You found me ... again!
+# >>> Error : You found me ... again!
+# these are both handled like pointers
+# - as you can see, the string can be updated in the meantime
+
+str.point, myStrObjectHandler
+# >>> Error : You found me ... again!
+# You can use the 'str.point' property automatically by just skipping the argument field with ','
+# - this is convenient, but may be syntactically confusing
+
+
+# --- DEFAULT STRING POINTER HANDLERS -------------------------------------------------------------
+# These methods are built into the class module to make it easier to handle strings remotely
+
+str myItems, 15, 6701, 8, 9, 100
+str.irp myItems, "li r0, "
+# >>> li r0, 15
+# >>> li r0, 6701
+# >>> li r0, 8
+# >>> li r0, 9
+# >>> li r0, 100
+# '.irp' puts the string buffer through a .irp loop; giving each item to a macro or directive
+
+str.point.get myItems
+currentItems = str.point
+# - create an assembler-time pointer variable
+
+str.irp currentItems, "li r0, "
+# >>> li r0, 15
+# >>> li r0, 6701
+# >>> li r0, 8
+# >>> li r0, 9
+# >>> li r0, 100
+# These pointer functions can handle both string object names and pointers
+
+str otherItems, str.point, myItems.isStr, 32, 64
+currentItems = otherItems.isStr
+r = 3-1
+str.irp currentItems, "r=r+1;  li r, ",
+# >>> li r3, 8
+# >>> li r4, 8
+# >>> li r5, 32
+# >>> li r6, 64
+# The pointer can point to any string ID kept in another symbol, like 'currentItems'
+# Macros can also be passed to handle more complex processes via callbacks
+
+# Arguments can also be added to either end of each item:
+str.irp  myItems, ".hword ", 1, 2, 3
+#+ 000F 0001 0002 0003 : .irp - gives extra args to end of each item
+#+ 1A2D 0001 0002 0003
+#+ 0008 0001 0002 0003
+#+ 0009 0001 0002 0003
+#+ 0064 0001 0002 0003
+str.irpq myItems, ".hword ", 1, 2, 3
+#+ 0001 0002 0003 000F : .irpq - gives extra args to beginning of each item
+#+ 0001 0002 0003 1A2D
+#+ 0001 0002 0003 0008
+#+ 0001 0002 0003 0009
+#+ 0001 0002 0003 0064
+
+# in addition to .irp, there are also remote methods for invoking .str, .strq, .lit, and .litq
+str.lit  myItems, ".hword ", , 1, 2, 3
+#+ 000F1A2D 00080009 : .lit - arguments come after items, so an extra comma prefixes arguments
+#+ 00640001 00020003
+str.litq myItems, ".hword ", 1, 2, 3
+#+ 00010002 0003000F : .litq - items are enqued to given list of comma separated arguments
+#+ 1A2D0008 00090064
+
+str.str   myItems, ".ascii ", ", 1, 2, 3"; .byte 0; .align 3
+#+ 31352C36 3730312C : .str - passing multiple string args to a single .ascii directive
+#+ 382C392C 3130302C "15,6701,8,9,100, 1, 2, 3"  -- spaces are preserved from args, but not lits
+#+ 20312C20 322C2033
+#+ 00000000 00000000
+str.strq  myItems, ".ascii ", "1, 2, 3, "; .byte 0; .align 3
+#+ 312C2032 2C20332C : .strq
+#+ 2031352C 36373031 "1, 2, 3, 15,6701,8,9,100"
+#+ 2C382C39 2C313030
+#+ 00000000 00000000
+
+
 # --- Module attributes:
 # --- Class Properties ----------------------------------------------------------------------------
 
@@ -379,8 +471,27 @@ str.point myPointer, myStrObjectHandler
 # --- str.point  id, macro, trailing...
 # Point to a string object by referencing a unique string ID stored in the 'self.isStr' property
 #   id       : an ID matching the '.isStr' property of an associated string
+#            - if id is blank, then the 'str.point' property will be used
 #   macro    : the name of a macro or directive to use when handling this string object name
 #   trailing : arguments that would come AFTER the output name argument; for macro call
+
+# --- str.point.get  str
+# str can be either a string object or a string pointer
+# - saves resulting string pointer in the 'str.point' property
+
+# --- str.irp        str, macro, trailing...
+# --- str.irpq       str, macro, leading...
+# These can be used to iterate through comma-separated-values saved in a string buffer
+# - str can be either a string object name or a string pointer/pointer name
+# - the macro is called once for EACH item
+# - the leading/trailing args are added to EACH item
+
+# --- str.str        str, macro, trailing...
+# --- str.strq       str, macro, leading...
+# --- str.lit        str, macro, trailing...
+# --- str.litq       str, macro, leading...
+# These can be used to invoke read operations from an object name or a pointer
+# - take care to add commas to your extra arguments, if appending item lists on read
 
 # --- str.error  str, ...
 # Turn multiple string arguments into a contiguous error message

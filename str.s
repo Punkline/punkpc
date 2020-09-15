@@ -1,5 +1,5 @@
 .ifndef str.included;  str.included=0;.endif;
-.ifeq str.included;  str.included=2
+.ifeq str.included;  str.included=3
   .include "./punkpc/ifdef.s"
   .include "./punkpc/ifalt.s"
   str$=0;str.vacount=0;str.logic=0;str.force_litmem=0;str.mRead = 1;str.mWrite=0;str.mLitmem = 2
@@ -80,6 +80,8 @@
     .if nalt;  .noaltmacro;\self\().strbuf_event \cb, "\va"
     .else;  \self\().strbuf_event \cb, <\va>
     .endif;.endm;.macro str.strbuf_commapre,  self,  cb,  a,  va:vararg;  str.vacount \va
+    .if str.vacount == 1
+      .ifb \va;  str.vacount = 0;.endif;.endif;
     .if str.vacount
       .if nalt;  .noaltmacro;\self\().strbuf_event \cb, "\a", \va,
       .else;  \self\().strbuf_event \cb, <\a>, \va,
@@ -104,7 +106,7 @@
   .endm;.macro str.error_nalt,  str,  conc,  va:vararg
     .ifnb \va;  str.error_nalt "\str\conc", \va
     .else;  .error "\str\conc";.endif;
-  .endm;.macro str.point,  point,  m,  va:vararg;  ifalt;str.vacount \va;.altmacro
+  .endm;.macro str.point,  point=str.point,  m,  va:vararg;  ifalt;str.vacount \va;.altmacro
     str.point_evaluation %\point, <\m>, \va
   .endm;.macro str.point_evaluation,  point,  m,  va:vararg;  ifalt.reset
     .if alt;  $_str.point$\point <\m>, \va
@@ -113,8 +115,38 @@
     .macro $_str.point$\id,  m,  va:vararg
       .if str.vacount;  \m \self, \va
       .else;  \m \self;.endif;
-    .endm;.endm;.macro str.strbuf_event$0,  self,  a,  str,  va:vararg
-    str.buildstrmem \self, "\str\a"
+    .endm;.endm;.macro str.point.get,  str;  ndef=0;def=1
+    .irpc c,  \str
+      .irpc n,  0123456789
+        .ifc \c,  \n;  def=0;.endif;.endr;.exitm;.endr;
+    .if def;  ifdef \str\().isStr;.endif;
+    .if def;  str.point = \str\().isStr
+    .else;  str.point = \str;.endif;
+  .endm;.macro str.irp,  str,  va:vararg;  str.point.get \str;str.point, str.irp_handle, 0, \va
+  .endm;.macro str.irpq,  str,  va:vararg;  str.point.get \str
+    str.point, str.irp_handle, 1, \va
+  .endm;.macro str.irp_handle,  str,  q,  m,  va:vararg;  str str.irp ".irp item,"
+    str.vacount \va
+    .if str.vacount == 1
+      .ifb \va;  str.vacount=0;.endif;.endif;
+    .if str.vacount
+      .if \q;  \str\().litq str.irp.conc;str.irp.conc "; \m \va, \item; .endr"
+      .else;  \str\().litq str.irp.conc;str.irp.conc "; \m \item, \va; .endr";.endif;
+    .else;  \str\().litq str.irp.conc;str.irp.conc "; \m \item; .endr";.endif;str.irp.lit
+  .endm;.macro str.str,  str,  va:vararg;  str.point.get \str
+    str.point, str.read_handle, str, \va
+  .endm;.macro str.lit,  str,  va:vararg;  str.point.get \str
+    str.point, str.read_handle, lit, \va
+  .endm;.macro str.strq,  str,  va:vararg;  str.point.get \str
+    str.point, str.read_handle, strq, \va
+  .endm;.macro str.litq,  str,  va:vararg;  str.point.get \str
+    str.point, str.read_handle, litq, \va
+  .endm;.macro str.read_handle,  str,  method,  cb,  va:vararg;  str.vacount \va
+    .if str.vacount == 1
+      .ifb \va;  str.vacount=0;.endif;.endif;
+    .if str.vacount;  \str\().\method \cb, \va
+    .else;  \str\().\method \cb;.endif;
+  .endm;.macro str.strbuf_event$0,  self,  a,  str,  va:vararg;  str.buildstrmem \self, "\str\a"
   .endm;.macro str.strbuf_event$1,  self,  a,  str,  va:vararg;  \a "\str" \va
   .endm;.macro str.strbuf_event$2,  self,  a,  va:vararg;  str.buildlitmem \self, , "\a", \va
   .endm;.macro str.strbuf_event$3,  self,  a,  va:vararg;  \a \va
