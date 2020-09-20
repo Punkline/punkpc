@@ -2,13 +2,15 @@
   str.included=0
 .endif;
 .ifeq str.included
-  str.included=4
+  str.included=0x100
   .include "./punkpc/ifdef.s"
   .include "./punkpc/ifalt.s"
   str$=0
   str.vacount=0
   str.logic=0
   str.force_litmem=0
+  str.self_pointers=1
+  str.show_warnings=1
   str.mRead = 1
   str.mWrite=0
   str.mLitmem = 2
@@ -45,6 +47,12 @@
       str.vacount = str.vacount+1
     .endr;
   .endm;
+  .macro str.vachars,  va:vararg
+    str.vacount=0
+    .irpc c,  \va
+      str.vacount = str.vacount+1
+    .endr;
+  .endm;
   .macro lit,  va:vararg
     str.force_litmem=1
     str \va
@@ -62,6 +70,9 @@
       \self\().isStr = str$
       \self\().litmode=0
       \self\().isBlankStr=1
+      .if str.self_pointers
+        \self = str$
+      .endif;
       .altmacro
       $_str.point$ \self, %\self\().isStr
       ifalt.reset
@@ -248,33 +259,118 @@
       .endif;
     .endif;
   .endm;
-  .macro str.errors,  str,  va:vararg
-    .error "\str"
+  .macro str.qrecurse_iter,  m,  str,  va:vararg
+    \m "\str"
     .ifnb \va
-      str.errors \va
+      str.qrecurse_iter \m, \va
     .endif;
   .endm;
-  .macro str.error,  va:vararg
+  .macro str.qrecurse,  va:vararg
     ifalt
     .if alt
-      str.error_alt \va
+      str.qrecurse_alt \va
     .else;
-      str.error_nalt \va
+      str.qrecurse_nalt \va
     .endif;
   .endm;
-  .macro str.error_alt,  str,  conc,  va:vararg
+  .macro str.qrecurse_alt,  m,  str,  conc,  va:vararg
     .ifnb \va
-      str.error_alt <\str\conc>, \va
+      str.qrecurse_alt \m, <\str\conc>, \va
     .else;
-      .error "\str\conc"
+      \m "\str\conc"
     .endif;
   .endm;
-  .macro str.error_nalt,  str,  conc,  va:vararg
+  .macro str.qrecurse_nalt,  m,  str,  conc,  va:vararg
     .ifnb \va
-      str.error_nalt "\str\conc", \va
+      str.qrecurse_nalt \m, "\str\conc", \va
     .else;
-      .error "\str\conc"
+      \m "\str\conc"
     .endif;
+  .endm;
+  .macro str.errors,  va:vararg
+    str.qrecurse_iter .error, \va
+  .endm;
+  .macro str.error,  va:vararg
+    str.qrecurse .error, \va
+  .endm;
+  .macro str.warnings,  va:vararg
+    .if str.show_warnings
+      str.qrecurse_iter .warning, \va
+    .endif;
+  .endm;
+  .macro str.warning,  va:vararg
+    .if str.show_warnings
+      str.qrecurse .warning, \va
+    .endif;
+  .endm;
+  .macro str.print_lines,  va:vararg
+    str.qrecurse_iter .print, \va
+  .endm;
+  .macro str.print_line,  va:vararg
+    str.qrecurse .print, \va
+  .endm;
+  .macro str.print,  va:vararg
+    str.qrecurse .print, \va
+  .endm;
+  .macro str.ascii,  va:vararg
+    str.qrecurse_iter .ascii, \va
+  .endm;
+  .macro str.asciz,  va:vararg
+    str.qrecurse_iter .asciz, \va
+  .endm;
+  .macro str.asciiz,  va:vararg
+    str.qrecurse_iter .ascii, \va
+    .byte 0
+  .endm;
+  .macro str.emit,  m,  va:vararg
+    ifalt
+    .if alt
+      st.delimit \m, < >, \va
+    .else;
+      str.delimit \m, " ", \va
+    .endif;
+  .endm;
+  .macro str.delimit,  m,  delimit,  va:vararg
+    str str.emitter
+    ifalt
+    .irp str,  \va
+      str.emitter.point = 0
+      str.emitter.eval = 0
+      .irpc c,  \str
+        .ifc \c,  [
+          str.emitter.point = \str
+          .exitm
+        .endif;
+        .ifc \c,  %
+          str.emitter.eval = 1
+          .exitm
+        .endif;
+        .exitm
+      .endr;
+      .if str.emitter.eval
+        str.emitter.alt = alt
+        str str.emitter.eval
+        .altmacro
+        str.emitter.eval.conc \str
+        ifalt.reset str.emitter.alt
+        str.emitter.point = str.emitter.eval.isStr
+      .endif;
+      .if str.emitter.point
+        str.str str.emitter.point, str.emitter.conc
+        .if alt
+          str.emitter.conc <\delimit>
+        .else;
+          str.emitter.conc "\delimit"
+        .endif;
+      .else;
+        .if alt
+          str.emitter.conc <\str\delimit>
+        .else;
+          str.emitter.conc "\str\delimit"
+        .endif;
+      .endif;
+    .endr;
+    str.emitter.str \m
   .endm;
   .macro str.point,  point=str.point,  m,  va:vararg
     ifalt
@@ -302,10 +398,12 @@
   .macro str.point.get,  str
     ndef=0
     def=1
+    ifalt
     .irpc c,  \str
-      .irpc n,  0123456789
+      .irpc n,  0123456789+-*%/&^!~()[]
         .ifc \c,  \n
           def=0
+          .exitm
         .endif;
       .endr;
       .exitm
@@ -316,8 +414,26 @@
     .if def
       str.point = \str\().isStr
     .else;
-      str.point = \str
+      ifdef \str
+      .if def
+        def=0
+        ndef=1
+        str.point = \str
+      .else;
+        str.point = 0
+      .endif;
     .endif;
+    ifalt.reset
+  .endm;
+  .macro str.count.items,  str
+    str.point.get \str
+    str.litq str.point, str.vacount
+    str.count = str.vacount
+  .endm;
+  .macro str.count.chars,  str
+    str.point.get \str
+    str.strq str.point, str.vachars
+    str.count = str.vacount
   .endm;
   .macro str.irp,  str,  va:vararg
     str.point.get \str
@@ -348,6 +464,36 @@
       str.irp.conc "; \m \item; .endr"
     .endif;
     str.irp.lit
+  .endm;
+  .macro str.irpc,  str,  va:vararg
+    str.point.get \str
+    str.point, str.irpc_handle, 0, \va
+  .endm;
+  .macro str.irpcq,  str,  va:vararg
+    str.point.get \str
+    str.point, str.irpc_handle, 1, \va
+  .endm;
+  .macro str.irpc_handle,  str,  q,  m,  va:vararg
+    str str.irpc ".irpc char,"
+    str.vacount \va
+    .if str.vacount == 1
+      .ifb \va
+        str.vacount=0
+      .endif;
+    .endif;
+    .if str.vacount
+      .if \q
+        \str\().litq str.irpc.conc
+        str.irpc.conc "; \m \va, \char; .endr"
+      .else;
+        \str\().litq str.irpc.conc
+        str.irpc.conc "; \m \char, \va; .endr"
+      .endif;
+    .else;
+      \str\().litq str.irpc.conc
+      str.irpc.conc "; \m \char; .endr"
+    .endif;
+    str.irpc.lit
   .endm;
   .macro str.str,  str,  va:vararg
     str.point.get \str
@@ -429,7 +575,7 @@
     str.buildstrmem \self, "\a\str"
   .endm;
   .macro str.strbuf_event$9,  self,  a,  str,  va:vararg
-    \a "\str" \va
+    \a \va "\str"
   .endm;
   .macro str.strbuf_event$10,  self,  a,  va:vararg
     str.buildlitmem \self, "\a", , \va

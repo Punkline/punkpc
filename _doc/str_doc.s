@@ -320,8 +320,16 @@ str.point, myStrObjectHandler
 # - this is convenient, but may be syntactically confusing
 
 
-# --- DEFAULT STRING POINTER HANDLERS -------------------------------------------------------------
-# These methods are built into the class module to make it easier to handle strings remotely
+# --- STRING POINTER HANDLERS ---------------------------------------------------------------------
+# As of update 0.1.0, strings will now automatically copy their string IDs to their own symbol name
+# - this means that the name 'myString' represents both the object namespace and a property
+#   - the property can be evaluated to find the numerical ID of this string
+#   - this means that the name can be passed as part of an expression
+
+# It's possible to disable this if you want to make the property do something else
+# - the ID can also be found through the '.isStr' property or 'str.point.get'
+
+# Many high-level class methods are capable of handling pointers in ways that are very convenient
 
 str myItems, 15, 6701, 8, 9, 100
 str.irp myItems, "li r0, "
@@ -369,6 +377,14 @@ str.irpq myItems, ".hword ", 1, 2, 3
 #+ 0001 0002 0003 0009
 #+ 0001 0002 0003 0064
 
+str myChars, "Hello"
+str.irpc myChars, "str.error "
+# >>> Error: H  : .irpc and .irpcq can be used to operate on each char in a string
+# >>> Error: e
+# >>> Error: l
+# >>> Error: l
+# >>> Error: o
+
 # in addition to .irp, there are also class methods for invoking object methods remotely
 Items = myItems.isStr
 str.lit  myItems, ".hword ", , 1, 2, 3
@@ -380,28 +396,79 @@ str.litq   Items, ".hword ", 1, 2, 3
 
 # - as you can see, pointers can be used in place of string names here, as well
 
-str.str   myItems, ".ascii ", ", 1, 2, 3"; .byte 0; .align 3
+# You can take advantage of some other class methods included to invoke certain directives
+# - we've been using str.errors and str.error in these examples a lot, but there are others too
+
+str.str   myItems, "str.asciiz,", ", 1, 2, 3"; .align 3
 #+ 31352C36 3730312C : .str - passing multiple string args to a single .ascii directive
 #+ 382C392C 3130302C "15,6701,8,9,100, 1, 2, 3"  -- spaces are preserved from args, but not lits
 #+ 20312C20 322C2033
 #+ 00000000 00000000
-str.strq    Items, ".ascii ", "1, 2, 3, "; .byte 0; .align 3
+str.strq    Items, "str.asciiz ", "1, 2, 3, "; .align 3
 #+ 312C2032 2C20332C : .strq
 #+ 2031352C 36373031 "1, 2, 3, 15,6701,8,9,100"
 #+ 2C382C39 2C313030
 #+ 00000000 00000000
+# The str.asciiz (with an extra i) combines multiple input strings together with .ascii,
+#  and ends with a null-terminator like .asciz -- creating one big null-terminated string
+# - .align 3 then aligns the 0s to 8 bytes
 
 str.clear Items
 str.conc  Items, "Hello World"
-str.str   Items, .asciz; .align 2
-# >>> 48656C6C 6F20576F
-# >>> 726C6400
+str.str   Items, str.warning
+# >>> Warning: Hello World
+# - a more threatening take on Hello World
+
+str.lit   Items, str.warnings
+# >>> Warning: Hello
+# >>> Warning: World
+# - it works just like .errors, but it's a warning not an error
+# - you can disable warnings made with the str library by setting 'str.show_warnings' to false
+# - you can also disable them entirely with some command line settings in as.exe
+
+str Items, "You can't see this"
+str.show_warnings=0
+str.str  Items, str.warning
+# - this is effectively a NOP because of the nullified property
+
+str.show_warnings=1
+# - turning it back on will allow all subsequent warnings to be displayed
+
+
+# --- STRING EMITTER ------------------------------------------------------------------------------
+# The string emitter can combine raw string arguments, string pointers, and evaluations
+# - these
+
+str msg1, "item(s) in list"
+str msg2, "char(s) in string"
+# create some strings for emitting in errors
+
+str Items, "Class, PLink, GXLink, SLink"
+# a new list of items to count
+
+str.count.items Items;  items.count = str.count
+str.count.chars Items;  items.chars = str.count
+# these counter methods can help you figure out how many things are in a string
+# - you can use str.vacount and str.vachars to pass direct string arguments, too
+
+str.emit .error, "Count found", %items.count, [msg1], "..."
+str.emit .error, " ... and", %items.chars, [msg2]
+# >>> Error: Count found 4 item(s) in list ...
+# >>> Error:  ... and 27 char(s) in string
+# - these high-level emitter statements are very flexible, and are good for formatting messages
 
 
 # --- Module attributes:
 # --- Class Properties ----------------------------------------------------------------------------
 
-# --- str$ - String ID counter
+# --- str$                - String ID counter
+# used to enable string pointers by assigning each string object a unique ID
+
+# --- str.self_pointers   - Bool option (true by default)
+# copies object '.isStr' to 'self' when a string is newly created
+# - keeping this on allows string names to be evaluated as pointers in addition to object names
+# - if you don't want the constructor to assign a property to self, you may turn this off
+#   - turning this off will still allow string pointers to be referenced from the '.isStr' property
 
 
 # --- Object Constructors -------------------------------------------------------------------------
@@ -507,10 +574,33 @@ str.str   Items, .asciz; .align 2
 # These can be used to invoke object methods from a class level
 # - 'str' may be either a string object name or a numerical string pointer
 
+# --- str.emit   macro, str, ...
+# This lets you emit statements using a combination of strings and string pointers
+# 'str' may be specified in [brackets] to reference a string pointer
+# - creates a temporary string to be emitted, called 'str.emitter' -- which can be used afterwards
+# - string pointers must be evaluable expressions that reference the number ID given to a string
+# - all arguments are automatically given a space to separate them
+
 # --- str.error  str, ...
 # Turn multiple string arguments into a contiguous error message
 # str : a string argument (not a string object)
 # - you can use '.strq' object methods to stack up string arguments
+
+# --- str.errors str, ...
+# Turn multiple string arguments into a series of error messages
+
+
+# --- str.warning  str, ...
+# --- str.warnings str, ...
+# - a warning version of error/errors
+
+# --- str.print_line  str, ...
+# --- str.print_lines str, ...
+# - a printer version of error/errors
+
+# --- str.ascii  str, ...
+# --- str.asciz  str, ...
+# - ascii emitters; asciz adds a null terminator to the end of each string argument
 
 # --- Callback Methods ----------------------------------------------------------------------------
 

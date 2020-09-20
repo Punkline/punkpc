@@ -8,7 +8,14 @@
 /*## Attributes:
 # --- Class Properties ---
 
-# --- str$ - String ID counter
+# --- str$                - String ID counter
+# used to enable string pointers by assigning each string object a unique ID
+
+# --- str.self_pointers   - Bool option (true by default)
+# copies object '.isStr' to 'self' when a string is newly created
+# - keeping this on allows string names to be evaluated as pointers in addition to object names
+# - if you don't want the constructor to assign a property to self, you may turn this off
+#   - turning this off will still allow string pointers to be referenced from the '.isStr' property
 
 
 # --- Object Constructors ---
@@ -117,6 +124,13 @@
 # These can be used to invoke object methods from a class level
 # - 'str' may be either a string object name or a numerical string pointer
 
+# --- str.emit   macro, str, ...
+# This lets you emit statements using a combination of strings and string pointers
+# 'str' may be specified in [brackets] to reference a string pointer
+# - creates a temporary string to be emitted, called 'str.emitter' -- which can be used afterwards
+# - string pointers must be evaluable expressions that reference the number ID given to a string
+# - all arguments are automatically given a space to separate them
+
 # --- str.error  str, ...
 # Turn multiple string arguments into a contiguous error message
 # str : a string argument (not a string object)
@@ -126,6 +140,20 @@
 # Turn multiple string arguments into a series of error messages
 
 
+# --- str.warning  str, ...
+# --- str.warnings str, ...
+# - a warning version of error/errors
+
+# --- str.print_line  str, ...
+# --- str.print_lines str, ...
+# - a printer version of error/errors
+
+# --- str.ascii  str, ...
+# --- str.asciz  str, ...
+# - ascii emitters; asciz adds a null terminator to the end of each string argument
+
+# --- str.asciiz str, ...
+# - special ascii emitter that makes one big null terminated string
 
 # --- Callback Methods ---
 
@@ -449,8 +477,16 @@ str.point, myStrObjectHandler
 # - this is convenient, but may be syntactically confusing
 
 
-# --- DEFAULT STRING POINTER HANDLERS ---
-# These methods are built into the class module to make it easier to handle strings remotely
+# --- STRING POINTER HANDLERS ---
+# As of update 0.1.0, strings will now automatically copy their string IDs to their own symbol name
+# - this means that the name 'myString' represents both the object namespace and a property
+#   - the property can be evaluated to find the numerical ID of this string
+#   - this means that the name can be passed as part of an expression
+
+# It's possible to disable this if you want to make the property do something else
+# - the ID can also be found through the '.isStr' property or 'str.point.get'
+
+# Many high-level class methods are capable of handling pointers in ways that are very convenient
 
 str myItems, 15, 6701, 8, 9, 100
 str.irp myItems, "li r0, "
@@ -498,6 +534,14 @@ str.irpq myItems, ".hword ", 1, 2, 3
 #+ 0001 0002 0003 0009
 #+ 0001 0002 0003 0064
 
+str myChars, "Hello"
+str.irpc myChars, "str.error "
+# >>> Error: H  : .irpc and .irpcq can be used to operate on each char in a string
+# >>> Error: e
+# >>> Error: l
+# >>> Error: l
+# >>> Error: o
+
 # in addition to .irp, there are also class methods for invoking object methods remotely
 Items = myItems.isStr
 str.lit  myItems, ".hword ", , 1, 2, 3
@@ -509,30 +553,82 @@ str.litq   Items, ".hword ", 1, 2, 3
 
 # - as you can see, pointers can be used in place of string names here, as well
 
-str.str   myItems, ".ascii ", ", 1, 2, 3"; .byte 0; .align 3
+# You can take advantage of some other class methods included to invoke certain directives
+# - we've been using str.errors and str.error in these examples a lot, but there are others too
+
+str.str   myItems, "str.asciiz,", ", 1, 2, 3"; .align 3
 #+ 31352C36 3730312C : .str - passing multiple string args to a single .ascii directive
 #+ 382C392C 3130302C "15,6701,8,9,100, 1, 2, 3"  -- spaces are preserved from args, but not lits
 #+ 20312C20 322C2033
 #+ 00000000 00000000
-str.strq    Items, ".ascii ", "1, 2, 3, "; .byte 0; .align 3
+str.strq    Items, "str.asciiz ", "1, 2, 3, "; .align 3
 #+ 312C2032 2C20332C : .strq
 #+ 2031352C 36373031 "1, 2, 3, 15,6701,8,9,100"
 #+ 2C382C39 2C313030
 #+ 00000000 00000000
+# The str.asciiz (with an extra i) combines multiple input strings together with .ascii,
+#  and ends with a null-terminator like .asciz -- creating one big null-terminated string
+# - .align 3 then aligns the 0s to 8 bytes
 
 str.clear Items
 str.conc  Items, "Hello World"
-str.str   Items, .asciz; .align 2
-# >>> 48656C6C 6F20576F
-# >>> 726C6400
+str.str   Items, str.warning
+# >>> Warning: Hello World
+# - a more threatening take on Hello World
 
+str.lit   Items, str.warnings
+# >>> Warning: Hello
+# >>> Warning: World
+# - it works just like .errors, but it's a warning not an error
+# - you can disable warnings made with the str library by setting 'str.show_warnings' to false
+# - you can also disable them entirely with some command line settings in as.exe
+
+str Items, "You can't see this"
+str.show_warnings=0
+str.str  Items, str.warning
+# - this is effectively a NOP because of the nullified property
+
+str.show_warnings=1
+# - turning it back on will allow all subsequent warnings to be displayed
+
+
+# --- STRING EMITTER ---
+# The string emitter can combine raw string arguments, string pointers, and evaluations
+# - these
+
+str msg1, "item(s) in list"
+str msg2, "char(s) in string"
+# create some strings for emitting in errors
+
+str Items, "Class, PLink, GXLink, SLink"
+# a new list of items to count
+
+str.count.items Items;  items.count = str.count
+str.count.chars Items;  items.chars = str.count
+# these counter methods can help you figure out how many things are in a string
+# - you can use str.vacount and str.vachars to pass direct string arguments, too
+
+str.emit .error, "Count found", %items.count, [msg1], "..."
+str.emit .error, " ... and", %items.chars, [msg2]
+# >>> Error: Count found 4 item(s) in list ...
+# >>> Error:  ... and 27 char(s) in string
+# - these high-level emitter statements are very flexible, and are good for formatting messages
 
 ##*/
 
 
 
 .ifndef str.included; str.included=0; .endif;
-.ifeq str.included; str.included=4;
+.ifeq str.included; str.included=0x100;
+# --- version 0.1.0
+# - added high-level convenience macros for using multiple strings in the following directives:
+#   - .error, .warning, .print, .ascii, .asciz
+#   - also added special '.asciiz' method, for creating a single null-terminated string from args
+# - added 'str.emit' class method, for building and emitting temp strings from args and pointers
+# - added 'str.self_pointers' property, to allow string object names to evaluate as string pointers
+# - added counting features for comma-separated items and characters
+# - added a '.irpc' method to complement the '.irp' method
+# - fixed bug where '.strq' method would have reversed vararg order if done from normal string mem
 # version 0.0.4
 # - added high-level convenience macros for operating with write methods of objects through pointers
 # version 0.0.3
@@ -547,10 +643,12 @@ str.str   Items, .asciz; .align 2
 .include "./punkpc/ifalt.s"
 
 # Static Class Properties:
-str$=0           # String ID counter
-str.vacount=0      # returns count of variadic arguments in a given argument string
-str.logic=0        # temporarily holds logical bools for generating a callback key
-str.force_litmem=0 # helps the str.lit convenience macro
+str$=0              # String ID counter
+str.vacount=0       # returns count of variadic arguments in a given argument string
+str.logic=0         # temporarily holds logical bools for generating a callback key
+str.force_litmem=0  # helps the str.lit convenience macro
+str.self_pointers=1 # allows string names to be evaluated like string pointers
+str.show_warnings=1 # allows warnings made with str.warning(s) to be be displayed
 
 # Boolean masks, for handling callback logic
 str.mRead    = 1; str.mWrite=0
@@ -584,6 +682,10 @@ str.mAltstr = 16; str.mNoalt=0
   str.vacount=0; .irp x, \va; str.vacount = str.vacount+1; .endr;
   # str.vacount simply counts the number of args in a group of varargs without popping anything
 
+.endm; .macro str.vachars, va:vararg
+  str.vacount=0; .irpc c, \va; str.vacount = str.vacount+1; .endr
+  # like vacount, but counts chars instead of args
+
 # Object Constructor:
 .endm; .macro lit, va:vararg; str.force_litmem=1; str \va
 .endm; .macro str, self, varg:vararg; ifalt
@@ -595,6 +697,9 @@ str.mAltstr = 16; str.mNoalt=0
   # - altmacro mode is then used to turn the logic into an evaluated decimal number
   # - This evaluation can then be used to concatenate a macro name when making a call
   #   - 5 boolean conditions create 32 callback handles -- but from only 8 callable methods
+
+  .if str.self_pointers; \self = str$; .endif # make 'self' into a usable pointer property
+  # - this can be disabled by setting the environment setting 'str.self_pointers' to 0
 
   .altmacro; $_str.point$ \self, %\self\().isStr; ifalt.reset
   # this generates an identifier method for this string object, using its new string id '.isStr'
@@ -720,17 +825,65 @@ str.mAltstr = 16; str.mNoalt=0
     .else; \self\().strbuf_event \cb, <\a>; .endif; .endif
   # special comma dispatchers isolate the first argument and enforce commas in the varargs
 
-.endm; .macro str.errors, str, va:vararg;
-  .error "\str"; .ifnb \va; str.errors \va; .endif
-.endm; .macro str.error, va:vararg; ifalt;
-  .if alt; str.error_alt \va; .else; str.error_nalt \va; .endif
-.endm; .macro str.error_alt, str, conc, va:vararg
-  .ifnb \va; str.error_alt <\str\conc>, \va
-  .else; .error "\str\conc"; .endif
-.endm; .macro str.error_nalt, str, conc, va:vararg
-  .ifnb \va; str.error_nalt "\str\conc", \va
-  .else; .error "\str\conc"; .endif
-  # convenience macros help in constructing error messages from multiple strings
+
+# --- Convenience Methods:
+
+.endm; .macro str.qrecurse_iter, m, str, va:vararg;
+  \m "\str"; .ifnb \va; str.qrecurse_iter \m, \va; .endif
+.endm; .macro str.qrecurse, va:vararg; ifalt;
+  .if alt; str.qrecurse_alt \va; .else; str.qrecurse_nalt \va; .endif
+.endm; .macro str.qrecurse_alt, m, str, conc, va:vararg
+  .ifnb \va; str.qrecurse_alt \m, <\str\conc>, \va
+  .else; \m "\str\conc"; .endif
+.endm; .macro str.qrecurse_nalt, m, str, conc, va:vararg
+  .ifnb \va; str.qrecurse_nalt \m, "\str\conc", \va
+  .else; \m "\str\conc"; .endif
+  # low level recursive macros for plugging convenient directive handlers, like .error and .ascii
+  # - it quotes the outputs regardless of macro mode, as required by string directives
+  # - it still needs to differentiate between modes to recursively concatenate them
+
+.endm; .macro str.errors, va:vararg; str.qrecurse_iter .error, \va
+.endm; .macro str.error, va:vararg; str.qrecurse .error, \va
+.endm; .macro str.warnings, va:vararg; .if str.show_warnings;str.qrecurse_iter .warning, \va;.endif
+.endm; .macro str.warning, va:vararg; .if str.show_warnings;str.qrecurse .warning, \va;.endif
+.endm; .macro str.print_lines, va:vararg; str.qrecurse_iter .print, \va
+.endm; .macro str.print_line, va:vararg; str.qrecurse .print, \va
+.endm; .macro str.print, va:vararg; str.qrecurse .print, \va
+.endm; .macro str.ascii, va:vararg; str.qrecurse_iter .ascii, \va
+.endm; .macro str.asciz, va:vararg; str.qrecurse_iter .asciz, \va
+.endm; .macro str.asciiz, va:vararg; str.qrecurse_iter .ascii, \va; .byte 0
+# these macros use qrecurse to pass multiple (possibly unquoted) strings to string directives
+
+.endm; .macro str.emit, m, va:vararg;
+  ifalt; .if alt; st.delimit \m, < >, \va; .else; str.delimit \m, " ", \va; .endif
+  # this tool lets you build statements out of a combination of string arguments and string pointers
+  # use a % prefix to force an input expression to be evaluated before recorded as string
+  # use [brackets] to enclose an evaluable expression that references a numerical string pointer
+  # - each string object creates a string pointer out of its own name on construction
+  #   - this makes it possible to type just the [string_name] to pass a pointer
+
+.endm; .macro str.delimit, m, delimit, va:vararg
+  str str.emitter; ifalt
+  .irp str, \va; str.emitter.point = 0; str.emitter.eval = 0
+    .irpc c, \str;
+      .ifc \c, [; str.emitter.point = \str; .exitm; .endif
+      .ifc \c, %; str.emitter.eval  = 1; .exitm; .endif
+      .exitm;
+    .endr
+    .if str.emitter.eval;
+      str.emitter.alt = alt
+      str str.emitter.eval
+      .altmacro; str.emitter.eval.conc \str
+      ifalt.reset str.emitter.alt
+      str.emitter.point = str.emitter.eval.isStr; .endif
+    .if str.emitter.point; str.str str.emitter.point, str.emitter.conc
+      .if alt;  str.emitter.conc <\delimit>; .else; str.emitter.conc "\delimit"; .endif
+    .else;
+      .if alt;  str.emitter.conc <\str\delimit>; .else; str.emitter.conc "\str\delimit"; .endif
+    .endif
+  .endr; str.emitter.str \m
+  # - a version of 'str.emit' that allows for an input delimitter argument
+  # use the 'delimit' arg to add a char or sequence of chars that will delimit the string args
 
 .endm; .macro str.point, point=str.point, m, va:vararg
   ifalt; str.vacount \va; .altmacro; str.point_evaluation %\point, <\m>, \va
@@ -741,16 +894,42 @@ str.mAltstr = 16; str.mNoalt=0
     .if str.vacount; \m \self, \va; .else; \m \self; .endif; .endm
   # pointer macros help convert IDs into identifier methods
 
-.endm; .macro str.point.get, str;
-ndef=0; def=1 # if this is a literal number, then it can't be checked -- so we pre-empt the result
-.irpc c, \str;
-  .irpc n, 0123456789;
-    .ifc \c, \n; def=0; .endif;
-  .endr; .exitm;
-.endr; .if def; ifdef \str\().isStr; .endif # if not a literal number, see if it has a .isStr ID
-.if def; str.point = \str\().isStr; .else; str.point = \str; .endif
-# this can be used to check for either a string pointer or a string name, as an argument
-# - it returns a pointer value in str.point; and def=1 if the input was a valid string object
+  .endm; .macro str.point.get, str;
+  ndef=0; def=1 # if this is a literal number, then it can't be checked -- so we pre-empt the result
+  ifalt
+  .irpc c, \str;
+    .irpc n, 0123456789+-*%/&^!~()[];
+      .ifc \c, \n; def=0; .exitm; .endif;
+    .endr; .exitm;
+  .endr; .if def; ifdef \str\().isStr; .endif
+  # if not a literal number, see if it has a .isStr ID
+
+  .if def; str.point = \str\().isStr
+  # if it does, then copy ID as pointer
+
+  .else; ifdef \str
+  # if not, then see if the symbol even exists
+
+    .if def; def=0; ndef=1; str.point = \str
+    # if it exists, then assume it is a pointer to a string object
+
+    .else; str.point = 0
+    # else, return null to inform caller that this is not a valid string object
+
+    .endif
+  .endif
+  ifalt.reset
+  # this can be used to check for either a string pointer or a string name, as an argument
+  # On return:
+  # - if def=1; then the input was a valid string object name, with the pointer in 'str.point'
+  # - if def=0, but 'str.point' is not 0;  then the input was a pointer
+  # - if str.point=0; then the input was not a valid string object reference
+
+.endm; .macro str.count.items, str
+  str.point.get \str; str.litq str.point, str.vacount; str.count = str.vacount
+.endm; .macro str.count.chars, str
+  str.point.get \str; str.strq str.point, str.vachars; str.count = str.vacount
+  # these can count the comma-separated items or characters in a string, in 'str.count'
 
 .endm; .macro str.irp, str, va:vararg; str.point.get \str;  str.point, str.irp_handle, 0, \va
 .endm; .macro str.irpq, str, va:vararg; str.point.get \str; str.point, str.irp_handle, 1, \va
@@ -764,6 +943,19 @@ ndef=0; def=1 # if this is a literal number, then it can't be checked -- so we p
   str.irp.lit
   # this allows comma separated items to be iterated through by a macro, directive, or instruction
   # args can optionally be added to each iteration
+
+
+.endm; .macro str.irpc, str, va:vararg; str.point.get \str;  str.point, str.irpc_handle, 0, \va
+.endm; .macro str.irpcq, str, va:vararg; str.point.get \str; str.point, str.irpc_handle, 1, \va
+.endm; .macro str.irpc_handle, str, q, m, va:vararg
+  str str.irpc ".irpc char,"
+  str.vacount \va; .if str.vacount == 1; .ifb \va; str.vacount=0; .endif; .endif
+  .if str.vacount;
+    .if \q;  \str\().litq str.irpc.conc; str.irpc.conc "; \m \va, \char; .endr"
+    .else;   \str\().litq str.irpc.conc; str.irpc.conc "; \m \char, \va; .endr"; .endif
+  .else;     \str\().litq str.irpc.conc; str.irpc.conc "; \m \char; .endr";  .endif
+  str.irpc.lit
+  # this is a version of .irp that works on each character in the string, instead of each arg
 
 .endm; .macro str.str, str, va:vararg; str.point.get \str;  str.point, str.read_handle, str, \va
 .endm; .macro str.lit, str, va:vararg; str.point.get \str;  str.point, str.read_handle, lit, \va
@@ -787,7 +979,9 @@ ndef=0; def=1 # if this is a literal number, then it can't be checked -- so we p
 .endm; .macro str.write_handle, str, method, va:vararg; \str\().\method \va
   # these let objects be written by pointers
 
-# Callback case-handler map:
+
+# --- Callback Map:
+
 .endm; .macro str.strbuf_event$0, self,a,str,va:vararg # --- .conc    - "strmem"
 # mWrite, mStrmem, mStrio, mSuffix, mNoalt
   str.buildstrmem \self, "\str\a"
@@ -826,7 +1020,7 @@ ndef=0; def=1 # if this is a literal number, then it can't be checked -- so we p
 
 .endm; .macro str.strbuf_event$9, self,a,str,va:vararg # ---   .strq  - "strmem"
 # mRead, mStrmem, mStrio, mPrefix, mNoalt
-  \a "\str" \va
+  \a \va "\str"
 
 .endm; .macro str.strbuf_event$10,self,a,va:vararg # --- .pfx     - litmem
 # mWrite, mLitmem, mStrio, mPrefix, mNoalt
