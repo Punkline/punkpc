@@ -84,6 +84,8 @@
   # - if 'mut' is blank, then hook becomes a nop
   # - if multiple hooks are given, then each hook will recieve the same callback
   #   - this is useful for assigning multiple nops, or a implementing common handlers
+  # - if 'mut' is encapsulated in a quoted string, it may contain multiple statement prefixes
+  #   - each statement must be delimited with a ';' semicolon
 
   # --- .mode  hook, mode ...
   # Register any number of mode names as new modes for specified hook belonging to this object
@@ -373,7 +375,11 @@ i.mode decr, word
 
 
 ##*/
-.ifndef mut.included; mut.included = 0; .endif; .ifeq mut.included; mut.included = 1
+##/* Updates
+# Version 0.0.2
+# - enquoted mutator argument in obj.mut method, allowing for prefix statements
+##*/
+.ifndef mut.included; mut.included = 0; .endif; .ifeq mut.included; mut.included = 2
   .include "./punkpc/ifdef.s"
   mut.mutableClass$ = 0
   mut.mutableObj$   = 0
@@ -413,7 +419,7 @@ i.mode decr, word
       .macro \obj\().hook, va:vararg
         .irp hook, \va; mut.hook \hook, \obj, \class, \mut_ns, \hook_ns; .endr
       .endm; .macro \obj\().mut, mut, va:vararg
-        .irp hook, \va; mut.mut  \mut, \hook, \obj, \hook_ns; .endr
+        .irp hook, \va; mut.mut  "\mut", \hook, \obj, \hook_ns; .endr
       .endm; .macro \obj\().mode, hook, va:vararg
         .irp mode, \va; mut.mode \mode, \hook, \obj, \class, \mut_ns, \hook_ns; .endr
       .endm

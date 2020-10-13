@@ -1,5 +1,5 @@
 .ifndef mut.included;  mut.included = 0;.endif;
-.ifeq mut.included;  mut.included = 1
+.ifeq mut.included;  mut.included = 2
   .include "./punkpc/ifdef.s"
   mut.mutableClass$ = 0;mut.mutableObj$ = 0;mut.mutator$ = 0;mut.mutatorMode$ = 0
   .macro mut.class,  class,  mut_ns=mut,  hook_ns=hook;  ifdef \class\().isMutableClass
@@ -19,7 +19,7 @@
       .macro \obj\().hook,  va:vararg
         .irp hook,  \va;  mut.hook \hook, \obj, \class, \mut_ns, \hook_ns;.endr;
       .endm;.macro \obj\().mut,  mut,  va:vararg
-        .irp hook,  \va;  mut.mut \mut, \hook, \obj, \hook_ns;.endr;
+        .irp hook,  \va;  mut.mut "\mut", \hook, \obj, \hook_ns;.endr;
       .endm;.macro \obj\().mode,  hook,  va:vararg
         .irp mode,  \va;  mut.mode \mode, \hook, \obj, \class, \mut_ns, \hook_ns;.endr;
       .endm;.endif;

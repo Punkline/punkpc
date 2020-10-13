@@ -304,6 +304,8 @@ i.mode decr, word
   # - if 'mut' is blank, then hook becomes a nop
   # - if multiple hooks are given, then each hook will recieve the same callback
   #   - this is useful for assigning multiple nops, or a implementing common handlers
+  # - if 'mut' is encapsulated in a quoted string, it may contain multiple statement prefixes
+  #   - each statement must be delimited with a ';' semicolon
 
 # --- .mode  hook, mode ...
   # Register any number of mode names as new modes for specified hook belonging to this object

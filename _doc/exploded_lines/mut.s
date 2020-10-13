@@ -2,7 +2,7 @@
   mut.included = 0
 .endif;
 .ifeq mut.included
-  mut.included = 1
+  mut.included = 2
   .include "./punkpc/ifdef.s"
   mut.mutableClass$ = 0
   mut.mutableObj$ = 0
@@ -44,7 +44,7 @@
       .endm;
       .macro \obj\().mut,  mut,  va:vararg
         .irp hook,  \va
-          mut.mut \mut, \hook, \obj, \hook_ns
+          mut.mut "\mut", \hook, \obj, \hook_ns
         .endr;
       .endm;
       .macro \obj\().mode,  hook,  va:vararg
