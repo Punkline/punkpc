@@ -52,12 +52,6 @@
   # - multiple values can be stacked in the order given
   # - value of self is cleared with self.fill value
 
-  # --- .push.mode  mode
-  # Change the way .push behaves when encountering the edge of push memory
-  #  mode: incr : DEFAULT - push memory index so that pushed value can be stored
-  #  mode: nop  : do nothing, causing memory boundary to become a limit
-  # - nop may be useful for temporarily disabling pushing below the maximum
-
   # --- .pop    sym, ...
   # Copy self to pop stream output, and update self with top memorized push value
   # - if no symbol is given, self.pop is used for output stream
@@ -78,20 +72,15 @@
   # - if no symbol is given, self.deq is used for output stream
   # - multiple symbols will cause dequeued values to be assigned to each, in a sequenc
 
-  # --- .pop.mode   mode
-  # --- .deq.mode   mode
-  # --- .iter.mode  mode
-  # Change the way read operations behave when colliding with bottom of queue
-  #  mode : null  : DEFAULT - freeze the stack index, and produce .fill values in pop stream
-  #  mode : rot   : rotate stack index back to highest memorized stack value
-  #  mode : cap   : continuously re-pop the last value in stack memory
-  #  mode : nop   : abort the pop operation, freezing index and pop stream entirely
-
   # --- .s   idx
   # Stack index method
   # - sets index self.s
   # - if no index is given, highest memory index is used
   # - caps in range self.q ... self.ss
+
+  # --- .ss idx
+  # A variation of '.s' that can push '.ss' if out of bounds
+  # - caps in rage of self.q ... self.sss
 
   # --- .i   idx, ...
   # Stack index method
@@ -143,16 +132,16 @@
 
 
   # --- Mutable Hook Names ---
-  # --- "i_plugin"     self,
+  # --- "i_plugin"     self, ...
   # add functionality to the .i method
 
-  # --- "iter_plugin"  self,
+  # --- "iter_plugin"  self, ...
   # add functionality to the .iter method
 
-  # --- "get_plugin"   self,
+  # --- "get_plugin"   self, ...
   # add funcitonality to the .get method
 
-  # --- "set_plugin"   self,
+  # --- "set_plugin"   self, ...
   # add functionality to the .set method
 
 
@@ -166,8 +155,45 @@
   # - disabled extra functionality for the .i method
 
 
-  # --- Hook Modes ---
 
+  # --- Hook Modes ---
+  # The following mode keywords can be used to mutate existing stack method behaviors
+  # - use the provided '.mode' methods to invoke the described keyword behaviors
+  # - you may alternatively override these hooks with .mut and a callback of your choosing
+
+
+
+  #   WRITE OOB: exception behaviors:
+  # --- .push.mode  oob_mode
+  # Change the way .push behaves when encountering the edge of push memory
+  #    keywords :
+  #   --- incr  : DEFAULT - push memory index by +1 so that pushed value can be stored
+  #   --- step  - like incr, but increments by +.step amount instead of just +1
+  #   --- nop   - do nothing, causing memory boundary to become a limit
+  # - nop may be useful for temporarily disabling pushing below the maximum
+
+
+
+  #   READ OOB: exception behaviors:
+  # --- .pop.mode   oob_mode
+  # --- .deq.mode   oob_mode
+  # --- .iter.mode  oob_mode
+  # --- .i.mode     oob_mode, idx_mode
+  # Change the way read operations behave when colliding with bottom of queue
+  #    keywords :
+  #   --- null  : DEFAULT - freeze the stack index, and produce .fill values in pop stream
+  #   --- rot   - rotate stack index back to highest memorized stack value
+  #   --- cap   - continuously re-pop the last value in stack memory
+  #   --- nop   - abort the pop operation, freezing index and pop stream entirely
+
+
+
+  #   INDEXING TYPE: exclusive to the '.i' index method:
+  # Change the way the input idx is treated for the .i index method
+  #    keywords :
+  #   --- range : DEFAULT - index is relative to [q], and limited by [q] ... [s]
+  #   --- rel   - like range, but input idx is added to current idx to make a relative idx
+  #   --- abs   - absolute index (still invokes OOB)
 
 
 
@@ -439,233 +465,217 @@ a.get[0], x, y, z, q
 # You can give symbol names as args to store copies from .get
 # - this is a good way to access tuple memory, in strides
 
-a.set[0], 5, 6, 7, 8
-a.get[0], x, y, z, q
+a.set[4], 5, 6, 7, 8
+a.get[4], x, y, z, q
 .long x, y, z, q
 # >>> 5, 6, 7, 8
-# You may also set memory in this manner
+# You may also set memory in this manner, ignoring the stack boundary
+
+a.s[8]
+.long a.s
+# >>> 4
+# Setting memory like this does not update the stack index
+# - the '.s' method will not push beyond its highest memory
+
+a.ss[8]
+.long a.s
+# >>> 8
+# The '.ss' method can be used to force a stack index to push the highest memory index
+# - if not careful, this may lead to gaps in your stack that are not valid for reading
+#   - any index that has been written to at least once is safe to read
+
+a.i[0]
+# By default, the '.i' index method takes an offset between [q]...[s]
+
+a.get
+.long a
+# >>> 1
+# The 'a' buffer can be used to reference returned get values when no args are given
+
+a.i[-1]
+a.get
+.long a
+# >>> 8
+# By default, the '.i' index method rotates to opposite end when out of bounds
 
 a.i[a.s]
+a.get
+.long a
+# >>> 1
+# The stack index is considered exclusive in the [i] range, so it will rotate back to [q]
+
+a.q[1]
+a.i[0]
+a.get
+.long a
+# >>> 2
+# Raising [q] will raise the base index applied to [i] inputs
 
 
 
 # --- STACKS AS ITERATORS
 # Stacks can be used like iterators with the [i] index, and the '.iter' output pipe
 
-a.i
+a.q[0]
+a.get[0]
+# the buffer 'a' will be used in the iter process, like when popping
 
+a.step = 1
+# unlike popping, the [i] index uses a custom step value that can be positive or negative
+# - this allows you to create an outpipe stream that uses 'a' and doesn't change the stack index
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# --- BASIC STACK/QUEUE METHODS ---
-
-stack a, b
-# create stacks 'a' and 'b'
-# these may be used like regular symbols that have methods for interfacing with a stack
-
-a.push 1, 2, 3, 4
-# push some values to stack 'a'
-# - the value of 'a' is now blank
-
-.long a, a.s
-# >>> 0, 4
-# buffered 'a' value is blank after pushing, but its stack index shows that it is not empty
-
-
-# This loop uses the .deq method to pop elements from the bottom of the stack:
-.rept a.s  # for each stacked value
-  a.deq b  # pipe bottom value to stack 'b' buffer symbol
-  .long b
-  b.push   # push buffer in stack 'b'
-.endr
-# >>> 1, 2, 3, 4
-# de-queue elements in 'a'
-# each element is piped to the 'b' buffer
-# each element gets pushed to the 'b' stack
-# - using a.s directly for the loop count only works when queue index is 0
-#   - to pick up from a partially iterated queue, use (a.s - a.q) instead
-
-.long a.s, b.s
-# >>> 0, 4
-# stack 'a' is now empty, and stack 'b' is not
-# - this is because we've just piped the contents of a -> b
-
-
-b = 5
-# set buffer value in 'b' directly to 5
-# - buffer acts like top of the stack when popping, but not when de-queueing
-
-# This loop uses the .pop method to pop elements from the top of the stack:
-.rept b.s + 1  # for each stacked value -- including the currently buffered value
-  b.pop a      # pipe top value to stack 'a' buffer symbol
-  .long a
-  a.push       # push buffer in stack 'a'
-.endr
-# >>> 5, 4, 3, 2, 1
-# popping values from a stack presents them in a reversed order
-# adding 1 to the loop count and streaming from pop makes the buffer included in the pipe loop
-
-# [ .POP ] <- [ SELF ] .S  (pop comes from self, not memory)
-#             [ MEM  ]
-#             [ MEM  ]
-#             [ MEM  ]
-# [ .DEQ ] <- [ MEM  ] .Q  (deq comes from memory, not self)
-# - self is included in the pop stream, but not the deq stream
-# - to exclude self from the pop stream, stream from the b buffer instead of the pop stream
-
-a = 0
-# set buffer value in 'a' to 0
-# - buffer will be ignored in the following loop
-
-.rept a.s   # for each stacked value -- excluding the currently buffered value
-  a.pop     # pop buffer from stack
-  .long a   # buffer is updated with next value
-  b.push a  # push next value, discarding popped buffer
-.endr
-# >>> 1, 2, 3, 4, 5
-# not adding 1 to the loop count and streaming directly from the buffer discards the popped value
-
-
-
-# --- ITERATIONS ---
-
-# As of version 0.1.0, the [i] index has been implemented in addition to [s] and [q]
-# [i] can be used to sample part of a stack range in-between [s] and [q] for iterations
-# - it is accompanied by a '.step' property that determines the incr/decr size of each idx iter
-
-
-
-
-# --- RANDOM ACCESS ---
-
-a.get[3]
-# This sets the value of self 'a' to the value in memory index [3]
-# - using [brackets] is optional -- you may alternatively specify the index like a normal argument
-
-# Since we've pushed 5, 4, 3, 2, 1, this makes [3] == 2
-# - the index is 0-based: [0], [1], [2], [3]
+a.iter
+.long a.iter
+# >>> 1
+# The '.iter' property will copy the current value from buffer 'a'
 
 .long a
 # >>> 2
-# - this is a way of randomly accessing values you have written to the stack
-# - it isn't safe to try and get memory from indices that haven't been written, but is very fast
+# ... and the buffer 'a' updates with the next index determined by '.step'
 
-.long a$3
-# >>> 2
-# If you know the literal (decimal) index value of a memory slot you need to reference,
-#   then you can use a '$' char to reference it directly from symbol memory
-# - this is the memory that gets copied to 'a' after invoking a.get[3]
-
-a.set[4]
-# This sets the currently buffered value to memory index [4]
-
-.long a$4
-# >>> 2
-# - this was copied from the a.get method
-
-a.set[0], 5, 6, 7, 8
-# You can also add arguments to set to use something other than self for assignments
-
-.long a$0, a$1, a$2, a$3
-# >>> 5, 6, 7, 8
-# - this allows you to make non-contiguous scalars, if needed
-
-a.get[0], A, B, C, D
-.long A, B, C, D
-# >>> 5, 6, 7, 8
-# In a similar manner, you may specify extra args in .get in order to copy a sequence of values
-
-a = 9
-a.push
+a.step = 2
+a.iter
 .long a
-# >>> 0
-# pushing a causes a fill value to initialize the buffer, as a way of clearing it
+# >>> 4
+# - note that we skipped over '3'
 
-a.get.top
+a.step = -1
+a.iter
 .long a
-# >>> 9
-# .get.top is a way to use the .get with the stack index '.s' instead of '.i'
-# - this lets you retrieve the last value in memory without popping
-
-a.get.bot
-.long a
-# >>>
+# >>> 3
+# - we went backwards this time because the '.step' property is negative
 
 
 
-# --- NULL MODE (DEFAULT OUT OF BOUNDS BEHAVIOR) ---
+# --- STACK MODES
+# Stack methods use mutable hooks that can be changed with the '.mode' object methods
+# The most common is a hook used to handle various 'out of bounds' exception cases
 
-# When attempting to read something out of bounds, that may not actually exist
-# To handle this is a behavior that's implemented like an exception to out of bounds reads
-
-a = 0x1337
-a.pop
-.long a.pop, a
-# outpipe can be reached directly from the .pop property if values are not piped to another stack
-
+a.reset
 a.push 1, 3, 3, 7
-.rept a.s <<2  # this is 4 times as many elements than are actually in the stack...
-  a.deq b
-  .byte b
-  b.push
+# reset stack memory and push some new values
+
+.rept a.s<<1 # for twice as many pushed numbers in memory...
+  a.deq      # ... attempt to pop memory
+  .byte a.deq
 .endr
-# >>> 1, 3, 3, 7,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0
-# default mode 'null' creates filler values when out of things to pop
-# - this is the mode that all new stacks are in when created
-
-a.s
-# if given no args, 'self.s' method will reset to highest available memory value
-
-
-# --- ROT MODE ---
+# >> 1, 3, 3, 7,   0, 0, 0, 0
+# The default behavior when popping out of bounds is to generate a 'null' fill value
+# - by default, '.fill' = 0
 
 a.deq.mode rot
-# mutate stack 'b' de-queue method into a rotation method
+# By setting 'a.deq.mode' to a new keyword, we can change this OOB behavior
 
-.rept a.s <<2
-  a.deq b
-  .byte b
-  b.push
+a.q
+.rept a.s<<1
+  a.deq
+  .byte a.deq
 .endr
-# >>> 1, 3, 3, 7,  1, 3, 3, 7,  1, 3, 3, 7,  1, 3, 3, 7
-# 'rot' mode will rotate through old memory instead of resetting when depleted
-
-a.reset; a.s
-# self.reset restores default index values
-
-
-# --- CAP MODE ---
+# >>> 1, 3, 3, 7,   1, 3, 3, 7
+# dequeueing in 'rot' mode causes overflows to be handled by resetting [q], repeating itself
 
 a.deq.mode cap
-# - now the queue will stay at the last available value, instead of null or rotation
-
-.rept a.s <<2
-  a.deq b
-  .byte b
-  b.push
+a.q  # reset [q] = [qq]
+.rept a.s<<1
+  a.deq
+  .byte a.deq
 .endr
-# >>> 1, 3, 3, 7,  7, 7, 7, 7,  7, 7, 7, 7,  7, 7, 7, 7
+# >>> 1, 3, 3, 7,   7, 7, 7, 7
+# dequeueing in 'cap' mode causes overflows to freeze at the final available value
+
+a.deq.mode nop
+a.q
+.rept a.s<<1
+  a.deq
+  .byte a.deq
+.endr
+# >>> 1, 3, 3, 7,  5, 6, 7, 8
+# dequeuing in 'nop' mode causes overflows to try reading regardless of boundary error
+# - nothing is done to stop the error, resulting in our old memory leaking through
+# - if the old memory didn't exist, then this would just cause an error
+
+a.q
+a.s[4]
+a.step = 1
+a.get[0]
+.rept a.s<<1
+  a.iter
+  .byte a.iter
+.endr
+# >>> 1, 3, 3, 7,  1, 3, 3, 7
+# iterating uses 'rot' by default, and will not move the [q] index
+# - this allows [q] and [s] to be used to specify the bounds of the rotating index
+
+a.q[3]
+a.s[6]
+a.i[0]
+a.get
+.long a
+# >>> 7
+# [q] sets the base address of [i] inputs by default, but we can change this with i.mode
+
+a.i.mode nop, abs
+a.i
+a.get
+.long a
+# >>> 1
+# with no arguments, .i uses [0]
+# in 'nop' mode, i will basically ignore OOB cases
+# in 'abs' mode, i will not be relative to [q], and will use the input idx directly
+# - this makes it behave more like [q] or [q]
+
+
+
+# --- STACK MUTATORS
+# All of the above modes use 'hooks' inside of the object methods in order to function
+# In addition to these modes, some blank hooks are provided to make the [i] interface extendable
+
+# To make a plugin injection for any instantiated stack object, first define a macro:
+
+stack RGBA           # example RGBA color stack
+RGBA.step = 4        # strides of 4 keep track of R, G, B, A separately
+RGBA.alpha = 0xFF    # a pre-determined alpha channel value is used when pushing colors
+RGBA.push.mode step  # pushes will use the step value instead of '+1' when incrementing [s]
+# This is an example of a stack object we can mutate...
+
+.macro myMutator, self, rgb;
+  r = (\rgb >> 16) & 0xFF
+  g = (\rgb >> 8) & 0xFF
+  b = \rgb & 0xFF
+  a = \self\().alpha & 0xFF
+
+  \self\().set[\self\().s-1], r, g, b, a  # push 4 values instead of 1
+  \self\().ss[\self\().s+3]               # manually move stack index with .ss
+  .altmacro # push_post hook is in altmacro context, so we return to it
+.endm
+RGBA.mut ".noaltmacro; myMutator", push_post
+# This assigns 'myMutator' to the 'push_post' hook in the RGBA stack object
+# The '.noaltmacro' statement is included to temporarily subvert the altmacro context
+# - now, each RGBA value we push to it will be split into channel bytes, and have alpha overridden
+
+
+RGBA.push 0x323232, 0x4b645d, 0x6d9889, 0x9fceb3, 0xf5ffd3, 0xffbcaf, 0xf4777f, 0xcf3759, 0x93003a
+# buffer 9 RGBA colors from RGB inputs
+
+.long RGBA.s>>2  # number of colors
+RGBA.get[0]
+.rept RGBA.s
+  .byte RGBA     # pipe stream of bytes created from special push mutator
+  RGBA.iter
+.endr
+# >>> 00000009 323232ff
+# >>> 4b645dff 6d9889ff
+# >>> 9fceb3ff f5ffd3ff
+# >>> ffbcafff f4777fff
+# >>> cf3759ff 93003aff   # color table
+
 
 ##*/
 
 
 
 .ifndef stack.included; stack.included=0; .endif; .ifeq stack.included; stack.included = 0x100
-# version 0.1.0
+# --- version 0.1.0
 # - implemented mutator class to handle stack modes
 # - added .get and .set methods, to implement new sidx features
 # - added .i property, for using .get and .set independently from stack/queue indices
@@ -686,7 +696,8 @@ stack.fill = 0          # default fill value for blank push streams and null ini
 stack.size = 0          # default number of null elements to start in stack
 stack.sss = 1<<31-1     # default maximum index
 stack$ = 0              # stack ID counter
-
+stack.idx = 0
+stack.oob = 0
 mut.class stack
 # This allows us to create and use mutable behaviors for the class 'stack'
 
@@ -701,7 +712,7 @@ mut.class stack
     \self\().s = size
     ifdef \self; .if ndef; \self = stack.fill; .endif
     \self\()$0 = \self\().fill
-    .irp ppt,s,ss,i,pop,q,qq,deq,iter,oob;\self\().\ppt=0;.endr
+    .irp ppt,s,ss,i,pop,q,qq,deq,iter;\self\().\ppt=0;.endr
     \self\().fill = stack.fill
     \self\().step = 1
     \self\().init = stack.size
@@ -715,12 +726,15 @@ mut.class stack
 # s and q index methods limit the stack and queue to existing indices
     .macro \self\().s, idx=\self\().ss; \self\().s=\idx;
       .if \idx > \self\().ss;\self\().s=\self\().ss;.endif
+    .endm; .macro \self\().ss, idx=\self\().ss; \self\().s=\idx;
+      .if \idx > \self\().sss; \self\().s = \self\().sss; .endif
+      .if \idx > \self\().ss;\self\().ss=\self\().s;.endif
     .endm; .macro \self\().q, idx=\self\().qq; \self\().q=\idx;
       .if \idx < \self\().qq;\self\().q=\self\().qq;.endif
 
 # i is a mutable index method that can be invoked with the '.iter' method
 # - the .i index property can is also modified by the '.get' and '.set' methods
-    .endm; .macro \self\().i, va:vararg; \self\().hook.i \self, \va
+    .endm; .macro \self\().i, va:vararg=0; \self\().hook.idx_i \self, \va
 
 # get/set create an I/O for interfacing with iter index, in stack
     .endm; .macro \self\().get, idx=\self\().i, sym=\self, va:vararg
@@ -768,11 +782,13 @@ mut.class stack
 
 
 # convenience macros for assigning modes:
-    .endm; .macro \self\().push.mode, kw; \self\().mode oob_push, \kw
-    .endm; .macro \self\().pop.mode,  kw; \self\().mode oob_pop, \kw
-    .endm; .macro \self\().deq.mode,  kw; \self\().mode oob_deq, \kw
-    .endm; .macro \self\().iter.mode, kw; \self\().mode oob_iter, \kw
-    .endm; .macro \self\().iter.i,    kw; \self\().mode i, \kw
+    .endm; .macro \self\().push.mode,  kw; \self\().mode oob_push, \kw
+    .endm; .macro \self\().pop.mode,   kw; \self\().mode oob_pop, \kw
+    .endm; .macro \self\().deq.mode,   kw; \self\().mode oob_deq, \kw
+    .endm; .macro \self\().iter.mode,  kw; \self\().mode oob_iter, \kw
+    .endm; .macro \self\().i.mode,     oob, idx
+      .ifnb \oob; \self\().mode oob_i, \oob; .endif
+      .ifnb \idx; \self\().mode idx_i, \idx; .endif
 
 # end of method definitions
     .endm
@@ -789,12 +805,12 @@ mut.class stack
     \self\().pop.mode   null  # OOB pops will produce null values
     \self\().deq.mode   null  # OOB deques will produce null values
     \self\().iter.mode  rot   # OOB iterations will rotate to top/bottom of stack
-    \self\().i.mode     rot   # index mode will rotate when out of bounds of s...q
+    \self\().i.mode     rot, range   # index mode will rotate when out of bounds of s...q
     # these create default modes for push, pop, deq, and iter 'out of bounds' exception behaviors
     # - these connect to the class-level 'stack.mut.oob_*' callback methods
     # - they can be mutated by invoking the same syntax after construction with different keywords
 
-    \self\().mut , get_plugin, set_plugin, iter_plugin
+    \self\().mut , i_plugin, get_plugin, set_plugin, iter_plugin, push_pre, push_post
     # creates no-op default behaviors for plugins for methods related to the i index
     # - these can be modified later to plug user-defined functionality into [i]
 
@@ -805,7 +821,7 @@ mut.class stack
 
 # --- static methods:
 
-.endm; .macro self.fill, self, start, size, fill; LOCAL i, idx#
+.endm; .macro stack.fill, self, start, size, fill; LOCAL i, idx#
   idx = \start; i = \size; .if \self\().sss < (idx+i); i = \self\().sss - idx; .endif
   .if (idx <= \self\().ss) && (\self\().ss < (idx+i)); \self\().ss = idx+i; .endif
   .if i > 0; .rept i;sidx.ema \self, %idx, <=\fill>;idx=idx+1;.endr; .endif
@@ -819,117 +835,146 @@ mut.class stack
 .endm; .macro stack.push, self, va:vararg;  ifalt; stack.memalt = alt; .altmacro
   .irp val,\va;
     .ifnb \val
+      \self\().hook.push_pre \self, \val
       .if \self\().s < \self\().sss
-        .if \self\().s >= \self\().ss; \self\().oob=1; \self\().hook.oob_push \self, \val; .endif
-        .if \self\().oob==0;
+        .if \self\().s >= \self\().ss; stack.oob=1; \self\().hook.oob_push \self, \val; .endif
+        .if stack.oob==0;
           sidx.ema \self, %\self\().s, <=\val>
-          \self\().s = \self\().s + 1;  \self = \self\().fill; .endif;
-    .endif; .endif; \self\().oob=0
-  .endr; ifalt.reset stack.memalt; \self\().oob=0
+          \self\().s = \self\().s + 1;  \self = \self\().fill;
+          \self\().hook.push_post \self, \val; .endif;
+    .endif; .endif; stack.oob=0
+  .endr; ifalt.reset stack.memalt; stack.oob=0
 
 .endm; .macro stack.pop, self, va:vararg; ifalt; stack.memalt = alt; .altmacro
   .irp sym,\va
     .ifnb \sym
       .if \self\().s <= \self\().q
-        \self\().oob=1; \self\().hook.oob_pop \self, \sym; .endif
-      .if \self\().oob==0; \self\().pop = \self; \sym = \self
+        stack.oob=1; \self\().hook.oob_pop \self, \sym; .endif
+      .if stack.oob==0; \self\().pop = \self; \sym = \self
         \self\().s = \self\().s - 1; sidx.ema <\self = \self>, %\self\().s; .endif
-    .endif; \self\().oob=0;
-  .endr; ifalt.reset stack.memalt
+    .endif; stack.oob=0;
+  .endr; ifalt.reset stack.memalt; stack.oob=0
 
 .endm; .macro stack.deq, self, va:vararg; stack.memalt = alt; .altmacro
   .irp sym,\va
-    .ifnb \sym; \self\().oob=0
+    .ifnb \sym; stack.oob=0
       .if \self\().q+1 >= \self\().s
-        \self\().oob=1; \self\().hook.oob_deq \self, \sym; .endif
-      .if \self\().oob==0; sidx.ema <\self\().deq=\self>, %\self\().q
+        stack.oob=1; \self\().hook.oob_deq \self, \sym; .endif
+      .if stack.oob==0; sidx.ema <\self\().deq=\self>, %\self\().q
       \sym = \self\().deq; \self\().q = \self\().q + 1; .endif
-    .endif; \self\().oob=0
-.endr; ifalt.reset stack.memalt
+    .endif; stack.oob=0
+.endr; ifalt.reset stack.memalt; stack.oob=0
 
-.endm; .macro stack.iter, self, va:vararg; stack.memalt = alt; .altmacro
+.endm; .macro stack.iter, self, va:vararg
   .irp sym,\va
-    .ifnb \sym
-      .if \self\().i+\self\().step >= \self\().s
-        \self\().oob=1; \self\().hook.oob_iter \self, \sym; .endif
-      .if \self\().i+\self\().step <= \self\().q
-        \self\().oob=1; \self\().hook.oob_iter \self, \sym; .endif
-      .if \self\().oob; .exitm; .endif; \sym = \self
-      \self\().i = \self\().i + \self\().step
-      sidx.ema <\self = \self>, %\self\().i; .endif
-  .endr; ifalt.reset stack.memalt
+    .ifnb \sym;
+      stack.idx = \self\().i + \self\().step
+      .if stack.idx >= \self\().s; stack.oob=1
+      .elseif stack.idx < \self\().q; self.oob=1; .endif
+      .if stack.oob; \self\().hook.oob_iter \self, \sym; .endif
+      .if stack.oob==0; \self\().i = stack.idx
+      \self\().iter = \self; \sym = \self; \self\().get;
+      \self\().hook.iter_plugin \self, \sym;.endif
+    .endif; stack.oob=0
+  .endr; stack.oob=0
 
 
 
 # Static mutable behaviors for iterator methods
 # - these are the defaults that are used if not overridden by user mutations:
- 
+
 
 
 # Static mutable behaviors, for out of bounds exception handling:
 # - these create the various 'modes' for I/O methods
 
 # --- NOP - Read/Write
-.endm; .macro stack.mut.oob_push.nop, va:vararg
-.endm; .macro stack.mut.oob_pop.nop, va:vararg
-.endm; .macro stack.mut.oob_peq.nop, va:vararg
-.endm; .macro stack.mut.oob_iter.nop, va:vararg
+.endm; .macro stack.mut.oob_push.nop, self, va:vararg; stack.oob=0
+.endm; .macro stack.mut.oob_pop.nop, self, va:vararg; stack.oob=0
+.endm; .macro stack.mut.oob_deq.nop, self, va:vararg; stack.oob=0
+.endm; .macro stack.mut.oob_iter.nop, self, va:vararg; stack.oob=0
 # 'nop' mode keywords, for no action on both read and write OOB
+
 
 # --- ROT - Read/Write
 .endm; .macro stack.mut.oob_push.rot, self, sym, va:vararg
-  \self\().s = \self\().qq; \self\().oob = 0
+  \self\().s = \self\().qq; stack.oob = 0
   .if \self\().q > \self\().s; \self\().q = \self\().s; .endif
+
 .endm; .macro stack.mut.oob_pop.rot, self, sym, va:vararg
-  \self\().s = \self\().ss; \self\().oob = 0
+  \self\().s = \self\().ss; stack.oob = 0
+
 .endm; .macro stack.mut.oob_deq.rot, self, sym, va:vararg
   sidx.ema <\self\().deq=\self>, %\self\().q; \sym = \self\().deq; \self\().q = \self\().qq
+
 .endm; .macro stack.mut.oob_iter.rot, self, sym, va:vararg
-  .if \self\().step < 0; sidx.ema <\self\().iter=\self>, %\self\().i
-    \sym = \self\().iter; \self\().i = \self\().qq
-  .else; \self\().i = \self\().ss; \self\().oob = 0; .endif
+  stack.idx = stack.idx - \self\().q; stack.oob=0
+  .if stack.idx; stack.idx = stack.idx % (\self\().s - \self\().q);.endif
+  .if stack.idx < 0; stack.idx = \self\().s + stack.idx
+  .else; stack.idx = stack.idx + \self\().q; .endif;
 # 'rot' mode keyword, for continuing out-of-bounds by rotating back to opposite side of memory range
+
 
 # --- INCR - Write-only
 .endm; .macro stack.mut.oob_push.incr, self, va:vararg
-  \self\().ss = \self\().s + 1; \self\().oob = 0
+  \self\().ss = \self\().s + 1; stack.oob = 0
 # 'incr' mode keyword, for handling writing OOB
 # - this just increments the stack size to accomodate a push that would be out of write bounds
 # - replacing this with 'nop' will disalow pushing the frame beyond the '.ss' index
 
+.endm; .macro stack.mut.oob_push.step, self, va:vararg
+  \self\().ss = \self\().s + \self\().step
+  \self\().s  = \self\().s + \self\().step - 1
+  stack.oob = 0
+  # 'step' mode keyword allows for iterating in strides determined by 'step' size
+
+
 # --- NULL - Read-only
 .endm; .macro stack.mut.oob_pop.null, self, sym, va:vararg
   \sym = \self; \self = \self\().fill
+
 .endm; .macro stack.mut.oob_deq.null, self, sym, va:vararg
   .if \self\().q == \self\().s; \sym=\self\().fill; \self\().deq = \sym
   .else; sidx.ema <\self\().deq=\self>, %\self\().q; \sym = \self\().deq; \self\().reset,,0; .endif
+
 .endm; .macro stack.mut.oob_iter.null, self, sym, va:vararg
   \sym = \self; \self = \self\().fill
 # 'null' mode keywords, for producing a fill value when reading OOB
 # - this will use the .fill property (0 by default) to give you a 'null' instead of a memory value
 
+
 # --- CAP - Read-only
 .endm; .macro stack.mut.oob_pop.cap, self, va:vararg
-  \self\().s = \self\().q+1; \self\().oob=0
+  \self\().s = \self\().q+1; stack.oob=0
+
 .endm; .macro stack.mut.oob_deq.cap, self, va:vararg
-  \self\().q = \self\().s-1; \self\().oob=0
+  \self\().q = \self\().s-1; stack.oob=0
+
 .endm; .macro stack.mut.oob_iter.cap, self, va:vararg
-  \self\().i = \self\().s-\self\().step; \self\().oob=0
+  \self\().i = \self\().s-\self\().step; stack.oob=0
+
 # 'cap' mode keywords, for undoing the iteration of a count that reads OOB
 # - this will subtract index step that was just made so that the final element is re-read
 
 
-# --- i INDEX MODES - i index method is entirely encapsulated in a mode callback
-.endm; .macro stack.mut.i.rot, self, idx, va:vararg
-  .if \idx >
+# --- i INDEX MODES - i index methods handle how input is interpreted before checking for oob
+.endm; .macro stack.mut.idx_i.range, self, idx, va:vararg
+  \self\().hook.oob_i \self, (\idx + \self\().q); \self\().hook.i_plugin \self, \idx, \va
+.endm; .macro stack.mut.idx_i.rel, self, idx, va:vararg
+  \self\().hook.oob_i \self, (\idx + \self\().i); \self\().hook.i_plugin \self, \idx, \va
+.endm; .macro stack.mut.idx_i.abs, self, idx, va:vararg
+  \self\().hook.oob_i \self, \idx; \self\().hook.i_plugin \self, \idx, \va
 
-.endm; .macro stack.mut.i.incr, self, va:vararg
-
-.endm; .macro stack.mut.i.null, self, va:vararg
-
-.endm; .macro stack.mut.i.cap, self, va:vararg
-
-
+# --- i OOB CHECKS
+.endm; .macro stack.mut.oob_i.nop, self, idx, va:vararg;  \self\().i = \idx
+.endm; .macro stack.mut.oob_i.rot, self, idx, va:vararg
+  \self\().i = \idx - \self\().q
+  .if \self\().i; \self\().i = \self\().i % (\self\().s - \self\().q);.endif
+  .if \self\().i < 0; \self\().i = \self\().s + \self\().i
+  .else; \self\().i = \self\().i + \self\().q; .endif
+.endm; .macro stack.mut.oob_i.cap, self, idx, va:vararg
+  \self\().i = \idx; .if \self\().i >= \self\().s; \self\().i = \self\().s - 1; .endif
+  .if \self\().i < \self\().q; \self\().i = \self\().q; .endif
 .endm
 .endif
 /**/
