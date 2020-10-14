@@ -3,126 +3,464 @@
 # Stack objects use 'self' like a normal symbol that can be treated like a scalar variable
 # - this scalar variable interacts with the stack structure using object methods that can be called
 
+# As of version 0.1.0:
+# The symbol memory used by stack and queue methods have random-access get/set methods, as well
+
 
 # --- Example use of the stacks module:
 
 .include "./punkpc/stacks.s"
 
-# --- BASICS --------------------------------------------------------------------------------------
-
-stack a, b
-# create stacks 'a' and 'b'
-# these may be used like regular symbols that have methods for interfacing with a stack
-
-a.push 1, 2, 3, 4
-# push some values to stack 'a'
-# - the value of 'a' is now blank
-
-.long a, a.s
-# >>> 0, 4
-# buffered 'a' value is blank after pushing, but its stack index shows that it is not empty
 
 
-# This loop uses the .deq method to pop elements from the bottom of the stack:
-.rept a.s  # for each stacked value
-  a.deq b  # pipe bottom value to stack 'b' buffer symbol
-  .long b
-  b.push   # push buffer in stack 'b'
-.endr
-# >>> 1, 2, 3, 4
-# de-queue elements in 'a'
-# each element is piped to the 'b' buffer
-# each element gets pushed to the 'b' stack
-# - using a.s directly for the loop count only works when queue index is 0
-#   - to pick up from a partially iterated queue, use (a.s - a.q) instead
+# --- PUSHING VALUES TO SCALAR MEMORY
+# Stacks create a 'scalar variable' out of the object name you give the constructor 'stack'
 
-.long a.s, b.s
-# >>> 0, 4
-# stack 'a' is now empty, and stack 'b' is not
-# - this is because we've just piped the contents of a -> b
+stack a
+# 'a' is now tied to a list of indexable symbols, and can write to it like a stack
+# - the list will grow as new values are stacked, and is called the stack 'memory'
+
+a = 1
+# 'a' is like a normal symbol that you can assign values to, and use later on in expressions
+
+a.push
+.long a
+# >>> 0
+# 'pushing' a value like this will cause the value of 'a' to be memorized
+# - this causes a fill value to overwrite the buffer variable, which is '0' by default
+
+a.push 2, 3, 4
+# you can bypass the variable entirely by just providing the values you want to stack as args
+# - this causes the values 2, 3, and 4 to be stacked on top of the previously pushed value, 1
+
+.long a
+# >>> 0
+# the buffer is blank still because we have not read from the stack memory that was pushes
+
+##            STACK
+# [ VAL ] -> [ NEW ]  - (.push copies a value to top of memory stack)
+#            [ MEM ]
+#            [ MEM ]  - (old memory from prior pushes)
+#              ...
+
+a = 5
+# It's called a 'stack' because it keeps the top-most value in the system randomly accessible
+# - by writing to 'a', it's as though we're writing to what is pending a write to stack memory
+
+##            STACK
+#              a=5    - (pending storage to memory... can be actively read/written to)
+#            [  4  ]  - (first memory value is currently in storage)
+#            [  3  ]
+#            [  2  ]
+#            [  1  ]
 
 
-b = 5
-# set buffer value in 'b' directly to 5
-# - buffer acts like top of the stack when popping, but not when de-queueing
 
-# This loop uses the .pop method to pop elements from the top of the stack:
-.rept b.s + 1  # for each stacked value -- including the currently buffered value
-  b.pop a      # pipe top value to stack 'a' buffer symbol
-  .long a
-  a.push       # push buffer in stack 'a'
-.endr
-# >>> 5, 4, 3, 2, 1
-# popping values from a stack presents them in a reversed order
-# adding 1 to the loop count and streaming from pop makes the buffer included in the pipe loop
+# --- POPPING OUTPUT VALUES FROM MEMORY
+# You can retrieve memory from the stack by popping with the '.pop' object method
 
-# [ .POP ] <- [ SELF ] .S  (pop comes from self, not memory)
-#             [ MEM  ]
-#             [ MEM  ]
-#             [ MEM  ]
-# [ .DEQ ] <- [ MEM  ] .Q  (deq comes from memory, not self)
-# - self is included in the pop stream, but not the deq stream
-# - to exclude self from the pop stream, stream from the b buffer instead of the pop stream
-
-a = 0
-# set buffer value in 'a' to 0
-# - buffer will be ignored in the following loop
-
-.rept a.s   # for each stacked value -- excluding the currently buffered value
-  a.pop     # pop buffer from stack
-  .long a   # buffer is updated with next value
-  b.push a  # push next value, discarding popped buffer
-.endr
-# >>> 1, 2, 3, 4, 5
-# not adding 1 to the loop count and streaming directly from the buffer discards the popped value
-
-# --- NULL MODE (DEFAULT) -------------------------------------------------------------------------
-
-a = 0x1337
 a.pop
-.long a.pop, a
-# outpipe can be reached directly from the .pop property if values are not piped to another stack
+.long a
+.long a.pop
+# >>> 4, 5
+# 'popping' a value off the stack will copy the value of 'a' over to the .pop property
+# 'a' is then updated to copy the previously indexed stack memory value
+# - this allows you to use 'a' like a scalar variable that updates with .pushes and .pops
+# - OR it allows you to use 'a.pop' to include the currently buffered value in stream
 
-a.push 1, 3, 3, 7
-.rept a.s <<2
-  a.deq b
-  .byte b
-  b.push
-.endr
-# >>> 1, 3, 3, 7,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0
-# default mode 'null' creates filler values when out of things to pop
-# - this is the mode that all new stacks are in when created
+##            STACK
+# [.POP ] <-    X
+#            [ a=4 ]  - (first memory value is currently in storage)
+#            [  3  ]
+#            [  2  ]
+#            [  1  ]
+
+
+# In addition to popping from the buffer value 'a' -> 'a.pop', you can use other symbols
+# - x, y, z, and q will be used as examples
+
+a.pop x, y
+.long x, y, a
+# >>> 4, 3, 2
+# By providing symbol names to the '.pop' method, you can pop to those symbols instead of '.pop'
+# - these are the values that would normally go to the '.pop' property from the current 'a' value
+
+a.popm x, y, z
+.long x, y, z
+# >>> 1, 0, 0
+# You can use the 'a.popm' variant to discard the current 'a' value
+# - this lets you work straight from Memory, which may be preferred for assigning symbols
+
+a.pop x, y
+.long x, y
+# >>> 0, 0
+# Popping beyond the index limit will invoke an exception designed to handle it
+
+##           STACK
+#              X
+#              X
+#              X
+# [.POP ] <-  a=0    - (popping at bottom of stack triggers OOB exception)
+
+# By default, this is handled by providing a fill value, '0' in this case
+# - see the 'modes' and 'mutators' examples for info on other exception handling methods
+
+
+
+# --- STACK INDEX
+# The stack is just an interface for randomly accessible memory.
+# An [s] index is built into stack objects in order to keep track of the top memory symbol
+
+# Popping consumes memory in the stack only by subtracting from [s]
+# - the value in memory is not actually destroyed until another value is pushed over it
+#   - you may recover popped memory values by adjusting the stack index and popping again
+
+a.s[4]
+# The '.s' object method is the 'stack' index method -- we can influence s with it
+# - in this case, [4] references the top of our currently stacked values
+
+a.pop
+.long a
+# >>> 4
+# We set the stack [s] index to 4, and popped the corresponding value back from memory!
+# - this only works for values you have not overwritten with another push
+
+.long a.s
+# >>> 3
+# The '.s' property is the property that gets edited by the '.s' method
+# - it can be read or written to in order to interface with current stack index
+# - it has just popped from 4 down to 3
+
+.long a.ss
+# >>> 4
+# The '.ss' property is a record of the highest-written index in memory
+# - we could have used this in place of explicitly stating [4] before popping
 
 a.s
-# if given no args, 'self.s' method will reset to highest available memory value
+.long a.s
+# >>> 4
+# Alternatively, invoking '.s' without any arguments will cause it to default to '.ss'
+# - this can be used to automatically reset your stack index to its highest possible value
 
-# --- ROT MODE ------------------------------------------------------------------------------------
+
+
+# --- STACKS AS QUEUE OUTPUTS
+# Popping values causes them to be consumed from the stack in a 'First Out' order
+# - this essentially causes the order to be reversed when reading memory
+#   - this is a desirable trait when using a stack variable to recover a previous memory state
+#   - this may not be desirable if you wish to recall your elements in the order they were stacked
+
+# You can instead read from stack memory as though were a 'queue' to pop in a 'Last Out' order
+
+.long a.q
+# >>> 0
+# A [q] index is built into stack objects just like the [s] index, to make a working memory range
+# - by default it's 0 and can't safely go negative
+
+a.deq x, y
+.long x, y
+# >>> 1, 2
+# the '.deq' object method is an alternative to '.pop' that allows you to 'dequeue' elements
+# - this returns them in the order they were stacked in, unlike '.pop'
+
+.long a.q
+# >>> 2
+# As the queue is consumed, [q] will increment and approach the [s] index boundary
+
+a.deq x, y, z
+.long a, x, y, z
+# >>> 4, 3, 4, 0
+# Like the '.pop' method   -- '.deq' will invoke an out-of-bounds exception when hitting [s]
+# Unlike the '.pop' method -- '.deq' has no interaction with the buffered 'a' value
+# - 'a' is still 4 from our last write to it, with 'a.pop'
+
+.long a.q, a.s
+# >>> 0, 0
+# If overflowing [q], its default exception will reset [q] and [s] and produce fill values
+
+
+
+# --- CREATING I/O PIPES
+# With stacks and queues, you can easily make pipes for process buffered information
+
+stack b
+# create a second stack object, 'b'
+# - this stack will be used to buffer the outputs of an output made from 'a'
+
+a.s
+# reset stack index of a to highest written memory
+
+.rept a.s  # for each index in [s]
+  a.pop
+  b.push a # stack popped 'a' elements into 'b' stack
+.endr
+
+a.s
+.rept a.s
+  a.deq b  # stack dequeued 'a' elements into 'b' stack
+  b.push
+.endr
+# 'b' essentially creates a palindrome of 'a'
+
+.rept b.s
+  b.deq
+  .long b.deq
+.endr
+# >>> 4, 3, 2, 1, 1, 2, 3, 4
+# The contents of 'b' are separate from 'a', but were produced by piping 'a' over to 'b'
+
+# When designing pipes, you can use 'a', 'a.pop', and 'a.deq' as outpipes
+
+##             STACK
+# [ .POP ] <- [ SELF ] <- .s  - (.pop comes from self bufffer, not memory)
+# [ .POP ] <- [ MEM  ]        - (.popm comes from memory, not self)
+#             [ MEM  ]
+#             [ MEM  ]
+# [ .DEQ ] <- [ MEM  ] <- .q  - (.deq comes from memory, not self)
+##             QUEUE
+# - .s and .q create boundaries for working range
+# - .ss and .qq create boundaries for maximum working range
+# - .sss creates a boundary for maximum pushable range
+
+# Since pushing causes the self buffer 'a' to become overwritten with a fill value,
+#   it's also possible to use the '.fill' property as an inpipe for working with '.push' methods.
+
+
+
+# --- RANDOM ACCESS I/O
+# Since stacks are based on the 'sidx' punkpc library, they are technically dictionaries
+# - the stack interface is just an implementation of this dictionary
+
+# You may directly access stack memory by using the indexed symbol names made for memory values
+# These are the name of the stack object plus a '$n' suffix, where n is a decimal number
+
+.long a$0, a$1, a$2, a$3
+# >>> 1, 2, 3, 4
+# This is fast and efficient, if you know the exact index of what you're trying to copy
+
+# Another way to do this is to use the '.get' or '.set' object methods
+
+a.get[2]
+.long a
+# >>> 3
+# This is almost exactly like using the $n, but also modifies a special [i] index
+
+.long a.i
+# >>> 2
+# [i] is now at the index that we used for the last '.get' operation
+
+a.get[a.q]
+.long a, a.i
+# >>> 1, 0
+# [i] is now == [q]
+
+a.get[0], x, y, z, q
+.long x, y, z, q
+# >>> 1, 2, 3, 4
+# You can give symbol names as args to store copies from .get
+# - this is a good way to access tuple memory, in strides
+
+a.set[4], 5, 6, 7, 8
+a.get[4], x, y, z, q
+.long x, y, z, q
+# >>> 5, 6, 7, 8
+# You may also set memory in this manner, ignoring the stack boundary
+
+a.s[8]
+.long a.s
+# >>> 4
+# Setting memory like this does not update the stack index
+# - the '.s' method will not push beyond its highest memory
+
+a.ss[8]
+.long a.s
+# >>> 8
+# The '.ss' method can be used to force a stack index to push the highest memory index
+# - if not careful, this may lead to gaps in your stack that are not valid for reading
+#   - any index that has been written to at least once is safe to read
+
+a.i[0]
+# By default, the '.i' index method takes an offset between [q]...[s]
+
+a.get
+.long a
+# >>> 1
+# The 'a' buffer can be used to reference returned get values when no args are given
+
+a.i[-1]
+a.get
+.long a
+# >>> 8
+# By default, the '.i' index method rotates to opposite end when out of bounds
+
+a.i[a.s]
+a.get
+.long a
+# >>> 1
+# The stack index is considered exclusive in the [i] range, so it will rotate back to [q]
+
+a.q[1]
+a.i[0]
+a.get
+.long a
+# >>> 2
+# Raising [q] will raise the base index applied to [i] inputs
+
+
+
+# --- STACKS AS ITERATORS
+# Stacks can be used like iterators with the [i] index, and the '.iter' output pipe
+
+a.q[0]
+a.get[0]
+# the buffer 'a' will be used in the iter process, like when popping
+
+a.step = 1
+# unlike popping, the [i] index uses a custom step value that can be positive or negative
+# - this allows you to create an outpipe stream that uses 'a' and doesn't change the stack index
+
+a.iter
+.long a.iter
+# >>> 1
+# The '.iter' property will copy the current value from buffer 'a'
+
+.long a
+# >>> 2
+# ... and the buffer 'a' updates with the next index determined by '.step'
+
+a.step = 2
+a.iter
+.long a
+# >>> 4
+# - note that we skipped over '3'
+
+a.step = -1
+a.iter
+.long a
+# >>> 3
+# - we went backwards this time because the '.step' property is negative
+
+
+
+# --- STACK MODES
+# Stack methods use mutable hooks that can be changed with the '.mode' object methods
+# The most common is a hook used to handle various 'out of bounds' exception cases
+
+a.reset
+a.push 1, 3, 3, 7
+# reset stack memory and push some new values
+
+.rept a.s<<1 # for twice as many pushed numbers in memory...
+  a.deq      # ... attempt to pop memory
+  .byte a.deq
+.endr
+# >> 1, 3, 3, 7,   0, 0, 0, 0
+# The default behavior when popping out of bounds is to generate a 'null' fill value
+# - by default, '.fill' = 0
 
 a.deq.mode rot
-# mutate stack 'b' de-queue method into a rotation method
+# By setting 'a.deq.mode' to a new keyword, we can change this OOB behavior
 
-.rept a.s <<2
-  a.deq b
-  .byte b
-  b.push
+a.q
+.rept a.s<<1
+  a.deq
+  .byte a.deq
 .endr
-# >>> 1, 3, 3, 7,  1, 3, 3, 7,  1, 3, 3, 7,  1, 3, 3, 7
-# 'rot' mode will rotate through old memory instead of resetting when depleted
-
-a.reset; a.s
-# self.reset restores default index values
-
-# --- CAP MODE ------------------------------------------------------------------------------------
+# >>> 1, 3, 3, 7,   1, 3, 3, 7
+# dequeueing in 'rot' mode causes overflows to be handled by resetting [q], repeating itself
 
 a.deq.mode cap
-# - now the queue will stay at the last available value, instead of null or rotation
-
-.rept a.s <<2
-  a.deq b
-  .byte b
-  b.push
+a.q  # reset [q] = [qq]
+.rept a.s<<1
+  a.deq
+  .byte a.deq
 .endr
-# >>> 1, 3, 3, 7,  7, 7, 7, 7,  7, 7, 7, 7,  7, 7, 7, 7
+# >>> 1, 3, 3, 7,   7, 7, 7, 7
+# dequeueing in 'cap' mode causes overflows to freeze at the final available value
+
+a.deq.mode nop
+a.q
+.rept a.s<<1
+  a.deq
+  .byte a.deq
+.endr
+# >>> 1, 3, 3, 7,  5, 6, 7, 8
+# dequeuing in 'nop' mode causes overflows to try reading regardless of boundary error
+# - nothing is done to stop the error, resulting in our old memory leaking through
+# - if the old memory didn't exist, then this would just cause an error
+
+a.q
+a.s[4]
+a.step = 1
+a.get[0]
+.rept a.s<<1
+  a.iter
+  .byte a.iter
+.endr
+# >>> 1, 3, 3, 7,  1, 3, 3, 7
+# iterating uses 'rot' by default, and will not move the [q] index
+# - this allows [q] and [s] to be used to specify the bounds of the rotating index
+
+a.q[3]
+a.s[6]
+a.i[0]
+a.get
+.long a
+# >>> 7
+# [q] sets the base address of [i] inputs by default, but we can change this with i.mode
+
+a.i.mode nop, abs
+a.i
+a.get
+.long a
+# >>> 1
+# with no arguments, .i uses [0]
+# in 'nop' mode, i will basically ignore OOB cases
+# in 'abs' mode, i will not be relative to [q], and will use the input idx directly
+# - this makes it behave more like [q] or [q]
+
+
+
+# --- STACK MUTATORS
+# All of the above modes use 'hooks' inside of the object methods in order to function
+# In addition to these modes, some blank hooks are provided to make the [i] interface extendable
+
+# To make a plugin injection for any instantiated stack object, first define a macro:
+
+stack RGBA           # example RGBA color stack
+RGBA.alpha = 0xFF    # a pre-determined alpha channel value is used when pushing colors
+# This is an example of a stack object we can mutate...
+
+.macro myMutator, self, rgb;
+  r = (\rgb >> 16) & 0xFF
+  g = (\rgb >> 8) & 0xFF
+  b = \rgb & 0xFF
+  a = \self\().alpha & 0xFF
+
+  \self\().set[\self\().s-1], r, g, b, a  # set 4 values instead of 1
+  \self\().ss[\self\().s+3]               # manually push stack index with .ss
+  .altmacro # push_post hook is in altmacro context, so we return with .altmacro enabled
+.endm
+RGBA.mut ".noaltmacro; myMutator", push_post
+# This assigns 'myMutator' to the 'push_post' hook in the RGBA stack object
+# The '.noaltmacro' statement is included to temporarily subvert the altmacro context
+# - now, each RGBA value we push to it will be split into channel bytes, and have alpha overridden
+
+
+RGBA.push 0x323232, 0x4b645d, 0x6d9889, 0x9fceb3, 0xf5ffd3, 0xffbcaf, 0xf4777f, 0xcf3759, 0x93003a
+# buffer 9 RGBA colors from RGB inputs
+
+.long RGBA.s>>2  # number of colors
+RGBA.get[0]
+.rept RGBA.s
+  .byte RGBA     # pipe stream of bytes created from special push mutator
+  RGBA.iter
+.endr
+# >>> 00000009 323232ff
+# >>> 4b645dff 6d9889ff
+# >>> 9fceb3ff f5ffd3ff
+# >>> ffbcafff f4777fff
+# >>> cf3759ff 93003aff   # color table
 
 
 # --- Module attributes:
@@ -150,8 +488,11 @@ a.deq.mode cap
 # --- .sss      - stack index -- the maximum index of this stack object
 # --- .ss       - stack index -- the highest index of this stack object (that has been written)
 # --- .s        - stack index -- the current index of this stack object
-# --- .pop      - outpipe memory of last popped value
-# --- .deq      - outpipe memory of last dequeued value in pipe operation
+# --- .pop      - outpipe memory of last popped value (from self buffer)
+# --- .i        - iter index  -- the current index of this iteration, or last get/set
+# --- .iter     - outpipe memory of last iterated value (from self buffer)
+# --- .step     - step size   -- the number of steps that .i takes on each iteration
+# --- .deq      - outpipe memory of last dequeued value (from memory)
 # --- .q        - queue index -- the current bottom of pipe window
 # --- .qq       - queue index -- the lowest index of this pipe window
 # --- .qqq      - queue index -- the minimum index of this stack object
@@ -160,57 +501,52 @@ a.deq.mode cap
 # --- Object Methods:
 # --- .push   val, ...
   # Push value(s) to stack memory
-  # - if no value is given, self is used
+  # - if no value is given, self is pushed instead of an input value
+  #   - when self is pushed, the buffer will be assigned a fill value, which is normally 0
   # - multiple values can be stacked in the order given
   # - value of self is cleared with self.fill value
 
-# --- .push.mode  mode
-  # Change the way .push operates when encountering the edge of push memory
-  #  mode: incr : DEFAULT - push memory index so that pushed value can be stored
-  #  mode: nop  : do nothing, causing memory boundary to become a limit
-  # - nop may be useful for temporarily disabling pushing below the maximum
-
 # --- .pop    sym, ...
   # Copy self to pop stream output, and update self with top memorized push value
-  # - if no symbol is given, self.pop is used
+  # - if no symbol is given, self.pop is used for output stream
   # - multiple symbols will cause popped values to be assigned to each, in a sequence
+
+# --- .popm   sym, ...
+  # A variation of '.pop' that uses top of memory instead of self buffer
+  # - if no symbols are provided, then it will be the same as the normal '.pop' method
+
+# --- .iter   sym, ...
+  # Copy self to iter stream output, and update self with nth memorized push value
+  # - the sequence will use the .step value to increment/decrement the index in linear steps
+  # - if no symbol is given, self.iter is used for output stream
+  # - multiple symbols will cause iterated values to be assigned to each, in a sequence
 
 # --- .deq    sym, ...
   # Copy bottom memorized push value to deq stream output, ignoring self buffer
-  # - if no symbol is given, self.deq is used
+  # - if no symbol is given, self.deq is used for output stream
   # - multiple symbols will cause dequeued values to be assigned to each, in a sequenc
 
-# --- .pop.mode  mode
-# --- .deq.mode  mode
-  # Change the way .pop operates when colliding with bottom of queue
-  #  mode : null  : DEFAULT - freeze the stack index, and produce .fill values in pop stream
-  #  mode : rot   : rotate stack index back to highest memorized stack value
-  #  mode : cap   : continuously re-pop the last value in stack memory
-  #  mode : nop   : abort the pop operation, freezing index and pop stream entirely
-
 # --- .s   idx
-  # Stack index function
+  # Stack index method
   # - sets index self.s
   # - if no index is given, highest memory index is used
   # - caps in range self.q ... self.ss
 
+# --- .ss idx
+  # A variation of '.s' that can push '.ss' if out of bounds
+  # - caps in rage of self.q ... self.sss
+
+# --- .i   idx, ...
+  # Stack index method
+  # - contains a dummy hook, for overriding and adding functionality
+  #   - ... is passed to the dummy hook, but not used by the index method directly
+  # - without mutation, this is no different than literally assigning .i
+
 # --- .q   idx
-  # Queue index function
+  # Queue index method
   # - sets index self.q
   # - if no index is given, lowest memory index is used
   # - caps in range self.qq ... self.s
-
-# --- .topget  sym, ...
-  # Assign value of current stack index memory to symbol(s)
-  # - this ignores the currently buffered value in self
-  # - if no symbol is given, self is used for assignment of memory value
-  # - if multiple symbols are given, they are all assigned the same value
-  # - if memory doesn't exist, then a .fill value is assigned instead
-
-# --- .topset  val
-  # Assign a value to the current stack index memory
-  # - if no value is given, the value of self is used
-  # - else, this ignores the currently buffered value in self
 
 # --- .new  size, fill
   # Push stack index memory by size, filling it with given fill value
@@ -222,26 +558,114 @@ a.deq.mode cap
   # - if a fill value is given, then the range will be filled, updating boundaries accordingly
   # - at end of reset, minimum and maximum boundaries are checked, and idices are adjusted
 
-# --- .purge ...
-  # Destroy the methods for this object
-  # - properties remain intact
-  # - if ... contains additional method names, they will be purged as well
+# --- .get     idx, sym, ...
+  # Get a stack value by invoking a random-access sidx.get operation
+  # NOTE: this method is very fast, but not safe if the given index has not been written to yet!
+  # - assigns gotten value to self buffer
+  # - if idx is blank, then .i is used
+  # - if sym is blank, then self is used
+  # - if multiple symbols are provided, values will be gotten in a sequence using .step
+
+# --- .set     idx, val, ...
+  # Set a stack value by invoking a random-access sidx.set operation
+  # - if 'val' is blank, then value in self buffer is used
+  # - works like .get, syntactically
+
+  # The following are part of the 'mut.s' class module, implemented into stack objs:
+
+# --- .mut   macro, hook_name, ...
+  # Mutate the object's hook 'hook_name' to use behavior of 'macro' instead of its current behavior
+  # - see below for list of mutable behaviors
+
+# --- .mode  hook_name, mode_name, ...
+  # low level method for interacting with real macro names for mode behaviors
+
+# --- .hook  hook_name, ...
+  # Automatically initializes hooks by mapping them to the default 'stack.mut.\hook_name' macro
+
+# --- Mutable Hook Names --------------------------------------------------------------------------
+# --- "i_plugin"     self, ...
+  # add functionality to the .i method
+
+# --- "iter_plugin"  self, ...
+  # add functionality to the .iter method
+
+# --- "get_plugin"   self, ...
+  # add funcitonality to the .get method
+
+# --- "set_plugin"   self, ...
+  # add functionality to the .set method
+
+# --- "push_pre"     self, ...
+# --- "push_post"    self, ...
+  # ALTMACRO MODE CONTEXT: add functionality to the .push method
 
 
-# --- Object Altmacro Methods:
-# --- .pusha  val, ...
-# --- .popa   sym, ...
-# --- .deqa   sym, ...
-  # These object methods may be used within altmacro mode without reverting to noaltmacro mode
+  # These can be overridden by passing a macro name to the .mut method, like so:
+
+# --- .mut  macro, i_plugin
+  # - this plugs 'macro' into the i_plugin hook
+  # - only 1 macro can be accepted by a hook at a time
+
+  # they can also be disabled by providing no macro name:
+
+# --- .mut       , i_plugin
+  # - disabled extra functionality for the .i method
+
+# --- Hook Modes ----------------------------------------------------------------------------------
+  # The following mode keywords can be used to mutate existing stack method behaviors
+  # - use the provided '.mode' methods to invoke the described keyword behaviors
+  # - you may alternatively override these hooks with .mut and a callback of your choosing
 
 
-# --- Static Methods ------------------------------------------------------------------------------
 
-# --- stack.oob  stack, method, behavior
-# A macro for plugging callbacks into a method event as a behavior
-#    stack : the stack to mutate
-#   method : the method to mutate
-# behavior : suffix of the static behavior name
-# - behavior callback must be called stack.oob.'method'.'behavior'
-# - intended to be used through various object '.mode' event methods
+  #   WRITE OOB: exception behaviors:
+
+# --- .push.mode  oob_mode
+  # Change the way .push behaves when encountering the edge of push memory
+  #    keywords :
+  #   --- incr  : DEFAULT - push memory index by +1 so that pushed value can be stored
+  #   --- step  - like incr, but increments by +.step amount instead of just +1
+  #   --- nop   - do nothing, causing memory boundary to become a limit
+  # - nop may be useful for temporarily disabling pushing below the maximum
+
+
+
+  #   READ OOB: exception behaviors:
+
+# --- .pop.mode   oob_mode
+# --- .deq.mode   oob_mode
+# --- .iter.mode  oob_mode
+# --- .i.mode     oob_mode, idx_mode
+  # Change the way read operations behave when colliding with bottom of queue
+  #    keywords :
+  #   --- null  : DEFAULT - freeze the stack index, and produce .fill values in pop stream
+  #   --- rot   - rotate stack index back to highest memorized stack value
+  #   --- cap   - continuously re-pop the last value in stack memory
+  #   --- nop   - abort the pop operation, freezing index and pop stream entirely
+
+
+
+  #   INDEXING TYPE: exclusive to the '.i' index method:
+  # Change the way the input idx is treated for the .i index method
+  #    keywords :
+  #   --- range : DEFAULT - index is relative to [q], and limited by [q] ... [s]
+  #   --- rel   - like range, but input idx is added to current idx to make a relative idx
+  #   --- abs   - absolute index (still invokes OOB)
+
+
+
+# --- Static Class Methods ------------------------------------------------------------------------
+
+# --- stack.fill   stack, start, size, fill
+# Fill a contiguous area in a stack, in altmacro mode
+#  stack : the stack to fill
+#  start : the index to begin fill at
+#   size : the number of elements to fill
+#   fill : the value to fill with
+
+# --- stack.push  obj,
+# --- stack.pop   obj,
+# --- stack.iter  obj,
+# class-level methods for handling object-level args
 
