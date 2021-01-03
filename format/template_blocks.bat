@@ -1,2 +1,0 @@
-cd /d %~dp0
-python ./GAS_Formatter.py out:"./output" -c+skpiem width:99 comma_ws:" " semicol_ws:"  " argdef_ws:" " indent:".macro,.if,.else,.rept,.irp" outdent:".endm,.endif,.else,.endr" thisnl:".endm,.macro,.include,.if,.else,.rept,.irp" thisnl:".macro ,.if,.else,.rept ,.irp,.include ,.endm,.endif" nextnl:"LOCAL,.include,.macro ,.endif" %*
