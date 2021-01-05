@@ -1,6 +1,6 @@
 # punkpc
 Modules for working with GNU Assembler and the `-mgekko` PowerPC instruction set.
-Intended for use without a compiler or a linker.
+- Intended for use without a compiler or a linker.
 
 
 
@@ -72,8 +72,8 @@ punkpc.subdir "punkpc/", ".s"
 ### PunkPC Module Container
 
 By including the above library object file in a `.include "punkpc.s"` statement, we cause the library module to create a new library object that accesses the folder called `punkpc/` for importing `*.s` files. 
-The `.ifdef` blocks protect the object from being loaded multiple times in a single environment. 
-Each file can be referenced as part of a list of comma-separated arguments that have no extension or path.
+- The `.ifdef` blocks protect the object from being loaded multiple times in a single environment. 
+- Each file can be referenced as part of a list of comma-separated arguments that have no extension or path.
 
 All files imported by the punkpc library object is formatted like so, to qualify as a module:
 
@@ -91,15 +91,11 @@ punkpc.module myModule, 1
 
 .endif
 ```
-`punkpc.library.included` is checked here at the module level to ensure that the library object is available. This enables the module to be loaded without the class module and still afford similar protections through `.if` blocks.
-`punkpc.module` is a method of punkpc that instantiates a non-0 version number for this module -- which helps inform the environment about whether or not this module is already loaded
-`module.included` is a volatile return bool that can be used to inform a `.if` block that protects your module contents.
+- `punkpc.library.included` is checked here at the module level to ensure that the library object is available. This enables the module to be loaded without the class module and still afford similar protections through `.if` blocks.
+- `punkpc.module` is a method of punkpc that instantiates a non-0 version number for this module -- which helps inform the environment about whether or not this module is already loaded
+- `module.included` is a volatile return bool that can be used to inform a `.if` block that protects your module contents.
 
 The `.if` block generated from the returned `module.included` flag will protect the contents of the class module from being defined multiple times. In that sense, class modules are nothing more than protective wrappers for writing constructor macros that create and manage a designed class of object.
-
-
-A module may technically contain anything, not just class definitions. Any number of macros or symbols you would like to make importable in an assembler environment can be placed here.
-
 
 
 
@@ -107,7 +103,7 @@ A module may technically contain anything, not just class definitions. Any numbe
 
 Adding a custom library is then just a matter of invoking `punkpc/library.s` to set up a new library object with a different name, subdirectory, and paramters.
 
-Here is an example that defines an object called 'myLib', and uses the 'myLib/' subdirectory:
+Here is an example that defines an object called *myLib*, and uses the 'myLib/' subdirectory:
 
 ```
 .ifndef myLib.library.included
@@ -126,11 +122,11 @@ myLib.subdir "myLib/", ".s"
 ... and the corresponding module template:
 
 ```
-.ifndef punkpc.library.included
-  .include "punkpc.s"
+.ifndef myLib.library.included
+  .include "myLib.s"
 .endif
 
-punkpc.module myModule, 1
+myLib.module myModule, 1
 .if module.included == 0
 
 
@@ -140,6 +136,7 @@ punkpc.module myModule, 1
 .endif
 ```
 
+A module may technically contain anything, not just class definitions. Any number of macros or symbols you would like to make importable in an assembler environment can be placed here.
 
 You can find more details in the [library_doc.s file comments][lib_doc].
 
