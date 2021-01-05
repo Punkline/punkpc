@@ -38,7 +38,7 @@ Modules accessed by the library object in this manner will not attempt to `.incl
 Adding Modules to Libraries
 ---------------------------
 
-You may create new importable class modules into punkpc or for a custom library in your own implementations using the `library` module.
+You may create new importable class modules that can be added into punkpc or a custom library in your own implementations using the `library` module.
 
 To make one, you must make a file for `.include` statements to access. 
 
@@ -62,9 +62,9 @@ punkpc.subdir "punkpc/", ".s"
 
 ```
 - `library.s` is the class module responsible for creating library objects.
-- `punkpc.module.version` is the non-0 version number signifying that the library module is already included.
-- `module.library` is a method used to generate a library object -- in this case 'punkpc', which uses `.s` file extensions and has the default argument `ppc` if none are given to it when invoked.
-- `punkpc.library.included` is a symbol defined signifiy that the 'punkpc' library object exists somewhere in the GAS environment.
+- `punkpc.module.version` is a non-0 version number for 'punkpc' signifying that the punkpc library module is already included.
+- `module.library` is a method used to generate a library object -- in this case `punkpc`, which uses `.s` file extensions and has the default argument `ppc` if none are given to it when invoked.
+- `punkpc.library.included` is a symbol defined simply to signifiy that the 'punkpc' library object exists somewhere in the GAS environment.
 - `punkpc.subdir` is a method of the punkpc library object that can be used to change the subdirectory used in `.include` statements made by the library object.
 
 By including the above library object file in a `.include "punkpc.s"` statement, we cause the library module to create a new library object that accesses the folder called `punkpc/` for importing `*.s` files. 
