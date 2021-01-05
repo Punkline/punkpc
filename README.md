@@ -67,13 +67,11 @@ punkpc.subdir "punkpc/", ".s"
 - `punkpc.library.included` is a symbol defined signifiy that the 'punkpc' library object exists somewhere in the GAS environment.
 - `punkpc.subdir` is a method of the punkpc library object that can be used to change the subdirectory used in `.include` statements made by the library object.
 
-
-
-### PunkPC Module Container
-
 By including the above library object file in a `.include "punkpc.s"` statement, we cause the library module to create a new library object that accesses the folder called `punkpc/` for importing `*.s` files. 
 - The `.ifdef` blocks protect the object from being loaded multiple times in a single environment. 
 - Each file can be referenced as part of a list of comma-separated arguments that have no extension or path.
+
+### PunkPC Module Container
 
 All files imported by the punkpc library object is formatted like so, to qualify as a module:
 
@@ -95,7 +93,8 @@ punkpc.module myModule, 1
 - `punkpc.module` is a method of punkpc that instantiates a non-0 version number for this module -- which helps inform the environment about whether or not this module is already loaded
 - `module.included` is a volatile return bool that can be used to inform a `.if` block that protects your module contents.
 
-The `.if` block generated from the returned `module.included` flag will protect the contents of the class module from being defined multiple times. In that sense, class modules are nothing more than protective wrappers for writing constructor macros that create and manage a designed class of object.
+The `.if` block generated from the returned `module.included` flag will protect the contents of the class module from being defined multiple times. 
+In that sense, class modules are nothing more than **protective wrappers** for writing constructor macros that create and manage a designed class of object.
 
 
 
@@ -103,7 +102,7 @@ The `.if` block generated from the returned `module.included` flag will protect 
 
 Adding a custom library is then just a matter of invoking `punkpc/library.s` to set up a new library object with a different name, subdirectory, and paramters.
 
-Here is an example that defines an object called *myLib*, and uses the 'myLib/' subdirectory:
+Here is an example that defines an object called **myLib**, and uses the `myLib/` subdirectory:
 
 ```
 .ifndef myLib.library.included

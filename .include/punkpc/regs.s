@@ -1,6 +1,6 @@
 .ifndef punkpc.library.included
   .include "punkpc.s";.endif;punkpc.module regs, 1
-.if module.included == 0;  punkpc xem
+.if module.included == 0;  punkpc xem, enum
   .macro regs.enumerate,  pfx,  sfx,  start=0,  op="+1",  cstart,  cop,  count=32
     .ifb \cop;  regs.enumerate \pfx, \sfx, \start, \op, \cstart, \op, \count;.exitm;.endif;
     .ifb \cstart;  regs.__c = \start
@@ -13,5 +13,5 @@
     .rept 8
       .irp s,  lt,  gt,  eq,  so;  xem cr, xem, "<.\s=(xem*4)+\s>"
       .endr;xem = xem + 1;.endr;
-  .endm;.endif;
+  .endm;regs.rebuild;enum.new regs, , , (3), +1;.endif
 

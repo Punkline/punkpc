@@ -3,7 +3,7 @@
 .endif;
 punkpc.module regs, 1
 .if module.included == 0
-  punkpc xem
+  punkpc xem, enum
   .macro regs.enumerate,  pfx,  sfx,  start=0,  op="+1",  cstart,  cop,  count=32
     .ifb \cop
       regs.enumerate \pfx, \sfx, \start, \op, \cstart, \op, \count
@@ -41,5 +41,7 @@ punkpc.module regs, 1
       xem = xem + 1
     .endr;
   .endm;
-.endif;
+  regs.rebuild
+  enum.new regs, , , (3), +1
+.endif
 
