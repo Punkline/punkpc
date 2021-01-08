@@ -11,6 +11,11 @@
 
 # --- Updates:
 
+# Version 0.0.4
+# - added '.uses_obj_mut_methods' flag to class and module levels
+#   - flagging this as false will cause the affected class to generate objects with no mut methods
+#   - this includes '.hook', '.mut', and '.mode'
+#   - intended for objects meant to be operated entirely by class methods
 # Version 0.0.3
 # - object hooks now imply 'self' as the first argument, so it doesn't need to be passed each time
 # - changed default mutator namespace to be reachable as a mode keyword, 'default'
@@ -290,6 +295,9 @@ i.mode decr, word
 # --- mut.mutator$      - mutator ID counter
 # --- mut.mutable_mode$  -    mode ID counter
 
+# --- mut.uses_obj_mut_methods - temporary param that changes the next instantiated 'mut.class'
+
+
 
 
 # --- Mutable Class ---
@@ -306,7 +314,9 @@ i.mode decr, word
 
   # - for (class) namespace...
   # --- Class Properties
-  # --- .is_mutable_class - instance of Mutatable class object
+  # --- .is_mutable_class     - instance of Mutatable class object
+  # --- .uses_obj_mut_methods - flag for conditionally constructing obj-level methods in new objs
+  # - flag can be set preemptively, before instantiating with 'mut.class'
 
 
 
@@ -349,7 +359,8 @@ i.mode decr, word
 
 
 
-  # --- Object Methods
+  # --- Object Methods  --- only if class '.uses_obj_mut_methods' is true...  (true by default)
+
   # --- .hook  hook, ...
   # Register any number of hook names as new hooks for this object
   # - the type name must match a class-level mutator name to default to

@@ -11,6 +11,11 @@
 
 ##*/
 ##/* Updates:
+# Version 0.0.4
+# - added '.uses_obj_mut_methods' flag to class and module levels
+#   - flagging this as false will cause the affected class to generate objects with no mut methods
+#   - this includes '.hook', '.mut', and '.mode'
+#   - intended for objects meant to be operated entirely by class methods
 # Version 0.0.3
 # - object hooks now imply 'self' as the first argument, so it doesn't need to be passed each time
 # - changed default mutator namespace to be reachable as a mode keyword, 'default'
@@ -33,6 +38,9 @@
 # --- mut.mutator$      - mutator ID counter
 # --- mut.mutable_mode$  -    mode ID counter
 
+# --- mut.uses_obj_mut_methods - temporary param that changes the next instantiated 'mut.class'
+
+
 
 
 # --- Mutable Class ---
@@ -49,7 +57,9 @@
 
   # - for (class) namespace...
   # --- Class Properties
-  # --- .is_mutable_class - instance of Mutatable class object
+  # --- .is_mutable_class     - instance of Mutatable class object
+  # --- .uses_obj_mut_methods - flag for conditionally constructing obj-level methods in new objs
+  # - flag can be set preemptively, before instantiating with 'mut.class'
 
 
 
@@ -92,7 +102,8 @@
 
 
 
-  # --- Object Methods
+  # --- Object Methods  --- only if class '.uses_obj_mut_methods' is true...  (true by default)
+
   # --- .hook  hook, ...
   # Register any number of hook names as new hooks for this object
   # - the type name must match a class-level mutator name to default to
@@ -456,6 +467,7 @@ punkpc.module mut, 3
   mut.mutable_obj$   = 0
   mut.mutator$      = 0
   mut.mutable_mode$  = 0
+  mut.uses_obj_mut_methods = 1
 
   # static class-level constructor methods:
 
@@ -466,6 +478,9 @@ punkpc.module mut, 3
     ifdef \class\().is_mutable_class
     .if ndef; mut.mutable_class$ = mut.mutable_class$ + 1
       \class\().is_mutable_class=mut.mutable_class$
+      ifdef \class\().uses_obj_mut_methods
+      .if ndef; \class\().uses_obj_mut_methods = mut.uses_obj_mut_methods; .endif
+
       # instantiated class-level constructor methods:
       .macro \class\().hook, hook, obj
         mut.hook \hook, \obj, \class, \mut_ns, \hook_ns
@@ -497,17 +512,22 @@ punkpc.module mut, 3
     # - pass namespaces to this call from the object constructor
 
     ifdef \obj\().is_mutable_obj
-    .if ndef; mut.mutable_obj$ = mut.mutable_obj$ + 1; \obj\().is_mutable_obj = mut.mutable_obj$
-      # instantiated object-level constructor methods:
-      .macro \obj\().hook, va:vararg
-        .irp hook, \va; mut.hook \hook, \obj, \class, \mut_ns, \hook_ns; .endr
+    .if ndef; mut.mutable_obj$ = mut.mutable_obj$ + 1
+      \obj\().is_mutable_obj = mut.mutable_obj$
+      .if \class\().uses_obj_mut_methods
 
-      .endm; .macro \obj\().mut, mut, va:vararg
-        .irp hook, \va; mut.mut  "\mut", \hook, \obj, \hook_ns; .endr
+        # instantiated object-level mutator methods, if using them:
 
-      .endm; .macro \obj\().mode, hook, va:vararg
-        .irp mode, \va; mut.mode \mode, \hook, \obj, \class, \mut_ns, \hook_ns; .endr
-      .endm
+        .macro \obj\().hook, va:vararg
+          .irp hook, \va; mut.hook \hook, \obj, \class, \mut_ns, \hook_ns; .endr
+
+        .endm; .macro \obj\().mut, mut, va:vararg
+          .irp hook, \va; mut.mut  "\mut", \hook, \obj, \hook_ns; .endr
+
+        .endm; .macro \obj\().mode, hook, va:vararg
+          .irp mode, \va; mut.mode \mode, \hook, \obj, \class, \mut_ns, \hook_ns; .endr
+        .endm
+      .endif
     .endif
 
 

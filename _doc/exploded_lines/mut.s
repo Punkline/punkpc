@@ -8,11 +8,16 @@ punkpc.module mut, 3
   mut.mutable_obj$ = 0
   mut.mutator$ = 0
   mut.mutable_mode$ = 0
+  mut.uses_obj_mut_methods = 1
   .macro mut.class,  class,  mut_ns=mut,  hook_ns=hook
     ifdef \class\().is_mutable_class
     .if ndef
       mut.mutable_class$ = mut.mutable_class$ + 1
       \class\().is_mutable_class=mut.mutable_class$
+      ifdef \class\().uses_obj_mut_methods
+      .if ndef
+        \class\().uses_obj_mut_methods = mut.uses_obj_mut_methods
+      .endif;
       .macro \class\().hook,  hook,  obj
         mut.hook \hook, \obj, \class, \mut_ns, \hook_ns
       .endm;
@@ -45,21 +50,23 @@ punkpc.module mut, 3
     .if ndef
       mut.mutable_obj$ = mut.mutable_obj$ + 1
       \obj\().is_mutable_obj = mut.mutable_obj$
-      .macro \obj\().hook,  va:vararg
-        .irp hook,  \va
-          mut.hook \hook, \obj, \class, \mut_ns, \hook_ns
-        .endr;
-      .endm;
-      .macro \obj\().mut,  mut,  va:vararg
-        .irp hook,  \va
-          mut.mut "\mut", \hook, \obj, \hook_ns
-        .endr;
-      .endm;
-      .macro \obj\().mode,  hook,  va:vararg
-        .irp mode,  \va
-          mut.mode \mode, \hook, \obj, \class, \mut_ns, \hook_ns
-        .endr;
-      .endm;
+      .if \class\().uses_obj_mut_methods
+        .macro \obj\().hook,  va:vararg
+          .irp hook,  \va
+            mut.hook \hook, \obj, \class, \mut_ns, \hook_ns
+          .endr;
+        .endm;
+        .macro \obj\().mut,  mut,  va:vararg
+          .irp hook,  \va
+            mut.mut "\mut", \hook, \obj, \hook_ns
+          .endr;
+        .endm;
+        .macro \obj\().mode,  hook,  va:vararg
+          .irp mode,  \va
+            mut.mode \mode, \hook, \obj, \class, \mut_ns, \hook_ns
+          .endr;
+        .endm;
+      .endif;
     .endif;
   .endm;
   .macro mut.hook,  hook,  obj,  class,  mut_ns=mut,  hook_ns=hook
