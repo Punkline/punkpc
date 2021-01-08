@@ -4,6 +4,15 @@
 
 ##*/
 ##/* Updates:
+# version 0.0.2
+# - added support for null object pointers by checking for a positive number before dispatch
+#   - this results in a nop when attempting to do anything with a null object pointer
+#   - both '0' and negative numbers count as null -- allowing you to flip sign to toggle a pointer
+# - added support for 'anonymous' objects
+#   - objects instantiated without a name will be given one generated
+# - added volatile return property 'obj.point', when generating new objects from any class
+#   - can be used to reference newly generated 'anonymous' objects
+# - implemented new '.uses_obj_mut_methods' parameter
 # version 0.0.1
 # - added to punkpc module library
 
@@ -13,8 +22,10 @@
 /*## Attributes:
 
 # --- Class Properties
-# --- obj.class.uses_pointers - use pointers by default
-# --- obj.class.self_pointers - don't point to self by default
+# --- obj.class.uses_pointers  - use pointers by default
+# --- obj.class.self_pointers  - don't point to self by default
+# --- obj.class.uses_mutators  - use mutators by default
+# --- obj.class.uses_obj_mut_methods - uses obj-level mutator methods by default, if using mutators
 # - these flags only affect newly created object classes, not newly instantiated objects
 #   - they can be edited from the class-level at any time
 
@@ -41,7 +52,9 @@
   # --- Class Object Properties
   # --- .is_objClass - keeps track of the number of instantiated classes that count pointers
   # --- .uses_pointers - flag enables/disables generation of pointer properties in .obj method
-  # --- .self_pointers - flag enables/disables
+  # --- .self_pointers - flag enables/disables assignment of pointer value to 'self' property
+  # --- .uses_mutators - flag enables/disabled use of mutators and method hooks
+  # --- .uses_obj_mut_methods - flag enables/disables obj-level mutator methods, if using mutators
   # --- .\get - the pointer output property name -- called '.pointer' by default
 
 
@@ -123,16 +136,19 @@
 ## 00000002 00000003
 ## 00000001 00000004
 ## 00000005 13370001
+## 00000005 13370001
 ## 00000006 13370001
 ## 00001337 00001337
-## 00000539 00000001
+## 00000539 13370000
+## 13370000 13370000
+## 00001337 00000001
 ## 00000003 00000003
 ## 00000007 00000002
 ## 00000006 00000005
 ## 00000004 00000008
-## 00000009 00000010
-## 00000001 00001337
-## 00001337
+## 00000009 00000009
+## 00000010 00000001
+## 00001337 00001337
 
 ##*/
 /*## Examples:
@@ -265,6 +281,7 @@ myClass.pointq "p, p+1, p+2", .long 0
 # - it's possible to edit this to offset the generated pointer IDs
 #   - up to 31 bits (no sign) may be used to create addresses
 
+
 p = leet.is_myClass
 # if you don't use the pointer -- you can pre-emptively assign it values that don't exist
 
@@ -272,12 +289,20 @@ backup = myClass$
 myClass$ = 0x13370000
 myClass.new leet, 5
 # create a new object called 'leet' with a different virtual base address
-# - p can now be safely used
+
+
+# 'p' can now be safely used:
 
 myClass.point "p", .long p
 # >>> 5, 0x13370001
 # "p" is the pointer to be handled, while '.long p' at the end just shows the pointer value
 # - this separate address space can be treated like a virtual allocation for new pointers
+
+
+myClass.point obj.point, .long p
+# >>> 5, 0x13370001
+# Alternatively, you can use 'obj.point', which is a volatile return property
+# - this will record the last generated object pointer, until displaced by the next
 
 leet = 6
 myClass.point "0x13370001", .long 0x13370001
@@ -306,6 +331,46 @@ myClass.call_method p, .method
 # - we can also set the 'leet.property' with '.set_property'
 
 # With pointers and these pointer handlers, you can remotely access object attributes
+
+
+
+
+# --- NULL POINTERS
+
+# If a pointer isn't a positive (non-0) number, then it is considered 'null'
+# - A negative number has the advantage of being able to 'disable' a pointer without destroying it
+# - A 0 number has the ability to clear a pointer in a destructive way
+
+leet.property = 0x13370000
+p =  leet.is_myClass
+n = -leet.is_myClass
+b =  0
+# Both 'p' and 'n' point to the 'leet' object, but 'n' is negative
+# - 'b' is just a blank pointer, '0'
+
+myClass.get_property p, .property, x
+.long x
+# >>> 0x13370000
+# 'p' works as predicted
+
+leet.property = 0x1337
+myClass.get_property n, .property, x
+.long x
+# >>> 0x13370000
+# ... but 'n' results in no operation -- the pointer is null, so nothing happens
+
+myClass.get_property b, .property, x
+.long x
+# >>> 0x13370000
+# ... a 0 also counts as null
+
+n = -n
+myClass.get_property n, .property, x
+.long x
+# >>> 0x1337
+# By negating 'n', we turn it back into a positive number that retains the old pointer information
+
+
 
 
 
@@ -441,6 +506,28 @@ auto.a test
 
 
 
+# --- ANONYMOUS OBJECTS
+
+# If you skip providing a name for the '.obj' method, a name is generated automatically
+# - you will not know this name, but you can still reach the object via pointer
+
+auto.obj
+anon = obj.point
+# 'anon' contains a copy of a pointer to our un-named object
+
+auto.meth anon, a, b, c
+auto.set_property anon,, 10
+# - we can construct this anonymous object without directly referencing its name
+
+auto.b anon
+auto.get_property anon,, anon.property
+.long anon.property
+# >>> 9
+# We copied a property from the anonymous object into 'anon.property' using the pointer in 'anon'
+
+
+
+
 # --- HIDDEN PROPERTIES ---
 
 # If you create a specialized constructor callback, you may make use of hidden object properties
@@ -521,9 +608,11 @@ objClasses$ = 0
 obj.class.uses_pointers = 1 # use pointers by default
 obj.class.self_pointers = 0 # don't point to self by default
 obj.class.uses_mutators = 0 # don't use mutators by default
+obj.class..uses_obj_mut_methods = 1
 obj.class.uses_pointers.default = 1
 obj.class.self_pointers.default = 0
 obj.class.uses_mutators.default = 0
+obj.class.uses_obj_mut_methods.default = 1
 
 .macro obj.class, class, class_ppt, dict=point, get=pointer, mut_ns=mut, hook_ns=hook
   .ifb \class_ppt; obj.class \class, is_\class, \dict, \get, \mut_ns, \hook_ns; .exitm; .endif
@@ -538,18 +627,20 @@ obj.class.uses_mutators.default = 0
     obj.class_def = 0; obj.class_ndef = 1
     objClasses$ = objClasses$ + 1
     \class\().is_objClass = objClasses$
-    .irp param, .uses_pointers, .self_pointers, .uses_mutators
+    .irp param, .uses_pointers, .self_pointers, .uses_mutators, .uses_obj_mut_methods
       ifdef \class, \param; .if ndef; \class\param = obj.class\param; .endif
       .irp conc, .default; obj.class\param = obj.class\param\conc; .endr
     .endr
 
     .macro \class\().obj, objs:vararg
-      obj.state.altm = alt
-      ifalt; obj.state.alt = alt
-      .irp obj, \objs; .ifnb obj; obj.__check_if_def \obj, .\class_ppt, \class, \dict; .endif; .endr
-      ifalt.reset obj.state.alt
-      alt = obj.state.altm
-
+      .ifb \objs; \class\().obj $.__anon\@;
+      .else;   obj.state.altm = alt
+        ifalt; obj.state.alt = alt
+        .irp obj, \objs;
+          .ifnb obj; obj.__check_if_def \obj, .\class_ppt, \class, \dict; .endif;
+        .endr; ifalt.reset obj.state.alt
+        alt = obj.state.altm
+      .endif
     .endm
 
 
@@ -557,7 +648,8 @@ obj.class.uses_mutators.default = 0
       .if \class\().uses_mutators
         .macro \class\().meth, obj, va:vararg;
           .ifb \obj; obj.__def_class_methods \class, \va
-          .else; obj.__def_obj_methods \obj, \class, \mut_ns, \hook_ns, \va; .endif
+          .else; \class\().\get \obj;
+            \class\().\dict, obj.__def_obj_methods, \class, \mut_ns, \hook_ns, \va; .endif
         .endm; .macro \class\().call_\mut_ns, self=\class\().\get, hook, mode, va:vararg
         \class\().\get \self
         \class\().\dict, mut.call, \hook, \mode, \class, \mut_ns, \hook_ns, \va
@@ -591,7 +683,7 @@ obj.class.uses_mutators.default = 0
         .if obj.vacount > 1; obj.class.dict.__recurse_start \class, \dict, %\point,, \va
         # handle multiple pointers by listing them with a blank terminator using _recurse
 
-        .elseif obj.vacount == 1; obj.class.dict.__eval \class, \dict, %\point, \va
+        .elseif \point > 0; obj.class.dict.__eval \class, \dict, %\point, \va
         .endif # convenient stack generator
 
 
@@ -599,7 +691,7 @@ obj.class.uses_mutators.default = 0
         obj.vacount \point
         ifalt; .altmacro;
         .if obj.vacount > 1; obj.class.dictq.__recurse_start \class, \dict, %\point,, \va
-        .elseif obj.vacount == 1; obj.class.dictq.__eval \class, \dict, %\point, \va
+        .elseif \point > 0; obj.class.dictq.__eval \class, \dict, %\point, \va
         .endif # convenient queue generator
 
 
@@ -651,6 +743,7 @@ obj.class.uses_mutators.default = 0
           .ifb \va; \m \obj; .else; \m \va, \obj; .endif; .endm
       .endif
       .if \class\().self_pointers; \obj = \class_ev; .endif
+      obj.point = \class_ev
       .altmacro
     .endr
   .endif

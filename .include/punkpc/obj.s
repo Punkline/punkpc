@@ -2,8 +2,9 @@
   .include "punkpc.s";.endif;punkpc.module obj, 1
 .if module.included == 0;  punkpc if, hidden, mut;obj.state.altm = alt;obj.state.alt = 0
   objClasses$ = 0;obj.class.uses_pointers = 1;obj.class.self_pointers = 0
-  obj.class.uses_mutators = 0;obj.class.uses_pointers.default = 1
-  obj.class.self_pointers.default = 0;obj.class.uses_mutators.default = 0
+  obj.class.uses_mutators = 0;obj.class..uses_obj_mut_methods = 1
+  obj.class.uses_pointers.default = 1;obj.class.self_pointers.default = 0
+  obj.class.uses_mutators.default = 0;obj.class.uses_obj_mut_methods.default = 1
   .macro obj.class,  class,  class_ppt,  dict=point,  get=pointer,  mut_ns=mut,  hook_ns=hook
     .ifb \class_ppt;  obj.class \class, is_\class, \dict, \get, \mut_ns, \hook_ns;.exitm;.endif;
     obj.state.altm = alt;ifalt;obj.state.alt = alt;ifdef \class\()$
@@ -11,18 +12,23 @@
     .if ndef;  \class\().is_objClass = 0;.endif;obj.class_def = 1;obj.class_ndef = 0
     .if \class\().is_objClass == 0;  obj.class_def = 0;obj.class_ndef = 1
       objClasses$ = objClasses$ + 1;\class\().is_objClass = objClasses$
-      .irp param,  .uses_pointers,  .self_pointers,  .uses_mutators;  ifdef \class, \param
+      .irp param,  .uses_pointers,  .self_pointers,  .uses_mutators,  .uses_obj_mut_methods
+        ifdef \class, \param
         .if ndef;  \class\param = obj.class\param;.endif;
         .irp conc,  .default;  obj.class\param = obj.class\param\conc;.endr;.endr;
-      .macro \class\().obj,  objs:vararg;  obj.state.altm = alt;ifalt;obj.state.alt = alt
-        .irp obj,  \objs
-          .ifnb obj;  obj.__check_if_def \obj, .\class_ppt, \class, \dict;.endif;.endr;
-        ifalt.reset obj.state.alt;alt = obj.state.altm
+      .macro \class\().obj,  objs:vararg
+        .ifb \objs;  \class\().obj $.__anon\@
+        .else;  obj.state.altm = alt;ifalt;obj.state.alt = alt
+          .irp obj,  \objs
+            .ifnb obj;  obj.__check_if_def \obj, .\class_ppt, \class, \dict;.endif;.endr;
+          ifalt.reset obj.state.alt;alt = obj.state.altm;.endif;
       .endm;.if \class\().uses_pointers
         .if \class\().uses_mutators
           .macro \class\().meth,  obj,  va:vararg
             .ifb \obj;  obj.__def_class_methods \class, \va
-            .else;  obj.__def_obj_methods \obj, \class, \mut_ns, \hook_ns, \va;.endif;
+            .else;  \class\().\get \obj
+              \class\().\dict, obj.__def_obj_methods, \class, \mut_ns, \hook_ns, \va
+            .endif;
           .endm;
           .macro \class\().call_\mut_ns,  self=\class\().\get,  hook,  mode,  va:vararg
             \class\().\get \self
@@ -40,14 +46,14 @@
           obj.vacount \point;ifalt;.altmacro
           .if obj.vacount > 1
             obj.class.dict.__recurse_start \class, \dict, %\point, , \va
-          .elseif obj.vacount == 1;  obj.class.dict.__eval \class, \dict, %\point, \va
-          .endif;
+          .elseif \point > 0;
+            obj.class.dict.__eval \class, \dict, %\point, \va;.endif;
         .endm;.macro \class\().\dict\()q,  point=\class\().\get,  va:vararg
           obj.vacount \point;ifalt;.altmacro
           .if obj.vacount > 1
             obj.class.dictq.__recurse_start \class, \dict, %\point, , \va
-          .elseif obj.vacount == 1;  obj.class.dictq.__eval \class, \dict, %\point, \va
-          .endif;
+          .elseif \point > 0;
+            obj.class.dictq.__eval \class, \dict, %\point, \va;.endif;
         .endm;.macro \class\().call_method,  self=\class\().\get,  meth,  va:vararg
           \class\().\get \self;\class\().\dict, obj.__call_method, \meth, \va
         .endm;
@@ -77,7 +83,8 @@
             .ifb \va;  \m \obj
             .else;  \m \va, \obj;.endif;
           .endm;.endif;
-        .if \class\().self_pointers;  \obj = \class_ev;.endif;.altmacro;.endr;.endif;
+        .if \class\().self_pointers;  \obj = \class_ev;.endif;obj.point = \class_ev
+        .altmacro;.endr;.endif;
   .endm;.macro obj.__def_obj_methods,  obj,  class,  mut_ns,  hook_ns,  varg:vararg
     .irp m,  \varg
       .ifnb \m;  \class\().purge_hook \obj, \m

@@ -4,6 +4,15 @@
 
 # --- Updates:
 
+# version 0.0.2
+# - added support for null object pointers by checking for a positive number before dispatch
+#   - this results in a nop when attempting to do anything with a null object pointer
+#   - both '0' and negative numbers count as null -- allowing you to flip sign to toggle a pointer
+# - added support for 'anonymous' objects
+#   - objects instantiated without a name will be given one generated
+# - added volatile return property 'obj.point', when generating new objects from any class
+#   - can be used to reference newly generated 'anonymous' objects
+# - implemented new '.uses_obj_mut_methods' parameter
 # version 0.0.1
 # - added to punkpc module library
 
@@ -139,6 +148,7 @@ myClass.pointq "p, p+1, p+2", .long 0
 # - it's possible to edit this to offset the generated pointer IDs
 #   - up to 31 bits (no sign) may be used to create addresses
 
+
 p = leet.is_myClass
 # if you don't use the pointer -- you can pre-emptively assign it values that don't exist
 
@@ -146,12 +156,20 @@ backup = myClass$
 myClass$ = 0x13370000
 myClass.new leet, 5
 # create a new object called 'leet' with a different virtual base address
-# - p can now be safely used
+
+
+# 'p' can now be safely used:
 
 myClass.point "p", .long p
 # >>> 5, 0x13370001
 # "p" is the pointer to be handled, while '.long p' at the end just shows the pointer value
 # - this separate address space can be treated like a virtual allocation for new pointers
+
+
+myClass.point obj.point, .long p
+# >>> 5, 0x13370001
+# Alternatively, you can use 'obj.point', which is a volatile return property
+# - this will record the last generated object pointer, until displaced by the next
 
 leet = 6
 myClass.point "0x13370001", .long 0x13370001
@@ -180,6 +198,46 @@ myClass.call_method p, .method
 # - we can also set the 'leet.property' with '.set_property'
 
 # With pointers and these pointer handlers, you can remotely access object attributes
+
+
+
+
+# --- NULL POINTERS
+
+# If a pointer isn't a positive (non-0) number, then it is considered 'null'
+# - A negative number has the advantage of being able to 'disable' a pointer without destroying it
+# - A 0 number has the ability to clear a pointer in a destructive way
+
+leet.property = 0x13370000
+p =  leet.is_myClass
+n = -leet.is_myClass
+b =  0
+# Both 'p' and 'n' point to the 'leet' object, but 'n' is negative
+# - 'b' is just a blank pointer, '0'
+
+myClass.get_property p, .property, x
+.long x
+# >>> 0x13370000
+# 'p' works as predicted
+
+leet.property = 0x1337
+myClass.get_property n, .property, x
+.long x
+# >>> 0x13370000
+# ... but 'n' results in no operation -- the pointer is null, so nothing happens
+
+myClass.get_property b, .property, x
+.long x
+# >>> 0x13370000
+# ... a 0 also counts as null
+
+n = -n
+myClass.get_property n, .property, x
+.long x
+# >>> 0x1337
+# By negating 'n', we turn it back into a positive number that retains the old pointer information
+
+
 
 
 
@@ -315,6 +373,28 @@ auto.a test
 
 
 
+# --- ANONYMOUS OBJECTS
+
+# If you skip providing a name for the '.obj' method, a name is generated automatically
+# - you will not know this name, but you can still reach the object via pointer
+
+auto.obj
+anon = obj.point
+# 'anon' contains a copy of a pointer to our un-named object
+
+auto.meth anon, a, b, c
+auto.set_property anon,, 10
+# - we can construct this anonymous object without directly referencing its name
+
+auto.b anon
+auto.get_property anon,, anon.property
+.long anon.property
+# >>> 9
+# We copied a property from the anonymous object into 'anon.property' using the pointer in 'anon'
+
+
+
+
 # --- HIDDEN PROPERTIES ---
 
 # If you create a specialized constructor callback, you may make use of hidden object properties
@@ -387,8 +467,10 @@ hider.get myCopy
 # --- Module attributes:
 
 # --- Class Properties
-# --- obj.class.uses_pointers - use pointers by default
-# --- obj.class.self_pointers - don't point to self by default
+# --- obj.class.uses_pointers  - use pointers by default
+# --- obj.class.self_pointers  - don't point to self by default
+# --- obj.class.uses_mutators  - use mutators by default
+# --- obj.class.uses_obj_mut_methods - uses obj-level mutator methods by default, if using mutators
 # - these flags only affect newly created object classes, not newly instantiated objects
 #   - they can be edited from the class-level at any time
 
@@ -415,7 +497,9 @@ hider.get myCopy
   # --- Class Object Properties
   # --- .is_objClass - keeps track of the number of instantiated classes that count pointers
   # --- .uses_pointers - flag enables/disables generation of pointer properties in .obj method
-  # --- .self_pointers - flag enables/disables
+  # --- .self_pointers - flag enables/disables assignment of pointer value to 'self' property
+  # --- .uses_mutators - flag enables/disabled use of mutators and method hooks
+  # --- .uses_obj_mut_methods - flag enables/disables obj-level mutator methods, if using mutators
   # --- .\get - the pointer output property name -- called '.pointer' by default
 
 
@@ -497,16 +581,19 @@ hider.get myCopy
 ## 00000002 00000003
 ## 00000001 00000004
 ## 00000005 13370001
+## 00000005 13370001
 ## 00000006 13370001
 ## 00001337 00001337
-## 00000539 00000001
+## 00000539 13370000
+## 13370000 13370000
+## 00001337 00000001
 ## 00000003 00000003
 ## 00000007 00000002
 ## 00000006 00000005
 ## 00000004 00000008
-## 00000009 00000010
-## 00000001 00001337
-## 00001337
+## 00000009 00000009
+## 00000010 00000001
+## 00001337 00001337
 
 
 
