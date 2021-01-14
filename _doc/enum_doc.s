@@ -5,6 +5,12 @@
 
 # --- Updates:
 
+
+# version 0.2.1
+# - implemented default mutator hooks, to lower the number of macros required for each object
+# - changed order of operations in loading old 'xem' prereq with 'regs' at end of module
+#   - 'regs' relies on macros defined by enum, so it must come after the module is initialized
+
 # --- version 0.2.0
 # - rewrote entire module from scratch, simplified many things
 # - everything is now driven by mutator hooks from the 'mut' module
@@ -759,8 +765,8 @@ hex hello, world
 ## B3030016 7F000120
 ## 409F0014 409D0008
 ## 60000000 41BE0008
-## 60000000 00000008
-## 00000008 00000008
+## 60000000 00000009
+## 00000009 00000009
 ## 00000000 00000001
 ## 00000002 00000003
 ## 00000003 00000009
