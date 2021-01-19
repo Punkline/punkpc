@@ -1,13 +1,15 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module spr, 1
+punkpc.module spr, 2
 .if module.included == 0
   punkpc idxr, regs
   .macro lmspr,  a,  idxr,  sprs:vararg
     idxr \idxr
+    spr_count = 0
     .irp spr,  \sprs
       .ifnb \spr
+        spr_count = spr_count + 1
         .rept 1
           .ifc \spr,  cr
             lwz \a, idxr.x(idxr.r)
@@ -45,17 +47,17 @@ punkpc.module spr, 1
             idxr.x=idxr.x+4
             .exitm
           .endif;
-          i=0
+          spr.__i=0
           .irpc c,  \spr
             .irpc n,  0123456789
               .ifc \n,  \c
-                i=1
+                spr.__i=1
                 .exitm
               .endif;
             .endr;
             .exitm
           .endr;
-          .if i
+          .if spr.__i
             lwz \a, idxr.x(idxr.r)
             mtspr spr.\spr, \a
             idxr.x=idxr.x+4
@@ -70,8 +72,10 @@ punkpc.module spr, 1
   .endm;
   .macro stmspr,  a,  idxr,  sprs:vararg
     idxr \idxr
+    spr_count = 0
     .irp spr,  \sprs
       .ifnb \spr
+        spr_count = spr_count + 1
         .rept 1
           .ifc \spr,  cr
             mfcr \a
@@ -109,17 +113,17 @@ punkpc.module spr, 1
             idxr.x=idxr.x+4
             .exitm
           .endif;
-          i=0
+          spr.__i=0
           .irpc c,  \spr
             .irpc n,  0123456789
               .ifc \n,  \c
-                i=1
+                spr.__i=1
                 .exitm
               .endif;
             .endr;
             .exitm
           .endr;
-          .if i
+          .if spr.__i
             mfspr \a, \spr
             stw \a, idxr.x(idxr.r)
             idxr.x=idxr.x+4
@@ -132,6 +136,7 @@ punkpc.module spr, 1
       .endif;
     .endr;
   .endm;
+  spr.qr.default = 1
   spr.XER = 1
   spr.xer = 1
   spr.LR = 8
@@ -224,10 +229,10 @@ punkpc.module spr, 1
   spr.QR7 = 919
   spr.gqr7 = 919
   spr.qr7 = 919
-  spr.GQR = 919
-  spr.QR = 919
-  spr.gqr = 919
-  spr.qr = 919
+  spr.GQR = 913
+  spr.QR = 913
+  spr.gqr = 913
+  spr.qr = 913
   spr.HID2 = 920
   spr.hid2 = 920
   spr.WPAR = 921

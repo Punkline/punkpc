@@ -6,6 +6,9 @@
 
 ##*/
 ##/* Updates:
+# version 0.0.2
+# - changed unspecific 'qr' keyword to default to 'qr1' instead of 'qr7'
+# - added 'spr_count' return property, for counting the number of spr args that were given
 # version 0.0.1
 # - added to punkpc module library
 
@@ -86,13 +89,15 @@ lmspr  r0, 0x10(sp), cr, ctr, lr, qr7, srr0, srr1, msr, tbu, tbl
 
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module spr, 1
+punkpc.module spr, 2
 .if module.included == 0; punkpc idxr, regs
 
 .macro lmspr, a, idxr, sprs:vararg
   idxr \idxr
+  spr_count = 0
   .irp spr, \sprs
     .ifnb \spr
+      spr_count = spr_count + 1
       .rept 1  # this creates an exit-able block, with .exitm
         .ifc \spr, cr;  lwz \a, idxr.x(idxr.r); mtcr  \a; idxr.x=idxr.x+4; .exitm; .endif
         .ifc \spr, CR;  lwz \a, idxr.x(idxr.r); mtcr  \a; idxr.x=idxr.x+4; .exitm; .endif
@@ -100,8 +105,10 @@ punkpc.module spr, 1
         .ifc \spr, SR;  lwz \a, idxr.x(idxr.r); mtsr  \a; idxr.x=idxr.x+4; .exitm; .endif
         .ifc \spr, msr; lwz \a, idxr.x(idxr.r); mtmsr \a; idxr.x=idxr.x+4; .exitm; .endif
         .ifc \spr, MSR; lwz \a, idxr.x(idxr.r); mtmsr \a; idxr.x=idxr.x+4; .exitm; .endif
-        i=0; .irpc c, \spr; .irpc n, 0123456789; .ifc \n, \c; i=1; .exitm;.endif;.endr;.exitm;.endr
-        .if i; # - if this is a literal number, then just use it literally
+        spr.__i=0; .irpc c, \spr; .irpc n, 0123456789;
+            .ifc \n, \c; spr.__i=1; .exitm;.endif;
+        .endr;.exitm;.endr
+        .if spr.__i; # - if this is a literal number, then just use it literally
           lwz \a, idxr.x(idxr.r)
           mtspr spr.\spr, \a
           idxr.x=idxr.x+4
@@ -119,8 +126,10 @@ punkpc.module spr, 1
   .endr # .irp loop emits a series of lwz -> mtspr instructions to restore spr states
 .endm; .macro stmspr, a, idxr, sprs:vararg
   idxr \idxr
+  spr_count = 0
   .irp spr, \sprs
     .ifnb \spr
+      spr_count = spr_count + 1
       .rept 1
         .ifc \spr, cr;  mfcr  \a; stw \a, idxr.x(idxr.r); idxr.x=idxr.x+4; .exitm; .endif
         .ifc \spr, CR;  mfcr  \a; stw \a, idxr.x(idxr.r); idxr.x=idxr.x+4; .exitm; .endif
@@ -128,8 +137,10 @@ punkpc.module spr, 1
         .ifc \spr, SR;  mfsr  \a; stw \a, idxr.x(idxr.r); idxr.x=idxr.x+4; .exitm; .endif
         .ifc \spr, msr; mfmsr \a; stw \a, idxr.x(idxr.r); idxr.x=idxr.x+4; .exitm; .endif
         .ifc \spr, MSR; mfmsr \a; stw \a, idxr.x(idxr.r); idxr.x=idxr.x+4; .exitm; .endif
-        i=0; .irpc c, \spr; .irpc n, 0123456789; .ifc \n, \c; i=1; .exitm;.endif;.endr;.exitm;.endr
-        .if i;
+        spr.__i=0; .irpc c, \spr; .irpc n, 0123456789;
+            .ifc \n, \c; spr.__i=1; .exitm;.endif;
+        .endr;.exitm;.endr
+        .if spr.__i;
           mfspr \a, \spr
           stw \a, idxr.x(idxr.r)
           idxr.x=idxr.x+4
@@ -143,7 +154,7 @@ punkpc.module spr, 1
     .endif
   .endr
 .endm
-
+spr.qr.default = 1
 
 # --- spr IDs for lmspr and stmspr:
 spr.XER    =    1
@@ -238,10 +249,14 @@ spr.GQR7   =  919
 spr.QR7    =  919
 spr.gqr7   =  919
 spr.qr7    =  919
-spr.GQR    =  919
-spr.QR     =  919
-spr.gqr    =  919
-spr.qr     =  919
+spr.GQR    =  913
+spr.QR     =  913
+spr.gqr    =  913
+spr.qr     =  913
+# generic 'qr' is accepted as an alias for that defaults to 'qr1'
+# - this is a good qr to back up because it is reserved, but not really used by the system
+# - if only one is needed, qr1 will not interrupt the context of other reserved or volatile qrs
+
 spr.HID2   =  920
 spr.hid2   =  920
 spr.WPAR   =  921

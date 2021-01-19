@@ -5,6 +5,9 @@
 
 # --- Updates:
 
+# version 0.0.2
+# - changed unspecific 'qr' keyword to default to 'qr1' instead of 'qr7'
+# - added 'spr_count' return property, for counting the number of spr args that were given
 # version 0.0.1
 # - added to punkpc module library
 
