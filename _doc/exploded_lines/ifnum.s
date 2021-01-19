@@ -1,7 +1,7 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module ifnum, 3
+punkpc.module ifnum, 4
 .if module.included == 0
   num=0
   nnum=1
@@ -28,11 +28,14 @@ punkpc.module ifnum, 3
   .endm;
   .macro ifnum_ascii,  n
     num=0
-    nnum=1
     .irpc c,  \n
-      ifnum.get_ascii "'\c"
+      ifnum.__get_ascii "'\c"
       .exitm
     .endr;
+    ifnum.check_ascii
+  .endm;
+  .macro ifnum.check_ascii
+    nnum = 1
     .if num >= 0x28
       .if num <= 0x2D
         nnum=0
@@ -55,7 +58,7 @@ punkpc.module ifnum, 3
       num = 0
     .endif;
   .endm;
-  .macro ifnum.get_ascii,  c
+  .macro ifnum.__get_ascii,  c
     num = \c
   .endm;
 .endif;

@@ -3,6 +3,8 @@
 
 # --- Updates:
 
+# version 0.0.4
+# - separated ascii check into a separate method, for checking ascii from encoder stacks
 # version 0.0.3
 # - ifnum will now return '1' if a decimal char was detected, and '2' if a math char was detected
 # - added 'ifnum_ascii' variant for recording specific ascii encoding instead of just '1' or '2'
@@ -141,6 +143,29 @@ if_minus test
 # 'ifnum' only checks literal inputs, not evaluations
 
 
+# --- using 'ifnum.check_ascii'
+
+a = '1
+b = 'l
+# set 'a' and 'b' to the value of a decimal number, and a non-number
+
+num = a
+# manually assign 'num' the value you want to check
+
+ifnum.check_ascii
+# 'num' and 'nnum' are returned as though 'ifnum' were called
+
+.if num; .long 1; .else; .long 0; .endif
+# >>> 1
+# 'a' evaluates to a number character
+
+num = b
+ifnum.check_ascii
+.if num; .long 1; .else; .long 0; .endif
+# >>> 0
+# 'b' evaluates to a letter character, not a number
+
+
 # --- Module attributes:
 
 # --- Class Properties
@@ -156,6 +181,9 @@ if_minus test
 # --- ifnum arg
 # checks if given arg is a literal number, or an arg that starts with a non-number
 
+# --- ifnum_ascii arg
+#
+
 
 
 ## Binary from examples:
@@ -168,6 +196,7 @@ if_minus test
 ## 00000001 00000002
 ## 00000000 00000000
 ## 00000000 00000000
+## 00000001 00000000
 ## 00000001 00000000
 
 

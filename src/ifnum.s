@@ -3,6 +3,8 @@
 
 ##*/
 ##/* Updates:
+# version 0.0.4
+# - separated ascii check into a separate method, for checking ascii from encoder stacks
 # version 0.0.3
 # - ifnum will now return '1' if a decimal char was detected, and '2' if a math char was detected
 # - added 'ifnum_ascii' variant for recording specific ascii encoding instead of just '1' or '2'
@@ -29,6 +31,9 @@
 # --- ifnum arg
 # checks if given arg is a literal number, or an arg that starts with a non-number
 
+# --- ifnum_ascii arg
+#
+
 
 
 ## Binary from examples:
@@ -41,6 +46,7 @@
 ## 00000001 00000002
 ## 00000000 00000000
 ## 00000000 00000000
+## 00000001 00000000
 ## 00000001 00000000
 
 ##*/
@@ -171,11 +177,33 @@ if_minus test
 # 'ifnum' only checks literal inputs, not evaluations
 
 
+# --- using 'ifnum.check_ascii'
+
+a = '1
+b = 'l
+# set 'a' and 'b' to the value of a decimal number, and a non-number
+
+num = a
+# manually assign 'num' the value you want to check
+
+ifnum.check_ascii
+# 'num' and 'nnum' are returned as though 'ifnum' were called
+
+.if num; .long 1; .else; .long 0; .endif
+# >>> 1
+# 'a' evaluates to a number character
+
+num = b
+ifnum.check_ascii
+.if num; .long 1; .else; .long 0; .endif
+# >>> 0
+# 'b' evaluates to a letter character, not a number
+
 ##*/
 
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module ifnum, 3
+punkpc.module ifnum, 4
 .if module.included == 0
 
   num=0; nnum=1;
@@ -188,13 +216,14 @@ punkpc.module ifnum, 3
       .endif; .exitm
     .endr
     nnum=!num
-  .endm; .macro ifnum_ascii, n;
-    num=0; nnum=1; .irpc c,\n; ifnum.get_ascii "'\c"; .exitm; .endr
+  .endm; .macro ifnum_ascii, n
+    num=0; .irpc c,\n; ifnum.__get_ascii "'\c"; .exitm; .endr; ifnum.check_ascii
+  .endm; .macro ifnum.check_ascii; nnum = 1
     .if num >= 0x28; .if num <= 0x2D; nnum=0; .exitm ;.endif; .endif
     .if num >= 0x2F; .if num <= 0x39; nnum=0; .exitm ;.endif; .endif
     .irp x, 0x21, 0x25, 0x26, 0x5B, 0x5D, 0x7C, 0x7E
       .if num == \x; nnum = 0; .exitm; .endif
     .endr; .if nnum; num = 0; .endif
-  .endm; .macro ifnum.get_ascii, c; num = \c; .endm
+  .endm; .macro ifnum.__get_ascii, c; num = \c; .endm
 
 .endif
