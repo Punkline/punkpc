@@ -1,6 +1,6 @@
 .ifndef punkpc.library.included
   .include "punkpc.s";.endif;punkpc.module enum, 0x201
-.if module.included == 0;  punkpc obj, if;enum.uses_mutators = 1;obj.class enum
+.if module.included == 0;  punkpc obj;enum.uses_mutators = 1;obj.class enum
   enum.uses_pointers = 1;enum.self_pointers = 0;enum.count_default = 0;enum.step_default = 1
   enumb.count_default = 31;enumb.step_default = -1
   .macro enum.new_raw,  self,  prefix,  suffix,  varg:vararg;  enum.obj \self
@@ -76,7 +76,7 @@
   .macro enum.mut.count.bool,  self,  arg,  va:vararg;  \self\().last = \self\().count
     \self\().count = \arg & 0x1F
   .endm;enum.new enum.temp;enumb.new enumb.temp, , , -1, (31)
-  .macro enum,  va:vararg;  enum.enum_conc, , , \va
+  .macro enum,  va:vararg;  enum.enum_conc, , \va
   .endm;.macro enum.enum_conc,  va:vararg
     .irp p,  last,  count,  step,  steps;  enum.temp.\p = enum.\p;.endr;
     enum.mut.enum_conc.default enum.temp, \va
@@ -86,7 +86,7 @@
       .irp p,  restart.count,  restart.step;  enum.temp.\p = enum.\p;.endr;enum.temp.restart
       .irp p,  count,  step;  enum.\p = enum.temp.\p;.endr;
     .else;  enum.call_mut \self, restart, default, \va;.endif;
-  .endm;.macro enumb,  va:vararg;  enumb.enum_conc, , , \va
+  .endm;.macro enumb,  va:vararg;  enumb.enum_conc, , \va
   .endm;.macro enumb.enum_conc,  va:vararg
     .irp p,  last,  count,  step,  steps;  enumb.temp.\p = enumb.\p;.endr;
     enum.mut.enum_conc.default enumb.temp, \va

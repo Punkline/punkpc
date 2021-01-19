@@ -3,7 +3,7 @@
 .endif;
 punkpc.module enum, 0x201
 .if module.included == 0
-  punkpc obj, if
+  punkpc obj
   enum.uses_mutators = 1
   obj.class enum
   enum.uses_pointers = 1
@@ -165,7 +165,7 @@ punkpc.module enum, 0x201
   enum.new enum.temp
   enumb.new enumb.temp, , , -1, (31)
   .macro enum,  va:vararg
-    enum.enum_conc, , , \va
+    enum.enum_conc, , \va
   .endm;
   .macro enum.enum_conc,  va:vararg
     .irp p,  last,  count,  step,  steps
@@ -190,7 +190,7 @@ punkpc.module enum, 0x201
     .endif;
   .endm;
   .macro enumb,  va:vararg
-    enumb.enum_conc, , , \va
+    enumb.enum_conc, , \va
   .endm;
   .macro enumb.enum_conc,  va:vararg
     .irp p,  last,  count,  step,  steps

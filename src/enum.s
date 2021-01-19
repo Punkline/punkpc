@@ -788,7 +788,7 @@ hex hello, world
 punkpc.module enum, 0x201
 .if module.included == 0
 
-  punkpc obj, if
+  punkpc obj
   # import punkpc class module prereqs, if not already in assembler environment
   enum.uses_mutators = 1
   obj.class enum
@@ -1015,7 +1015,7 @@ enum.meth, enum_parse, enum_parse_iter, numerical, literal, count, step, mask
 
 # --- enum - powered by 'enum.temp'
   .macro enum, va:vararg;
-    enum.enum_conc,,, \va
+    enum.enum_conc,, \va
   .endm; .macro enum.enum_conc, va:vararg
     .irp p, last, count, step, steps; enum.temp.\p = enum.\p; .endr
       enum.mut.enum_conc.default enum.temp, \va
@@ -1029,7 +1029,7 @@ enum.meth, enum_parse, enum_parse_iter, numerical, literal, count, step, mask
 
 # --- enumb - powered by 'enumb.temp'
   .endm; .macro enumb, va:vararg;
-    enumb.enum_conc,,, \va
+    enumb.enum_conc,, \va
   .endm; .macro enumb.enum_conc, va:vararg
     .irp p, last, count, step, steps; enumb.temp.\p = enumb.\p; .endr
       enum.mut.enum_conc.default enumb.temp, \va
