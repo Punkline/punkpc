@@ -4,6 +4,8 @@
 
 ##*/
 ##/* Updates:
+# version 0.0.2
+# - changed constructor name to 'enc.new' instead of 'enc'
 # version 0.0.1
 # - added to punkpc module library
 
@@ -15,7 +17,7 @@
 # Extends stack objects to provide extra methods for pushing bytes generated from input literals
 
 # --- Constructor Method
-# --- enc  name, start, end
+# --- enc.new  name, start, end
 # Construct a new encoder object with name 'name'
 #  Start and End args will create a default character index range, for parsing inputs
 # - if 'start' is blank, 0 is assumed   (parse begins at start of string)
@@ -48,6 +50,9 @@
   # --- .enc_range  start, end, input
   # Variation of '.enc' method that overrides '.enc_start' and '.enc_end' properties with args
 
+  # --- .enc_raw    start, end, input
+  # Variation of '.enc_range' that does not escape quotes or backslashes for special chars
+  # - can be used to detect quotes in quoted inputs
 
 ## Binary from examples:
 
@@ -93,10 +98,9 @@ punkpc enc
 
 # --- BASICS ---
 
-enc myEnc
+enc.new myEnc
 # creates encoder 'myEnc'
 # - main property/method is not defined in encoder objects
-# - instead, encoders use the '.enc' sub-object namespace
 
 myEnc.enc Testing
 # buffer the ascii for 'Testing' into the encoder object we just made
@@ -105,8 +109,8 @@ myEnc.deq char
 .byte char
 # >>> 54
 # >>> 'T' -- the first char in 'Testing'
-# - .enc is just a mutated stack, so it can be used like one to navigate the character buffer
-# - .enc.__deq will dequeue the characters in the order they came in
+# - 'myEnc' is just a mutated stack, so it can be used like one to navigate the character buffer
+# - '.deq' will dequeue the characters in the order they came in
 
 myEnc.pop
 char = myEnc
@@ -115,7 +119,7 @@ char = myEnc
 .byte char
 # >> 67
 # >> 'g' -- the last char in 'Testing'
-# - .enc.__pop will dequeue the characters in reverse order, if you want to check the other end
+# - '.pop' will dequeue the characters in reverse order, if you want to check the other end
 
 
 # --- PROTECTING INPUTS ---
@@ -273,7 +277,7 @@ punkpc.module enc, 1
   enc.__escaping = 0
   enc.__encode_raw = 0
   stack enc.__escaped
-  .macro enc, self, st=0, en=-1
+  .macro enc.new, self, st=0, en=-1
     stack \self
     .if obj.ndef
 

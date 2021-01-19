@@ -2,7 +2,7 @@
   .include "punkpc.s";.endif;punkpc.module enc, 1
 .if module.included == 0;  punkpc stack, if;enc.__char = 0;enc.__skip = 0;enc.__exit = 0
   enc.__escaping = 0;enc.__encode_raw = 0;stack enc.__escaped
-  .macro enc,  self,  st=0,  en=-1;  stack \self
+  .macro enc.new,  self,  st=0,  en=-1;  stack \self
     .if obj.ndef;  \self\().enc_start = \st;\self\().enc_end = \en
       .macro \self\().enc,  str:vararg;  enc.__encode_raw = 0
         enc.__encode \self, \self\().enc_start, \self\().enc_end, \str

@@ -10,7 +10,7 @@ punkpc.module enc, 1
   enc.__escaping = 0
   enc.__encode_raw = 0
   stack enc.__escaped
-  .macro enc,  self,  st=0,  en=-1
+  .macro enc.new,  self,  st=0,  en=-1
     stack \self
     .if obj.ndef
       \self\().enc_start = \st
