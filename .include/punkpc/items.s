@@ -1,5 +1,5 @@
 .ifndef punkpc.library.included
-  .include "punkpc.s";.endif;punkpc.module items, 1
+  .include "punkpc.s";.endif;punkpc.module items, 2
 .if module.included == 0;  items.__free$ = 0;items.__mem$ = 0;items.alloc = 0;items.free = 0
   items = 0
   .macro items.method,  self,  __ppt
@@ -41,7 +41,7 @@
         items.__em2 <items.__mem>, %\__pntr, <.buf items.__append, items.__mem>, %\__pntr
       .else;
         items.__em2 <items.__mem>, %\__pntr, <.buf items.__append, items.__mem>, %\__pntr, <, , \__va>
-      .endif;.endif;
+      .endif;items.__altm_reset;.endif;
   .endm;.macro items.emit,  __pntr=items,  __mcro=items.__statement,  __va:vararg
     .if \__pntr > 0
       items.__altm;items.__em <items.__mem>, %\__pntr, <.buf \__mcro, , \__va>

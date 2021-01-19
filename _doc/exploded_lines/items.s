@@ -1,7 +1,7 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module items, 1
+punkpc.module items, 2
 .if module.included == 0
   items.__free$ = 0
   items.__mem$ = 0
@@ -95,6 +95,7 @@ punkpc.module items, 1
       .else;
         items.__em2 <items.__mem>, %\__pntr, <.buf items.__append, items.__mem>, %\__pntr, <, , \__va>
       .endif;
+      items.__altm_reset
     .endif;
   .endm;
   .macro items.emit,  __pntr=items,  __mcro=items.__statement,  __va:vararg

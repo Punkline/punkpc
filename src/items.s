@@ -6,6 +6,8 @@
 
 ##*/
 ##/* Updates
+# version 0.0.2
+# - fixed bug where appends to items list did not take context out of altmacro mode 
 # version 0.0.1
 # - added to punkpc module library
 ##*/
@@ -555,7 +557,7 @@ show_errors = 0
 
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module items, 1
+punkpc.module items, 2
 .if module.included == 0
 items.__free$ = 0
 items.__mem$ = 0
@@ -647,7 +649,7 @@ items = 0
   .if \__pntr > 0; items.__altm; .ifb \__va;
       items.__em2 <items.__mem>, %\__pntr, <.buf items.__append, items.__mem>, %\__pntr; .else;
       items.__em2 <items.__mem>, %\__pntr, <.buf items.__append, items.__mem>, %\__pntr, <,,\__va>
-    .endif
+    .endif; items.__altm_reset
   .endif
 # -- This is a high level class method that can be used without instantiating a method object
 
