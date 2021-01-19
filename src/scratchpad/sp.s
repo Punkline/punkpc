@@ -1,15 +1,9 @@
 /*## Header:
 # --- Stack Pointer module
-# Utility for automating pushing and popping stack frames and setting up registers/space for funcs
-
-# This uses many high-level structures made by other modules, like strings, stacks, and enumerators
-# The various constructs form pointer relations that build a scalar set of frame parameters
-# The user may use these parameters when referencing stack offsets, or registers in instructions
-# - these parameters stack as needed to accomodate as many frames as necessary in the assembler
-#   - if frames are nested within one another, each frame's parameters will be restore on pop
-# - uniquely named, undefined symbols are used to 'look ahead' to the .pop of each frame...
-#   - this makes it possible to adjust the size and the number of saved GPRs mid-frame
-#   - floats and special registers like CR/CTR must still be specified in prolog/epilog, if needed
+# Macroinstructions for pushing and popping the PowerPC runtime stack frame
+# - 'sp.push' and 'sp.pop' create a nestable block context for defining functions in PowerPC
+# - 'sp.gprs', 'sp.fprs', and 'sp.temp' may be used to allocate backup registers and temp memory
+# - includes and manages the 'regs' enumerator, from 'regs' punkpc module
 
 ##*/
 ##/* Updates:
@@ -21,120 +15,126 @@
 
 # --- Class Properties
 
-# un-finalized properties for this frame:
-# - un-finalized properties for a given frame only become finalized after sp.pop is called
-#   - until then, they don't have a committed value, and may change as more stuff gets assembled
-#   - they are safe to read from in most instructions while un-finalized
-#     - regardless of when the instruction was written; the finalized value will be inserted
-#     - they are however not safe to use in things like '.if' directives, which require evaluation
+# --- sp   - a stack that holds the state of unfinished frames when nesting a new one internally
+# - mutated push and pop methods are used to manage the sp object environment
 
-# --- sp.frame.size  - size of the whole frame
-
-# --- sp.fprs.size   - size of saved FPRs
-# --- sp.fprs.base   - base offset of saved special registers
-# --- sp.fprs.lowest - lowest numbered saved FPR (in range n ... 31)
-
-# --- sp.gprs.size   - size of saved GPRs
-# --- sp.gprs.base   - base offset of saved GPRs
-# --- sp.gprs.lowest - lowest numeber of saved GPR (in range n ... 31)
-
-# --- sp.sprs.size   - size of saved SPRs
-# --- sp.sprs.base   - base offset of saved SPRs
-
-# --- sp.temp.size   - size of temporary data partition in stack frame
-# --- sp.temp.base   - base offset of temporary data partition in stack frame
-# - these are offsets that can be used in idx(sp) loads/stores
-
-# --- sp.(named offset) - these are stack offsets for temporary data, and are un-finalized
-# - these are all contained within sp.temp -- and influence the total size
-# - they can be defined anywhere in the frame with 'sp.temp' using the enumerator syntax
+# The only extra user-level property 'sp' has is a frame size value:
+# --- sp.frame  - the final size of this stack frame
 
 
-# finalized properties:
-# - these properties are updated in real-time, and can be used in absolute expressions like normal
 
-# --- (named register)  - these are enumerations between 0 and 31 that are final, absolute
-# - these are register names given to 'sp.gprs' 'sp.fprs' or 'sp.regs'
+# The following are are all enumerators:
+# --- sp.temp     - can be called to define temporary space inside a stack frame
+# --- sp.gprs     - can be called to define named backed-up registers for this stack frame
+# --- sp.fprs     - like gprs, but for floats
+# --- sp.main     - invoked by the mutated 'sp' stack push method
 
-# --- sp.fprs.bytes
-# --- sp.gprs.bytes
-# --- sp.sprs.bytes
-# --- sp.temp.bytes
-# These variables counts the eventual value of sp.*.size properties
-# - you can sample the current un-aligned sizes this way
+# Each has the following extended properties:
+# --- sp.*.byte_align
+# - this is assigned on initialization, and stays constant to inform the '.bytes' update
 
-# --- sp.fprs.items
-# --- sp.gprs.items
-# --- sp.sprs.items
-# --- sp.temp.items
-# These are actually the main properties of scalar stacks holding pointers to strings of args
-# - these remember the inputs you made for the current frame, so they can be restored on .pop
+# --- sp.*.low    - keeps track of the lowest counted enumeration
+# --- sp.*.high   - keeps track of the highest counted enumeration
+# --- sp.*.bytes  - counts the number of bytes these enumerations have claimed so far
+# - these 3 are updated immediately through method calls
+#   - they are safe for things like .if evaluations in the assembler before a frame is done
+
+# --- sp.*.total  - the final byte count for these enumerations in this frame
+# --- sp.*.base   - the base offset in the stack frame that these bytes begin at
+# - these are only updated after 'sp.pop' is called
+#   - attempting to use them before 'sp.pop' will create errata that is resolved at end of assembly
+#     - attempts at immediate evaluation will create errors complaining about 'non-constants'
+
+
+# Multiple copies of these and other enumerator properties can be backed up in scalar 'sp' memory
+# - this allows you to nest frames within frames, for creating complex recursive functions
+
+
+# Errata is purposefully utilized to delay '.total' and '.base' updates
+# - all inputs will generate offsets that create errata on references in the body
+#   - offsets cannot be immediately evaluated unless 'sp.pop' has already finalized their values
+# - this allows the user to define parts of the frame anywhere in the body without errors
+
+
+# The 'sp.temp' enumerator will create properties in the 'sp' namespace defining temporary memory
+
+# --- sp.*  - generated from 'sp.temp'
+# example:  sp.temp   xRGBA, +0x40, xString, +4, xCast, xFloat,
+#
+# outputs:  sp.xRGBA   = sp.temp.base + 0x00
+#           sp.xString = sp.temp.base + 0x04
+#           sp.xCast   = sp.temp.base + 0x44
+#           sp.xFloat  = sp.temp.base + 0x48
+
 
 
 
 # --- Class Methods ---
 
-# --- sp.push  arg, ...
-# sp.push is the begining of a prolog for a new stack frame
-# - a number of special purpose register names are accepted as arguments, for extra backup options
-  # --- cr  --  condition register - backing up allows all 32 bits to be used freely inside of frame
-  # --- ctr --  counter register   - backing up preserves counts from the previous frame
-  # --- qr0...7 -- Graphical Quantization Register - for packing/unpacking fixed/floating points
-  # --- qr, gqr -- an alias for QR7
-  # --- r0...31 -- anonymous saved GPRs - unnamed
-  # --- f0...31 -- anonymous saved FPRs - unnamed
-  # --- nolr    -- special keyword that tells the frame not to bother backing up/restoring lr
-  # --- other   -- will be converted into an SPR ID for mtspr/mfspr instructions
+# --- sp.push  ...
+# This begining of a prolog for a new stack frame
+# Must be paired with an ending 'sp.pop' when finishing a function using this frame
+
+# '...' allows for spr keywords to be used for backing up registers and
+# Some example keywords for populating a '...' argument list:
+
+# ... (expression) -- numerical expression
+# ... xName -- a temporary memory offset - where 'Name' starts in upper-case
+#     - these are fed
+
+# ... rName -- a named saved GPR -- where 'Name' starts in upper-case
+# ... fName -- a named saved FPR -- where 'Name' starts in upper-case
+#     - these are fed into 'sp.gprs' and 'sp.fprs'
+#     - 'Name' can be anything that starts with a capital alphabetical char, or an underscore '_'
+
+# ... rN -- anonymous saved GPRs -- where 'N' is a decimal number
+# ... fN -- anonymous saved FPRs -- where 'N' is a decimal number
+#     - all registers between your specification and 'r31' are backed up, without names
+#     - specifying 'r16' for example will back up 'r16 ... r31'
+#     - only 1 instruction is needed for gprs, but fprs require 1 instruction per register
+
+# ... lr -- link register
+#     - backing this up is necessary to make your function call-safe
+#     - if ommitted, the prolog and epilog will only be for a 'leaf' in the call stack
+
+# ... cr  --  condition/comparison register/fields
+#     - backing this up allows you to safely use all 32 bits in cr
+
+# ... ctr --  counter register
+#     - backing this up lets your function be safely called from within another ctr loop
+
+# ... qr0...7 -- Graphical Quantization Register
+# ... qr, gqr -- (alias for qr1)
+#     - backing any of these up lets you define scales for working with compressed floating points
+
+# ... (other spr) -- see 'spr' punkpc module for a complete list of valid spr keywords
 
 
-# --- sp.temp  arg, ...
-# sp.temp can be used to establish sized sections of a temporary allocation in the stack frame
-# it can be called any number of times at any point within the frame, after sp.push is called
-# - the arguments use the 'enum' syntax:
-  # --- +n  -- change step size to 'n'
-  # --- other --- becomes a named stack offset
-# ex:  sp.temp  +0x20, xBlockA, xBlockB, xBlockC,  +8, xParamA,  +4, xParamB, xParamC
-  ##   sp.xBlockA = (sp.xTemp_base + 0)
-  ##   sp.xBlockB = (sp.xTemp_base + 0x20)
-  ##   sp.xBlockC = (sp.xTemp_base + 0x40)
-  ##   sp.xParamA = (sp.xTemp_base + 0x60)
-  ##   sp.xParamB = (sp.xTemp_base + 0x68)
-  ##   sp.xParamC = (sp.xTemp_base + 0x6C)
+# --- sp.temp ...
+# May be called anywhere in-between 'sp.push' and 'sp.pop' to allocate temporary memory in the frame
+# - the number of bytes allocated does not change the number of instructions in the prolog/epilog
+# - can be invoked by 'sp.push' by feeding it 'xName' and expressions arguments
 
+# --- sp.gprs ...
+# May be called anywhere in-between 'sp.push' and 'sp.pop' to allocate saved GPRs used by a function
+# - the number of GPRs allocated does not change the number of instructions in the prolog/epilog
+#   - only 1 is needed for any amount of GPR backups, and another for restores
+# - can be invoked by 'sp.push' by feeding it 'rName' arguments
 
-# --- sp.gprs  name, ...
-# like sp.temp, sp.gprs can be called after sp.push to specify a list of saved register names
-#   if no anonymous GPRs are defined in sp.push arguments, then this must be called at prolog
-#   if it is not called, then no named GPRs will be saved to the stack frame
-#   if it is called multiple times within the frame, the total count is still used in prolog/epilog
-# - each given name will become a symbol that you can use in place of a register
-# ex:  sp.gprs  rGObj, rData, rJObj, rDObj
-  ##   automatically back up 5 saved registers, in addition to any anonymous GPRs
+# --- sp.fprs ...
+# May be called shortly after 'sp.push' to back up floating point registers
+# - can be invoked by 'sp.push' by feeding it 'fName' arguments
 
-
-# --- sp.fprs  name, ...
-# like sp.gprs, but it must be specified all at once in the prolog
-# - this is due to the fact that we are not able to utilize linker sections with just the assembler
-# - you may call sp.fprs multiple times in a contiguous sequence, if needed
-
-
-# --- sp.regs  arg, ...
-# unlike sp.gprs or sp.fprs -- sp.regs does not count towards the size of the stack frame
-# - it can be used as needed to specify a set of register names for r3...r12, or f0...f16
-# - arguments use the 'enum' syntax, and can use it fully without issues:
-  # --- +n  -- change step to increment by 'n'
-  # --- -n  -- change step to decrement by 'n'
-  # --- (n) -- set counter to absolute value of 'n'
-  # --- other -- becomes a volatile named register
-# popping the stack frame will automatically restart the counter memory
-# - to manually restart the counter memory, use the 'sp.regs.restart' method
-
+# --- regs ...
+# May be used to define volatile registers that are not backed up by the stack frame, or 'sp'
+# - gets reset by 'sp.pop'
 
 # --- sp.pop
-# uses the calls made to specify all of the above about a frame to collapse it in the epilog
-# after popping, if the frame was nested within another frame, then the old frame memory is restored
-# - if 'nolr' option was provided, then this frame does not provide a 'blr' instruction
+# Finalizes all generatted errata expressions by defining the missing vars for all enumerations
+# - this generates the '.base' and '.total' values referenced by enumerators
+# - popping a nested frame will return to the old frame context
 
+# 'lmf' and 'spr' modules are available for multiple float/spr loads/stores external from the stack
 
 ##*/
 /*## Examples:
@@ -147,9 +147,293 @@ punkpc sp
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module sp, 1
-.if module.included == 0; punkpc enum, enc, lmf, spr, str, dbg
+.if module.included == 0; punkpc regs, enc, lmf, spr, items, dbg
 
-stack sp, sp.__items
+# --- temporary constructor - purged at end of class definition
+
+.macro sp_obj, self, align=0, va:vararg
+  enum.new \self, \va
+  .ifnc \self, sp.main; \self\().mode literal, \self; .endif
+  \self\().mode count, sp_obj
+  \self\().mode restart, sp_obj
+  \self\().byte_align = \align
+  \self\().restart
+
+
+# --- stack pointer push/pop
+
+.endm; .macro sp.push, va:vararg
+  sp.prolog = 0; sp.epilog = 0
+  sp.mem.push sp.mem_ID, sp.lr.__has_items, sp.main.__items, sp.frame
+  # save old memory ID, lr state, and items list for sprs
+
+  sp.mem_ID$ = sp.mem_ID$ + 1; sp.mem_ID = sp.mem_ID$
+  # increment memory ID, for generating new errata
+
+  sidx.noalt "<sp.frame = sp.frame>", sp.mem_ID
+  # generate errata for frame size
+
+  .irp enum, fprs, gprs, main, temp
+    .irp ppt, .count, .step, .bytes, .low, .high, .__has_items
+      sp.mem.push sp.\enum\ppt
+      # memorize enum properties
+
+    .endr; .irp ppt, .total, .base
+      sp.mem.push sp.\enum\ppt
+      sidx.noalt "<sp.\enum\ppt = sp.\enum\ppt>", sp.mem_ID
+      # generate errata for final enum properties
+
+    .endr; .irp method, .restart; sp.\enum\method; .endr
+  .endr # push all enumerator properties needed for frame environment
+
+  sp.main \va  # handle input args with main enumerator
+  sp.prolog = sp.mem_ID # set prolog state flag
+
+.endm; .macro sp.pop, va:vararg
+  sp.__main_epilog
+  sp.frame_build = 0x10
+  .irp enum, temp, main, gprs, fprs
+    sp.pop.__build sp.\enum
+    .irp ppt, .__has_items, .high, .low, .bytes, .step, .count; sp.mem.popm sp.\enum\ppt; .endr
+  .endr; sidx.noalt "<sp.frame>", sp.mem_ID, "< = sp.frame_build>"
+  sp.mem.popm sp.frame, sp.main.__items, sp.lr.__has_items, sp.mem_ID
+
+.endm; .macro prolog, va:vararg=r28; sp.push lr, \va
+.endm; .macro epilog, va:vararg; sp.pop \va
+# convenience macros imply 'lr' and have default 'r28' for blank arguments
+
+
+# --- mutators for enum hooks
+
+.endm; .macro enum.mut.count.sp_obj, self, va:vararg
+  enum.mut.count.default \self, \va
+  .if \self\().count < \self\().low; \self\().low = \self\().count
+  .elseif \self\().count > \self\().high; \self\().high = \self\().count; .endif
+  \self\().bytes = (\self\().high - \self\().low) << \self\().byte_align
+
+.endm; .macro enum.mut.restart.sp_obj, self, va:vararg
+  enum.mut.restart.default \self, \va
+  \self\().bytes = 0
+  \self\().low = \self\().count
+  \self\().high = \self\().count
+  \self\().__has_items = 0
+
+.endm; .macro enum.mut.enum_parse.sp.main, self, va:vararg
+  .irp arg, \va; .ifnb \arg
+      sp.chars.reset
+      sp.chars.enc \arg
+      # sample the first 2 chars of each arg
+
+      num = sp.chars$0
+      .if num == 'r; sp.__check_main_r \arg
+      .elseif num == 'f; sp.__check_main_f \arg
+      .elseif num == 'x; sp.__check_main_x \arg
+      .else; sp.__check_main_else \arg; .endif
+      # dispatch to a handler according to case
+
+  .endif; .endr; sp.__main_prolog
+  # after all args are checked, commit to prolog
+
+.endm; .macro enum.mut.literal.sp_obj, self, arg, va:vararg
+  sidx.noalt "<\arg = \self\().count + \self\().base>", sp.mem_ID
+  enum.mut.count.sp_obj \self, \self\().count + \self\().step
+  \self\().steps = \self\().steps + 1
+
+.endm; .macro enum.mut.literal.sp.gprs, self, va:vararg
+  .if sp.gprs.__has_items == 0; sp.__stmw;  .endif; sp.gprs.__has_items = 1
+  enum.mut.literal.default sp.gprs, \va
+
+.endm; .macro enum.mut.literal.sp.fprs, self, arg, va:vararg
+  .if sp.prolog
+    stfd \arg, sp.fprs.base + sp.fprs.bytes(sp)
+  .endif; sp.fprs.__has_items = 1
+  enum.mut.literal.default sp.fprs, \arg, \va
+
+
+# --- hidden layer
+
+.endm; .macro sp.__check_main_r, arg
+  .if sp.chars$1 >= 0x41; sp.gprs \arg
+  # if char from index [1] is >= 'A', then it is considered upper-case
+
+  .elseif (sp.chars$1 >= 0x30) && (sp.chars$1 <=0x33); sp.gprs (\arg+sp.gprs.step)
+  # if it's thed decimal number 0, 1, 2, or 3; then it's considered a register number
+
+  .else; sp.__main_else \arg; .exitm; .endif; sp.gprs.__has_items = 1
+  # else, check to see if it's a valid spr keyword
+
+.endm; .macro sp.__check_main_f, arg
+  .if sp.chars$1 >= 0x41; sp.fprs \arg
+  .elseif (sp.chars$1 >= 0x30) && (sp.chars$1 <=0x33);  sp.fprs (\arg+sp.fprs.step)
+  .else; sp.__main_else \arg; .exitm; .endif; sp.fprs.__has_items = 1
+  # do the same checks if 'f' is found instead of 'r'
+
+.endm; .macro sp.__check_main_x, arg;
+  ifdef spr.\arg
+  .if def; enum.mut.literal.sp_obj sp.main, sp.main.__count
+    sp.main.__items, \arg
+    sp.main.__has_items = 1
+  .elseif sp.chars$1 >= 0x41; sp.temp \arg
+  .else; sp.__main_else \arg; .exitm; .endif; sp.temp.__has_items = 1
+  # do similar if 'x' is found instead of 'r'
+
+.endm; .macro sp.__check_main_else, arg
+  .ifc \arg, lr; sp.lr.__has_items = 1; .exitm; .endif
+  .ifc \arg, LR; sp.lr.__has_items = 1; .exitm; .endif
+  # catch 'lr' keyword as a special case, instead of as part of sprs
+
+  ifnum.check_ascii
+  # 'num' is evaluated as numerical or not
+  # - we currently have 'num' loaded with 'sp.chars$0'
+
+  .if num; sp.temp \arg
+  # if it is, then we send it to 'sp.temp' to help define temporary memory
+
+  .else; ifdef spr.\arg
+    .if def; enum.mut.literal.sp_obj sp.main, sp.main.__count
+      sp.main.__items, \arg
+      sp.main.__has_items = 1
+      # If it's a valid spr dictionary keyword, then use that
+
+    .else; sp.temp \arg; .endif
+  .endif # Else, just assume it's an input for 'sp.temp'
+
+.endm; .macro sp.__main_prolog
+  .if sp.lr.__has_items;   mflr r0; .endif;  sidx.noalt "<stwu sp, -sp.frame>", sp.mem_ID,"<(sp)>"
+  .if sp.lr.__has_items;   stw r0, sp.frame+4(sp); .endif
+  .if sp.main.__has_items; sp.main.__items sp.__stmspr; .endif
+  .if sp.gprs.__has_items; sp.__stmw; .endif
+  .if sp.fprs.__has_items; stmfd 32-(sp.fprs.low+1), sp.fprs.base(sp); .endif
+
+.endm; .macro sp.__main_epilog
+  .if sp.fprs.__has_items; lmfd 32-(low+1), sp.fprs.base(sp); .endif
+  .if sp.gprs.__has_items; sp.__lmw; .endif
+  .if sp.main.__has_items; sp.main.__items sp.__lmspr; .endif
+  .if sp.lr.__has_items;   lwz r0, sp.frame+4(sp); .endif; addi sp, sp, sp.frame
+  .if sp.lr.__has_items;   mtlr r0; .endif
+
+.endm; .macro sp.pop.__build, enum
+  sidx.noalt "<\enum\().total>", sp.mem_ID, "< = \enum\().bytes >"
+  sidx.noalt "<\enum\().base>", sp.mem_ID, "< = sp.frame_build>"
+  sp.frame_build = (sp.frame_build + \enum\().bytes + 0xF) & ~0xF
+  sp.mem.popm \enum\().base, \enum\().total
+
+.endm; .macro sp.__stmspr, va:vararg;
+  sidx.noalt "<stmspr r0, sp.main.base>", sp.mem_ID, "<(sp), \va >"
+.endm; .macro sp.__lmspr, va:vararg;
+  sidx.noalt "<lmspr r0, sp.main.base>", sp.mem_ID, "<(sp), \va >"
+.endm; .macro sp.__stmw
+  sidx.noalt2 "<sp.__mw_ev stmw, sp.main.base>", sp.mem_ID, "<, sp.main.total>", sp.mem_ID
+.endm; .macro sp.__lmw
+  sidx.noalt "<sp.__mw_ev lmw, sp.main.base>", sp.mem_ID, "<, sp.main.bytes>"
+.endm; .macro sp.__mw_ev, ins, base, total; \ins 32 - (\total >> sp.gprs.byte_align), \base (sp)
+.endm
+
+# --- end of method definitions
+
+stack sp.mem
+# this is a stack for storing memory of nested frame vars in enumerators
+
+enc.new sp.chars, 0, 1
+# this is an encoder stack for sampling the first 2 chars of inputs
+
+items.method sp.main.__items
+# this is an items buffer, method for extracting spr keywords
+
+sp.mem_ID$ = 0
+sp.mem_ID = sp.mem_ID$
+# memory ID is a unique ID given to each frame for generating errata
+
+sp.lr.__has_items = 0
+# initial state of a flag not defined by the enumerators
+
+sp.frame = 0
+sp.prolog = 0
+sp.epilog = 0
+# state memory, for some changing the behavior of sp.fprs in frame body vs frame prolog
+
+sp_obj sp.main,2,,,+1,(0)
+sp_obj sp.temp,0,sp.,,+4,(0)
+sp_obj sp.gprs,2,,,-1,(31)
+sp_obj sp.fprs,3,,,-1,(31)
+sp.main.mode enum_parse, sp.main
+sp.temp.mode literal, sp_obj
+# create mutated enumerators
+
+# --- sp.push and sp.pop are now ready to use
+
+.purgem sp_obj
+# temporary constructor has been purged
+
+.endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# temporary constructor:
+.macro sp.__new_sp_obj, self, stride, va:vararg
+  enum.new sp.\self, \va
+  sp.\self\().mode enum_parse, \self
+  sp.\self\().mode count, sp_obj
+  sp.\self\().mode reset, sp_obj
+  sp.\self\().byte_stride = \stride
+  sp.\self\().items = 0
+  sp.\self\().restart
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .macro enum.__new_sp_obj, self, varg:vararg
   enum.new sp.\self, \varg
 
