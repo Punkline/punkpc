@@ -148,6 +148,176 @@ punkpc sp
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module sp, 1
 .if module.included == 0; punkpc regs, enc, lmf, spr, items, dbg
+sp.frame = 0
+sp.mem_ID = 0
+sp.mem_ID$ = 0
+sp.lr.__has_items = 0
+stack sp.mem
+enc.new sp.chars, 0, 1
+.macro sp_obj, self, align, va:vararg
+  enum.new \self, \va
+  \self\().mode count, sp_obj
+  \self\().mode restart, sp_obj
+  \self\().mode literal, \self
+  \self\().byte_align = \align
+  items.method \self\().__items
+  \self\().restart
+
+.endm; .macro enum.mut.count.sp_obj, self, va:vararg
+  enum.mut.count.default \self, \va
+  .if \self\().count > \self\().high; \self\().high = \self\().count;
+  .elseif \self\().count < \self\().low; \self\().low = \self\().count; .endif
+  \self\().bytes = (\self\().high - \self\().low) << \self\().byte_align
+
+.endm; .macro enum.mut.restart.sp_obj, self, va:vararg
+  enum.mut.restart.default \self, \va
+  \self\().bytes = 0
+  \self\().low = 0
+  \self\().high = 0
+  \self\().__has_items = 0
+
+.endm; .macro sp.push, va:vararg
+  sp.mem.push /*
+  */  sp.frame, sp.mem_ID, sp.lr.__has_items /*
+  */, sp.fprs.count,    sp.gprs.count,    sp.sprs.count,    sp.temp.count /*
+  */, sp.fprs.step,     sp.gprs.step,     sp.sprs.step,     sp.temp.step /*
+  */, sp.fprs.bytes,    sp.gprs.bytes,    sp.sprs.bytes,    sp.temp.bytes /*
+  */, sp.fprs.low,      sp.gprs.low,      sp.sprs.low,      sp.temp.low /*
+  */, sp.fprs.high,     sp.gprs.high,     sp.sprs.high,     sp.temp.high /*
+  */, sp.fprs.total,    sp.gprs.total,    sp.sprs.total,    sp.temp.total /*
+  */, sp.fprs.base,     sp.gprs.base,     sp.sprs.base,     sp.temp.base /*
+  */, sp.fprs.__items,  sp.gprs.__items,  sp.sprs.__items,  sp.temp.__items
+  # Back up old context symobls
+
+  sp.prolog = 0
+  sp.epilog = 0
+  sp.fprs.restart
+  sp.gprs.restart
+  sp.sprs.restart
+  sp.temp.restart
+  items.alloc sp.sprs.__items
+  sp.mem_ID$ = sp.mem_ID$ + 1
+  sp.mem_ID = sp.mem_ID$
+  sp.temp.low = 0
+  sp.temp.bytes = sp.temp.count
+  sp.temp.base = 0
+  # Start new context with a unique 'mem_ID'
+
+  sidx.noalt "<sp.frame = sp.frame>", sp.mem_ID
+  sidx.noalt "<sp.temp.total = sp.temp.total>", sp.mem_ID
+  sidx.noalt "<sp.sprs.total = sp.sprs.total>", sp.mem_ID
+  sidx.noalt "<sp.gprs.total = sp.sprs.total>", sp.mem_ID
+  sidx.noalt "<sp.fprs.total = sp.sprs.total>", sp.mem_ID
+  sidx.noalt "<sp.sprs.base =  sp.temp.total>", sp.mem_ID
+  sidx.noalt "<sp.gprs.base = sp.sprs.base + sp.sprs.total>", sp.mem_ID
+  sidx.noalt "<sp.fprs.base = sp.gprs.base + sp.gprs.total>", sp.mem_ID
+  # Generate new errata for this context
+  # - 'sidx' will create assignments using scalar names generated from the 'sp.mem_ID' index
+  # - all of this will be resolved in a corresponding 'sp.pop' call that ends this context
+
+  .irp arg, \va; .ifnb \arg
+    sp.chars.reset
+    sp.chars.enc \arg
+    # sample first 2 chars of each arg
+
+    num = sp.chars$0
+    .if num == 'r; sp.__checkr \arg
+    .elseif num == 'f; sp.__checkf \arg
+    .elseif num == 'x; sp.__checkx \arg
+    .else; sp.__checkelse \arg; .endif
+    # dispatch args to special handlers if they begin with certain characters
+
+  .endif; .endr
+  # loop separates special inputs from spr inputs using '.__items' buffers
+
+  .if sp.lr.__has_items; mflr r0; .endif; sidx.noalt "<stwu sp, -sp.frame>", sp.mem_ID, "<(sp)>"
+  .if sp.lr.__has_items; sidx.noalt "<stw r0, sp.frame>", sp.mem_ID, "< + 4 (sp)>"; .endif
+  sp.fprs.__items sp.fprs
+  sp.gprs.__items sp.gprs
+  sp.sprs.__items sp.sprs
+  sp.temp.__items sp.temp
+  # pass items to corresponding enumerators
+
+  sp.prolog = sp.mem_ID
+  # mark end of prolog initialization with a non-0 prolog ID
+
+  sp.fprs.__items
+  sp.gprs.__items
+  sp.temp.__items
+  # reset all but sprs buffer
+  # - we keep sprs as part of context, for referencing the keywords on restore
+
+
+
+.endm; .macro sp.pop, va:vararg
+  sp.mem.popm /*
+  */  sp.temp.count,     sp.sprs.count,    sp.gprs.count,     sp.fprs.count /*
+  */, sp.temp.step,      sp.sprs.step,     sp.gprs.step,      sp.fprs.step /*
+  */, sp.temp.bytes,     sp.sprs.bytes,    sp.gprs.bytes,     sp.fprs.bytes /*
+  */, sp.temp.low,       sp.sprs.low,      sp.gprs.low,       sp.fprs.low /*
+  */, sp.temp.high,      sp.sprs.high,     sp.gprs.high,      sp.fprs.high /*
+  */, sp.temp.total,     sp.sprs.total,    sp.gprs.total,     sp.fprs.total /*
+  */, sp.temp.base,      sp.sprs.base,     sp.gprs.base,      sp.fprs.base /*
+  */, sp.temp.__items,   sp.sprs.__items,  sp.gprs.__items,   sp.fprs.__items /*
+  */, sp.lr.__has_items, sp.mem_ID, sp.frame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # --- temporary constructor - purged at end of class definition
 
@@ -190,13 +360,20 @@ punkpc.module sp, 1
   sp.prolog = sp.mem_ID # set prolog state flag
 
 .endm; .macro sp.pop, va:vararg
-  sp.__main_epilog
   sp.frame_build = 0x10
+  .irp enum, temp, main, gprs, fprs; sp.pop.__build sp.\enum; .endr
+  sidx.noalt "<sp.frame>", sp.mem_ID, "< = sp.frame_build>"
+  sp.__main_epilog
+
   .irp enum, temp, main, gprs, fprs
-    sp.pop.__build sp.\enum
     .irp ppt, .__has_items, .high, .low, .bytes, .step, .count; sp.mem.popm sp.\enum\ppt; .endr
-  .endr; sidx.noalt "<sp.frame>", sp.mem_ID, "< = sp.frame_build>"
-  sp.mem.popm sp.frame, sp.main.__items, sp.lr.__has_items, sp.mem_ID
+  .endr; sp.mem.popm sp.frame, sp.main.__items, sp.lr.__has_items, sp.mem_ID
+
+.endm; .macro sp.pop.__build, enum
+  sidx.noalt "<\enum\().total>", sp.mem_ID, "< = \enum\().bytes >"
+  sidx.noalt "<\enum\().base>", sp.mem_ID, "< = sp.frame_build>"
+  sp.frame_build = (sp.frame_build + \enum\().bytes + 0xF) & ~0xF
+  sp.mem.popm \enum\().base, \enum\().total
 
 .endm; .macro prolog, va:vararg=r28; sp.push lr, \va
 .endm; .macro epilog, va:vararg; sp.pop \va
@@ -245,7 +422,7 @@ punkpc.module sp, 1
 
 .endm; .macro enum.mut.literal.sp.fprs, self, arg, va:vararg
   .if sp.prolog
-    stfd \arg, sp.fprs.base + sp.fprs.bytes(sp)
+    sidx.noalt "<stfd \arg, sp.fprs.base>", sp.mem_ID,"< + sp.fprs.bytes(sp)>"
   .endif; sp.fprs.__has_items = 1
   enum.mut.literal.default sp.fprs, \arg, \va
 
@@ -300,7 +477,7 @@ punkpc.module sp, 1
 
 .endm; .macro sp.__main_prolog
   .if sp.lr.__has_items;   mflr r0; .endif;  sidx.noalt "<stwu sp, -sp.frame>", sp.mem_ID,"<(sp)>"
-  .if sp.lr.__has_items;   stw r0, sp.frame+4(sp); .endif
+  .if sp.lr.__has_items;   sidx.noalt "<stw r0, sp.frame>", sp.mem_ID,"< + 4(sp)>"; .endif
   .if sp.main.__has_items; sp.main.__items sp.__stmspr; .endif
   .if sp.gprs.__has_items; sp.__stmw; .endif
   .if sp.fprs.__has_items; stmfd 32-(sp.fprs.low+1), sp.fprs.base(sp); .endif
@@ -309,14 +486,10 @@ punkpc.module sp, 1
   .if sp.fprs.__has_items; lmfd 32-(low+1), sp.fprs.base(sp); .endif
   .if sp.gprs.__has_items; sp.__lmw; .endif
   .if sp.main.__has_items; sp.main.__items sp.__lmspr; .endif
-  .if sp.lr.__has_items;   lwz r0, sp.frame+4(sp); .endif; addi sp, sp, sp.frame
+  .if sp.lr.__has_items;   sidx.noalt "<lwz r0, sp.frame>", sp.mem_ID,"< + 4(sp)>";
+  .endif; sidx.noalt "<addi sp, sp, sp.frame>", sp.mem_ID
   .if sp.lr.__has_items;   mtlr r0; .endif
 
-.endm; .macro sp.pop.__build, enum
-  sidx.noalt "<\enum\().total>", sp.mem_ID, "< = \enum\().bytes >"
-  sidx.noalt "<\enum\().base>", sp.mem_ID, "< = sp.frame_build>"
-  sp.frame_build = (sp.frame_build + \enum\().bytes + 0xF) & ~0xF
-  sp.mem.popm \enum\().base, \enum\().total
 
 .endm; .macro sp.__stmspr, va:vararg;
   sidx.noalt "<stmspr r0, sp.main.base>", sp.mem_ID, "<(sp), \va >"
