@@ -148,17 +148,25 @@ punkpc sp
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module sp, 1
 .if module.included == 0; punkpc regs, enc, lmf, spr, items, dbg
+
+sp.padding = 16
+# amount of space to pad out the beginning of each stack frame
+
 sp.frame = 0
 sp.mem_ID = 0
 sp.mem_ID$ = 0
 sp.lr.__has_items = 0
+# initial params not created by objects
+
 stack sp.mem
 enc.new sp.chars, 0, 1
+# memory buffers for parsing and remembering contexts
+
 .macro sp_obj, self, align, va:vararg
   enum.new \self, \va
   \self\().mode count, sp_obj
   \self\().mode restart, sp_obj
-  \self\().mode literal, \self
+  \self\().mode enum_parse, \self
   \self\().byte_align = \align
   items.method \self\().__items
   \self\().restart
@@ -176,17 +184,55 @@ enc.new sp.chars, 0, 1
   \self\().high = 0
   \self\().__has_items = 0
 
+.endm; .macro enum.mut.enum_parse.sp.gprs, va:vararg
+  .ifnb \va
+    enum.mut.enum_parse.default \va
+    .if sp.gprs.__has_items == 0; .if sp.gprs.bytes; sp.gprs.__has_items = 1
+        sidx.noalt2 "<stmw sp.gprs.total>", sp.mem_ID, /*
+        */"<!>!>sp.gprs.byte_align, sp.gprs.base>", sp.mem_ID, "<(sp)>"
+    .endif; .endif
+  .endif
+
+.endm; .macro enum.mut.enum_parse.sp.fprs, va:vararg
+  .ifnb \va
+    enum.mut.enum_parse.default \va
+  .endif
+  .if (sp.fprs.high - sp.fprs.low) > sp.fprs.__has_items
+    .rept (sp.fprs.high - sp.fprs.low) - sp.fprs.__has_items
+      sp.fprs.__has_items = sp.fprs.__has_items + 1; sidx.noalt /*
+*/ "<stfd 32 - sp.fprs.__has_items, (sp.fprs.__has_items!<!<sp.fprs.byte_align) + sp.fprs.base>"/*
+*/, sp.mem_ID, "<(sp)>"
+    .endr
+  .endif
+
+.endm; .macro enum.mut.enum_parse_iter.sp.sprs, self, spr, va:vararg; .rept 1
+    .ifc \spr, cr;  mfcr  r0; .exitm; .endif
+    .ifc \spr, CR;  mfcr  r0; .exitm; .endif
+    .ifc \spr, sr;  mfsr  r0; .exitm; .endif
+    .ifc \spr, SR;  mfsr  r0; .exitm; .endif
+    .ifc \spr, msr; mfmsr r0; .exitm; .endif
+    .ifc \spr, MSR; mfmsr r0; .exitm; .endif
+    ifdef spr.\spr; .if ndef;  mfspr r0, \spr
+    .else; mfspr r0, spr.\spr; .endif
+  .endr; sidx.noalt "<stw r0, (sp.sprs.__has_items !<!< sp.sprs.byte_align) + sp.sprs.base>"/*
+  */, sp.mem_ID, "<(sp)>"; sp.sprs.__has_items = sp.sprs.__has_items + 1
+
+
+
+
+
 .endm; .macro sp.push, va:vararg
   sp.mem.push /*
   */  sp.frame, sp.mem_ID, sp.lr.__has_items /*
-  */, sp.fprs.count,    sp.gprs.count,    sp.sprs.count,    sp.temp.count /*
-  */, sp.fprs.step,     sp.gprs.step,     sp.sprs.step,     sp.temp.step /*
-  */, sp.fprs.bytes,    sp.gprs.bytes,    sp.sprs.bytes,    sp.temp.bytes /*
-  */, sp.fprs.low,      sp.gprs.low,      sp.sprs.low,      sp.temp.low /*
-  */, sp.fprs.high,     sp.gprs.high,     sp.sprs.high,     sp.temp.high /*
-  */, sp.fprs.total,    sp.gprs.total,    sp.sprs.total,    sp.temp.total /*
-  */, sp.fprs.base,     sp.gprs.base,     sp.sprs.base,     sp.temp.base /*
-  */, sp.fprs.__items,  sp.gprs.__items,  sp.sprs.__items,  sp.temp.__items
+  */, sp.fprs.count,        sp.gprs.count,        sp.sprs.count,        sp.temp.count /*
+  */, sp.fprs.step,         sp.gprs.step,         sp.sprs.step,         sp.temp.step /*
+  */, sp.fprs.bytes,        sp.gprs.bytes,        sp.sprs.bytes,        sp.temp.bytes /*
+  */, sp.fprs.low,          sp.gprs.low,          sp.sprs.low,          sp.temp.low /*
+  */, sp.fprs.high,         sp.gprs.high,         sp.sprs.high,         sp.temp.high /*
+  */, sp.fprs.total,        sp.gprs.total,        sp.sprs.total,        sp.temp.total /*
+  */, sp.fprs.base,         sp.gprs.base,         sp.sprs.base,         sp.temp.base /*
+  */, sp.fprs.__items,      sp.gprs.__items,      sp.sprs.__items,      sp.temp.__items /*
+  */, sp.fprs.__has_items,  sp.gprs.__has_items,  sp.sprs.__has_items,  sp.temp.__has_items
   # Back up old context symobls
 
   sp.prolog = 0
@@ -196,6 +242,7 @@ enc.new sp.chars, 0, 1
   sp.sprs.restart
   sp.temp.restart
   items.alloc sp.sprs.__items
+  sp.temp.__items (16)
   sp.mem_ID$ = sp.mem_ID$ + 1
   sp.mem_ID = sp.mem_ID$
   sp.temp.low = 0
@@ -251,14 +298,15 @@ enc.new sp.chars, 0, 1
 
 .endm; .macro sp.pop, va:vararg
   sp.mem.popm /*
-  */  sp.temp.count,     sp.sprs.count,    sp.gprs.count,     sp.fprs.count /*
-  */, sp.temp.step,      sp.sprs.step,     sp.gprs.step,      sp.fprs.step /*
-  */, sp.temp.bytes,     sp.sprs.bytes,    sp.gprs.bytes,     sp.fprs.bytes /*
-  */, sp.temp.low,       sp.sprs.low,      sp.gprs.low,       sp.fprs.low /*
-  */, sp.temp.high,      sp.sprs.high,     sp.gprs.high,      sp.fprs.high /*
-  */, sp.temp.total,     sp.sprs.total,    sp.gprs.total,     sp.fprs.total /*
-  */, sp.temp.base,      sp.sprs.base,     sp.gprs.base,      sp.fprs.base /*
-  */, sp.temp.__items,   sp.sprs.__items,  sp.gprs.__items,   sp.fprs.__items /*
+  */, sp.temp.__has_items,   sp.sprs.__has_items,  sp.gprs.__has_items,   sp.fprs.__has_items /*
+  */, sp.temp.__items,       sp.sprs.__items,      sp.gprs.__items,       sp.fprs.__items /*
+  */, sp.temp.base,          sp.sprs.base,         sp.gprs.base,          sp.fprs.base /*
+  */, sp.temp.total,         sp.sprs.total,        sp.gprs.total,         sp.fprs.total /*
+  */, sp.temp.high,          sp.sprs.high,         sp.gprs.high,          sp.fprs.high /*
+  */, sp.temp.low,           sp.sprs.low,          sp.gprs.low,           sp.fprs.low /*
+  */, sp.temp.bytes,         sp.sprs.bytes,        sp.gprs.bytes,         sp.fprs.bytes /*
+  */, sp.temp.step,          sp.sprs.step,         sp.gprs.step,          sp.fprs.step /*
+  */  sp.temp.count,         sp.sprs.count,        sp.gprs.count,         sp.fprs.count /*
   */, sp.lr.__has_items, sp.mem_ID, sp.frame
 
 
