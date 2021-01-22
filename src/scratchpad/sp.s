@@ -149,49 +149,77 @@ punkpc sp
 punkpc.module sp, 1
 .if module.included == 0; punkpc regs, enc, lmf, spr, items, dbg
 
-sp.padding = 16
-# amount of space to pad out the beginning of each stack frame
+.macro sp_obj.init
+  .purgem sp_obj.init
+  # we call this after defining class module, and burn it after use
 
-sp.frame = 0
-sp.mem_ID = 0
-sp.mem_ID$ = 0
-sp.lr.__has_items = 0
-# initial params not created by objects
+  sp.frame = 0
+  sp.mem_ID = 0
+  sp.mem_ID$ = 0
+  sp.lr.__has_items = 0
+  # initial params not created by objects
 
-stack sp.mem
-enc.new sp.chars, 0, 1
-# memory buffers for parsing and remembering contexts
+  stack sp.mem
+  enc.new sp.chars, 0, 1
+  # memory buffers for parsing and remembering contexts
 
-.macro sp_obj, self, align, va:vararg
-  enum.new \self, \va
-  \self\().mode count, sp_obj
-  \self\().mode restart, sp_obj
-  \self\().mode enum_parse, \self
-  \self\().byte_align = \align
-  items.method \self\().__items
-  \self\().restart
+  .macro sp_obj, self, align, va:vararg
+    enum.new \self, \va
+    .irp x, .mode; .irp y, count, restart; \self\x \y, sp_obj; .endr; .endr
+    .irp x, .byte_align; \self\x = \align; .endr
+    .irp x, .__items; items.method \self\x; .endr
+    .irp x, .restart; \self\x; .endr
+  .endm # temp constructor
+
+  sp_obj sp.sprs, 2, , ,  (0), +1
+  sp_obj sp.gprs, 2, , , (31), -1
+  sp_obj sp.fprs, 3, , , (31), -1
+  sp_obj sp.temp, 0, sp., , (0), +4
+  .purgem sp_obj # done with temp constructor
+  # mutators common to these objects were applied in constructor
+
+  sp.sprs.mode enum_parse_iter, sp.sprs
+  sp.gprs.mode enum_parse, sp.gprs
+  sp.fprs.mode enum_parse, sp.fprs
+  sp.temp.mode enum_parse, sp.temp
+  # mutators unique to each object
+
+# all 'mutators' that come with the module are presented as 'modes'
+# - every enabled mode generates a hook method that overrides internally called enum object methods
+# - hooks are applied on a per-object basis
+
+
+# they are defined below as specilly named macros
 
 .endm; .macro enum.mut.count.sp_obj, self, va:vararg
   enum.mut.count.default \self, \va
   .if \self\().count > \self\().high; \self\().high = \self\().count;
   .elseif \self\().count < \self\().low; \self\().low = \self\().count; .endif
   \self\().bytes = (\self\().high - \self\().low) << \self\().byte_align
+  # mutated count keeps track of low/high range, and number of bytes required in frame
 
 .endm; .macro enum.mut.restart.sp_obj, self, va:vararg
   enum.mut.restart.default \self, \va
   \self\().bytes = 0
-  \self\().low = 0
-  \self\().high = 0
+  \self\().low = \self\().count
+  \self\().high = \self\().count
   \self\().__has_items = 0
+  # mutated restart affects new params as part of the restart
+
+.endm; .macro enum.mut.enum_parse.sp.temp, va:vararg
+  enum.mut.enum_parse.default \va
+  .if sp.temp.bytes > 0; sp.temp.__has_items = 1; .endif
+  # sp.temp flag is not used by module, but can be read by the user
 
 .endm; .macro enum.mut.enum_parse.sp.gprs, va:vararg
   .ifnb \va
     enum.mut.enum_parse.default \va
     .if sp.gprs.__has_items == 0; .if sp.gprs.bytes; sp.gprs.__has_items = 1
-        sidx.noalt2 "<stmw sp.gprs.total>", sp.mem_ID, /*
-        */"<!>!>sp.gprs.byte_align, sp.gprs.base>", sp.mem_ID, "<(sp)>"
+        sidx.noalt2 "<stmw 32-(sp.gprs.total>", sp.mem_ID, /*
+        */"<!>!>sp.gprs.byte_align), sp.gprs.base>", sp.mem_ID, "<(sp)>"
     .endif; .endif
   .endif
+  # sp.gprs flag is used by the module to detect if 'stmw' is already written
 
 .endm; .macro enum.mut.enum_parse.sp.fprs, va:vararg
   .ifnb \va
@@ -204,8 +232,12 @@ enc.new sp.chars, 0, 1
 */, sp.mem_ID, "<(sp)>"
     .endr
   .endif
+  # sp.fprs flag is also a count of the current number of fpr stores that have been written
+  # for each missing store compared to the enum count -- a new instruction is written
 
-.endm; .macro enum.mut.enum_parse_iter.sp.sprs, self, spr, va:vararg; .rept 1
+.endm; .macro enum.mut.enum_parse_iter.sp.sprs, self, spr, va:vararg;
+  enum.mut.count.sp_obj \self, sp.sprs.count + sp.sprs.step
+  .rept 1
     .ifc \spr, cr;  mfcr  r0; .exitm; .endif
     .ifc \spr, CR;  mfcr  r0; .exitm; .endif
     .ifc \spr, sr;  mfsr  r0; .exitm; .endif
@@ -216,14 +248,14 @@ enc.new sp.chars, 0, 1
     .else; mfspr r0, spr.\spr; .endif
   .endr; sidx.noalt "<stw r0, (sp.sprs.__has_items !<!< sp.sprs.byte_align) + sp.sprs.base>"/*
   */, sp.mem_ID, "<(sp)>"; sp.sprs.__has_items = sp.sprs.__has_items + 1
-
-
-
-
+  .if sp.prolog; sp.sprs.__items, \spr; .endif
+  # sp.sprs flag is also a count of the current number of spr stores that have been written
+  # each input made after the prolog is added to the items buffer, for mimicking on epilog
+  # for each missing store compared to the enum count -- a move and a store are written
 
 .endm; .macro sp.push, va:vararg
   sp.mem.push /*
-  */  sp.frame, sp.mem_ID, sp.lr.__has_items /*
+  */  sp.sprs.__items, sp.prolog, sp.frame, sp.mem_ID, sp.lr.__has_items /*
   */, sp.fprs.count,        sp.gprs.count,        sp.sprs.count,        sp.temp.count /*
   */, sp.fprs.step,         sp.gprs.step,         sp.sprs.step,         sp.temp.step /*
   */, sp.fprs.bytes,        sp.gprs.bytes,        sp.sprs.bytes,        sp.temp.bytes /*
@@ -231,7 +263,6 @@ enc.new sp.chars, 0, 1
   */, sp.fprs.high,         sp.gprs.high,         sp.sprs.high,         sp.temp.high /*
   */, sp.fprs.total,        sp.gprs.total,        sp.sprs.total,        sp.temp.total /*
   */, sp.fprs.base,         sp.gprs.base,         sp.sprs.base,         sp.temp.base /*
-  */, sp.fprs.__items,      sp.gprs.__items,      sp.sprs.__items,      sp.temp.__items /*
   */, sp.fprs.__has_items,  sp.gprs.__has_items,  sp.sprs.__has_items,  sp.temp.__has_items
   # Back up old context symobls
 
@@ -242,19 +273,18 @@ enc.new sp.chars, 0, 1
   sp.sprs.restart
   sp.temp.restart
   items.alloc sp.sprs.__items
-  sp.temp.__items (16)
   sp.mem_ID$ = sp.mem_ID$ + 1
   sp.mem_ID = sp.mem_ID$
-  sp.temp.low = 0
-  sp.temp.bytes = sp.temp.count
+  sp.temp.__items,, 0x10
   sp.temp.base = 0
+  sp.lr.__has_items = 0
   # Start new context with a unique 'mem_ID'
 
   sidx.noalt "<sp.frame = sp.frame>", sp.mem_ID
   sidx.noalt "<sp.temp.total = sp.temp.total>", sp.mem_ID
   sidx.noalt "<sp.sprs.total = sp.sprs.total>", sp.mem_ID
-  sidx.noalt "<sp.gprs.total = sp.sprs.total>", sp.mem_ID
-  sidx.noalt "<sp.fprs.total = sp.sprs.total>", sp.mem_ID
+  sidx.noalt "<sp.gprs.total = sp.gprs.total>", sp.mem_ID
+  sidx.noalt "<sp.fprs.total = sp.fprs.total>", sp.mem_ID
   sidx.noalt "<sp.sprs.base =  sp.temp.total>", sp.mem_ID
   sidx.noalt "<sp.gprs.base = sp.sprs.base + sp.sprs.total>", sp.mem_ID
   sidx.noalt "<sp.fprs.base = sp.gprs.base + sp.gprs.total>", sp.mem_ID
@@ -268,9 +298,9 @@ enc.new sp.chars, 0, 1
     # sample first 2 chars of each arg
 
     num = sp.chars$0
-    .if num == 'r; sp.__checkr \arg
-    .elseif num == 'f; sp.__checkf \arg
-    .elseif num == 'x; sp.__checkx \arg
+    .if num == 'r; sp.__checkreg \arg, sp.gprs.__items
+    .elseif num == 'f; sp.__checkreg \arg, sp.fprs.__items
+    .elseif num == 'x; sp.__checkx \arg, sp.temp.__items
     .else; sp.__checkelse \arg; .endif
     # dispatch args to special handlers if they begin with certain characters
 
@@ -279,10 +309,10 @@ enc.new sp.chars, 0, 1
 
   .if sp.lr.__has_items; mflr r0; .endif; sidx.noalt "<stwu sp, -sp.frame>", sp.mem_ID, "<(sp)>"
   .if sp.lr.__has_items; sidx.noalt "<stw r0, sp.frame>", sp.mem_ID, "< + 4 (sp)>"; .endif
-  sp.fprs.__items sp.fprs
-  sp.gprs.__items sp.gprs
-  sp.sprs.__items sp.sprs
   sp.temp.__items sp.temp
+  sp.sprs.__items sp.sprs
+  sp.gprs.__items sp.gprs
+  sp.fprs.__items sp.fprs
   # pass items to corresponding enumerators
 
   sp.prolog = sp.mem_ID
@@ -294,12 +324,51 @@ enc.new sp.chars, 0, 1
   # reset all but sprs buffer
   # - we keep sprs as part of context, for referencing the keywords on restore
 
+.endm; .macro sp.commit
+  .if sp.epilog == 0
+    sp.epilog = sp.mem_ID
+    sidx.noalt "<sp.temp.base>", sp.mem_ID, "< = sp.temp.base>"
+    sidx.noalt "<sp.temp.total>", sp.mem_ID, "< = (sp.temp.bytes + 3) !& ~3>"
+    sidx.noalt "<sp.temp.total = sp.temp.total>", sp.mem_ID
 
+    sidx.noalt3 "<sp.sprs.base>", sp.mem_ID, "< = sp.temp.total>" /*
+    */, sp.mem_ID, "< + sp.temp.base>", sp.mem_ID
+    sidx.noalt "<sp.sprs.total>", sp.mem_ID, "< = (sp.sprs.bytes + 3) !& ~3>"
+    sidx.noalt "<sp.sprs.total = sp.sprs.total>", sp.mem_ID
+
+    sidx.noalt3 "<sp.gprs.base>", sp.mem_ID, "< = sp.sprs.total>" /*
+    */, sp.mem_ID, "< + sp.sprs.base>", sp.mem_ID
+    sidx.noalt "<sp.gprs.total>", sp.mem_ID, "< = (sp.gprs.bytes + 3) !& ~3>"
+    sidx.noalt "<sp.gprs.total = sp.gprs.total>", sp.mem_ID
+
+    sidx.noalt3 "<sp.fprs.base>", sp.mem_ID, "< = sp.gprs.total>" /*
+    */, sp.mem_ID, "< + sp.gprs.base>", sp.mem_ID
+    sidx.noalt "<sp.fprs.total>", sp.mem_ID, "< = (sp.fprs.bytes + 7) !& ~7>"
+    sidx.noalt "<sp.fprs.total = sp.fprs.total>", sp.mem_ID
+
+    sidx.noalt3 "<sp.frame>", sp.mem_ID, "< = (sp.fprs.base>" /*
+    */, sp.mem_ID, "< + sp.fprs.total>", sp.mem_ID, "< + 15) !& ~15>"
+    sidx.noalt "<sp.frame = sp.frame>", sp.mem_ID
+  .endif # call this early to make all frame params evaluable before pop
+  # - else, pop will call this commit automatically
 
 .endm; .macro sp.pop, va:vararg
+  sp.commit
+  # .frame and all *.base and *.total values are final now
+
+  .if sp.fprs.__has_items; lmfd sp.fprs.low+1, sp.fprs.base(sp); .endif
+  .if sp.gprs.__has_items; lmw sp.gprs.low+1, sp.gprs.base(sp); .endif
+  .if sp.sprs.__has_items; sp.sprs.__items sp.__lmspr; .endif
+  .if sp.lr.__has_items; lwz r0, sp.frame+4(sp); .endif; addi sp, sp, sp.frame
+  .if sp.lr.__has_items; mtlr r0; .endif
+  # emit epilog
+
+  sp.epilog = 0
+  items.free sp.sprs.__items
+  # clear items buffer and reset epilog flag
+
   sp.mem.popm /*
   */, sp.temp.__has_items,   sp.sprs.__has_items,  sp.gprs.__has_items,   sp.fprs.__has_items /*
-  */, sp.temp.__items,       sp.sprs.__items,      sp.gprs.__items,       sp.fprs.__items /*
   */, sp.temp.base,          sp.sprs.base,         sp.gprs.base,          sp.fprs.base /*
   */, sp.temp.total,         sp.sprs.total,        sp.gprs.total,         sp.fprs.total /*
   */, sp.temp.high,          sp.sprs.high,         sp.gprs.high,          sp.fprs.high /*
@@ -307,665 +376,46 @@ enc.new sp.chars, 0, 1
   */, sp.temp.bytes,         sp.sprs.bytes,        sp.gprs.bytes,         sp.fprs.bytes /*
   */, sp.temp.step,          sp.sprs.step,         sp.gprs.step,          sp.fprs.step /*
   */  sp.temp.count,         sp.sprs.count,        sp.gprs.count,         sp.fprs.count /*
-  */, sp.lr.__has_items, sp.mem_ID, sp.frame
+  */, sp.lr.__has_items, sp.mem_ID, sp.frame, sp.prolog, sp.sprs.__items
+  # recover old state properies for enumerators
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# --- temporary constructor - purged at end of class definition
-
-.macro sp_obj, self, align=0, va:vararg
-  enum.new \self, \va
-  .ifnc \self, sp.main; \self\().mode literal, \self; .endif
-  \self\().mode count, sp_obj
-  \self\().mode restart, sp_obj
-  \self\().byte_align = \align
-  \self\().restart
-
-
-# --- stack pointer push/pop
-
-.endm; .macro sp.push, va:vararg
-  sp.prolog = 0; sp.epilog = 0
-  sp.mem.push sp.mem_ID, sp.lr.__has_items, sp.main.__items, sp.frame
-  # save old memory ID, lr state, and items list for sprs
-
-  sp.mem_ID$ = sp.mem_ID$ + 1; sp.mem_ID = sp.mem_ID$
-  # increment memory ID, for generating new errata
-
-  sidx.noalt "<sp.frame = sp.frame>", sp.mem_ID
-  # generate errata for frame size
-
-  .irp enum, fprs, gprs, main, temp
-    .irp ppt, .count, .step, .bytes, .low, .high, .__has_items
-      sp.mem.push sp.\enum\ppt
-      # memorize enum properties
-
-    .endr; .irp ppt, .total, .base
-      sp.mem.push sp.\enum\ppt
-      sidx.noalt "<sp.\enum\ppt = sp.\enum\ppt>", sp.mem_ID
-      # generate errata for final enum properties
-
-    .endr; .irp method, .restart; sp.\enum\method; .endr
-  .endr # push all enumerator properties needed for frame environment
-
-  sp.main \va  # handle input args with main enumerator
-  sp.prolog = sp.mem_ID # set prolog state flag
-
-.endm; .macro sp.pop, va:vararg
-  sp.frame_build = 0x10
-  .irp enum, temp, main, gprs, fprs; sp.pop.__build sp.\enum; .endr
-  sidx.noalt "<sp.frame>", sp.mem_ID, "< = sp.frame_build>"
-  sp.__main_epilog
-
-  .irp enum, temp, main, gprs, fprs
-    .irp ppt, .__has_items, .high, .low, .bytes, .step, .count; sp.mem.popm sp.\enum\ppt; .endr
-  .endr; sp.mem.popm sp.frame, sp.main.__items, sp.lr.__has_items, sp.mem_ID
-
-.endm; .macro sp.pop.__build, enum
-  sidx.noalt "<\enum\().total>", sp.mem_ID, "< = \enum\().bytes >"
-  sidx.noalt "<\enum\().base>", sp.mem_ID, "< = sp.frame_build>"
-  sp.frame_build = (sp.frame_build + \enum\().bytes + 0xF) & ~0xF
-  sp.mem.popm \enum\().base, \enum\().total
-
-.endm; .macro prolog, va:vararg=r28; sp.push lr, \va
-.endm; .macro epilog, va:vararg; sp.pop \va
-# convenience macros imply 'lr' and have default 'r28' for blank arguments
-
-
-# --- mutators for enum hooks
-
-.endm; .macro enum.mut.count.sp_obj, self, va:vararg
-  enum.mut.count.default \self, \va
-  .if \self\().count < \self\().low; \self\().low = \self\().count
-  .elseif \self\().count > \self\().high; \self\().high = \self\().count; .endif
-  \self\().bytes = (\self\().high - \self\().low) << \self\().byte_align
-
-.endm; .macro enum.mut.restart.sp_obj, self, va:vararg
-  enum.mut.restart.default \self, \va
-  \self\().bytes = 0
-  \self\().low = \self\().count
-  \self\().high = \self\().count
-  \self\().__has_items = 0
-
-.endm; .macro enum.mut.enum_parse.sp.main, self, va:vararg
-  .irp arg, \va; .ifnb \arg
-      sp.chars.reset
-      sp.chars.enc \arg
-      # sample the first 2 chars of each arg
-
-      num = sp.chars$0
-      .if num == 'r; sp.__check_main_r \arg
-      .elseif num == 'f; sp.__check_main_f \arg
-      .elseif num == 'x; sp.__check_main_x \arg
-      .else; sp.__check_main_else \arg; .endif
-      # dispatch to a handler according to case
-
-  .endif; .endr; sp.__main_prolog
-  # after all args are checked, commit to prolog
-
-.endm; .macro enum.mut.literal.sp_obj, self, arg, va:vararg
-  sidx.noalt "<\arg = \self\().count + \self\().base>", sp.mem_ID
-  enum.mut.count.sp_obj \self, \self\().count + \self\().step
-  \self\().steps = \self\().steps + 1
-
-.endm; .macro enum.mut.literal.sp.gprs, self, va:vararg
-  .if sp.gprs.__has_items == 0; sp.__stmw;  .endif; sp.gprs.__has_items = 1
-  enum.mut.literal.default sp.gprs, \va
-
-.endm; .macro enum.mut.literal.sp.fprs, self, arg, va:vararg
-  .if sp.prolog
-    sidx.noalt "<stfd \arg, sp.fprs.base>", sp.mem_ID,"< + sp.fprs.bytes(sp)>"
-  .endif; sp.fprs.__has_items = 1
-  enum.mut.literal.default sp.fprs, \arg, \va
 
 
 # --- hidden layer
 
-.endm; .macro sp.__check_main_r, arg
-  .if sp.chars$1 >= 0x41; sp.gprs \arg
-  # if char from index [1] is >= 'A', then it is considered upper-case
+.endm; .macro sp.__lmspr, va:vararg
+  lmspr r0, sp.sprs.base(sp), \va
 
-  .elseif (sp.chars$1 >= 0x30) && (sp.chars$1 <=0x33); sp.gprs (\arg+sp.gprs.step)
-  # if it's thed decimal number 0, 1, 2, or 3; then it's considered a register number
+.endm; .macro sp.__checkreg, arg, items
+  .if (sp.chars$1 >= 0x30) && (sp.chars$1 <=0x33);
+    sp.__temp_step\@ = sp.temp.step
+    \items, ,\arg, sp.__temp, +sp.__temp_step\@
+  .else; sp.__checkx \arg, \items; .endif
+  # catches 'rN' and 'rName', if 'N' is a number between 0...3, or 'Name' starts in upper case
+  # works for names starting with 'r' or 'f'
 
-  .else; sp.__main_else \arg; .exitm; .endif; sp.gprs.__has_items = 1
-  # else, check to see if it's a valid spr keyword
+.endm; .macro sp.__checkx, arg, items
+  .if sp.chars$1 >= 0x41; \items, \arg
+  .else; sp.__checkelse \arg; .endif
 
-.endm; .macro sp.__check_main_f, arg
-  .if sp.chars$1 >= 0x41; sp.fprs \arg
-  .elseif (sp.chars$1 >= 0x30) && (sp.chars$1 <=0x33);  sp.fprs (\arg+sp.fprs.step)
-  .else; sp.__main_else \arg; .exitm; .endif; sp.fprs.__has_items = 1
-  # do the same checks if 'f' is found instead of 'r'
-
-.endm; .macro sp.__check_main_x, arg;
-  ifdef spr.\arg
-  .if def; enum.mut.literal.sp_obj sp.main, sp.main.__count
-    sp.main.__items, \arg
-    sp.main.__has_items = 1
-  .elseif sp.chars$1 >= 0x41; sp.temp \arg
-  .else; sp.__main_else \arg; .exitm; .endif; sp.temp.__has_items = 1
-  # do similar if 'x' is found instead of 'r'
-
-.endm; .macro sp.__check_main_else, arg
+.endm; .macro sp.__checkelse, arg
   .ifc \arg, lr; sp.lr.__has_items = 1; .exitm; .endif
   .ifc \arg, LR; sp.lr.__has_items = 1; .exitm; .endif
   # catch 'lr' keyword as a special case, instead of as part of sprs
 
   ifnum.check_ascii
-  # 'num' is evaluated as numerical or not
-  # - we currently have 'num' loaded with 'sp.chars$0'
-
-  .if num; sp.temp \arg
-  # if it is, then we send it to 'sp.temp' to help define temporary memory
+  .if num;
+    sp.__temp_step\@ = sp.temp.step
+    sp.temp.__items, ,+\arg, sp.__temp, +sp.__temp_step\@
+  # if it's an expression, then consider it a size for adding as padding in temp memory
 
   .else; ifdef spr.\arg
-    .if def; enum.mut.literal.sp_obj sp.main, sp.main.__count
-      sp.main.__items, \arg
-      sp.main.__has_items = 1
-      # If it's a valid spr dictionary keyword, then use that
+    .if def; sp.sprs.__items, \arg
+    # if it's a valid spr keyword, append spr items
 
-    .else; sp.temp \arg; .endif
-  .endif # Else, just assume it's an input for 'sp.temp'
+    .else; sp.temp.__items, \arg; .endif; .endif
+    # otherwise, just assume it's meant to be a temp offset name
 
-.endm; .macro sp.__main_prolog
-  .if sp.lr.__has_items;   mflr r0; .endif;  sidx.noalt "<stwu sp, -sp.frame>", sp.mem_ID,"<(sp)>"
-  .if sp.lr.__has_items;   sidx.noalt "<stw r0, sp.frame>", sp.mem_ID,"< + 4(sp)>"; .endif
-  .if sp.main.__has_items; sp.main.__items sp.__stmspr; .endif
-  .if sp.gprs.__has_items; sp.__stmw; .endif
-  .if sp.fprs.__has_items; stmfd 32-(sp.fprs.low+1), sp.fprs.base(sp); .endif
+.endm; sp_obj.init  # ready to go
 
-.endm; .macro sp.__main_epilog
-  .if sp.fprs.__has_items; lmfd 32-(low+1), sp.fprs.base(sp); .endif
-  .if sp.gprs.__has_items; sp.__lmw; .endif
-  .if sp.main.__has_items; sp.main.__items sp.__lmspr; .endif
-  .if sp.lr.__has_items;   sidx.noalt "<lwz r0, sp.frame>", sp.mem_ID,"< + 4(sp)>";
-  .endif; sidx.noalt "<addi sp, sp, sp.frame>", sp.mem_ID
-  .if sp.lr.__has_items;   mtlr r0; .endif
-
-
-.endm; .macro sp.__stmspr, va:vararg;
-  sidx.noalt "<stmspr r0, sp.main.base>", sp.mem_ID, "<(sp), \va >"
-.endm; .macro sp.__lmspr, va:vararg;
-  sidx.noalt "<lmspr r0, sp.main.base>", sp.mem_ID, "<(sp), \va >"
-.endm; .macro sp.__stmw
-  sidx.noalt2 "<sp.__mw_ev stmw, sp.main.base>", sp.mem_ID, "<, sp.main.total>", sp.mem_ID
-.endm; .macro sp.__lmw
-  sidx.noalt "<sp.__mw_ev lmw, sp.main.base>", sp.mem_ID, "<, sp.main.bytes>"
-.endm; .macro sp.__mw_ev, ins, base, total; \ins 32 - (\total >> sp.gprs.byte_align), \base (sp)
-.endm
-
-# --- end of method definitions
-
-stack sp.mem
-# this is a stack for storing memory of nested frame vars in enumerators
-
-enc.new sp.chars, 0, 1
-# this is an encoder stack for sampling the first 2 chars of inputs
-
-items.method sp.main.__items
-# this is an items buffer, method for extracting spr keywords
-
-sp.mem_ID$ = 0
-sp.mem_ID = sp.mem_ID$
-# memory ID is a unique ID given to each frame for generating errata
-
-sp.lr.__has_items = 0
-# initial state of a flag not defined by the enumerators
-
-sp.frame = 0
-sp.prolog = 0
-sp.epilog = 0
-# state memory, for some changing the behavior of sp.fprs in frame body vs frame prolog
-
-sp_obj sp.main,2,,,+1,(0)
-sp_obj sp.temp,0,sp.,,+4,(0)
-sp_obj sp.gprs,2,,,-1,(31)
-sp_obj sp.fprs,3,,,-1,(31)
-sp.main.mode enum_parse, sp.main
-sp.temp.mode literal, sp_obj
-# create mutated enumerators
-
-# --- sp.push and sp.pop are now ready to use
-
-.purgem sp_obj
-# temporary constructor has been purged
-
-.endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# temporary constructor:
-.macro sp.__new_sp_obj, self, stride, va:vararg
-  enum.new sp.\self, \va
-  sp.\self\().mode enum_parse, \self
-  sp.\self\().mode count, sp_obj
-  sp.\self\().mode reset, sp_obj
-  sp.\self\().byte_stride = \stride
-  sp.\self\().items = 0
-  sp.\self\().restart
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.macro enum.__new_sp_obj, self, varg:vararg
-  enum.new sp.\self, \varg
-
-  \self\().mode restart, sp_obj
-  \self\().mode count, sp_obj
-  # mutate new enumerator to make an 'sp_obj'
-
-  sp.__new_items \self\().items
-  # generate a new blank string
-
-  stack \self\().__mem
-  \self\().__mem.mode push_post, sp_obj
-  # generate a new stack, for memory
-  # - uses mutator for stacking enumerator and string memory
-
-  .macro \self\().items, va:vararg
-    .ifb \va; str.lit \self\().items, \self
-    .else; str.concitems \self\().items, \va; .endif
-  .endm; # method for building/using items
-
-.endm; .macro sp.push, va:vararg
-
-.irp x, sp, sprs, gprs, fprs, temp
-
-
-.endm; .macro sp.__push, self
-
-.endm; .macro sp.pop, va:vararg
-
-.endm; .macro sp.__pop, self
-
-.endm; .macro sp.__new_items, self=sp.items
-.if sp.__items.s == sp.__items.q
-  sp.items_ID$ = sp.items_ID$ + 1
-  sidx.noalt "<str sp.__items>", sp.mem_ID
-  \self = str$
-.else; sp.__items.pop; \self = sp.__items; .endif
-
-.endm; .macro sp.__free_items, self=sp.items
-  str.pointer \self
-  sp.__items.push str.pointer
-
-.endm; .macro enum.mut.restart.sp, self, va:vararg
-
-.endm; .macro enum.mut.count.sp, self, sym, va:vararg
-
-.endm; .macro enum.mut.enum_parse.sp, self, pfx, sfx, va:vararg
-
-.endm; .macro enum.mut.enum_parse.sprs, self, pfx, sfx, va:vararg
-
-.endm; .macro enum.mut.enum_parse.gprs, self, va:vararg
-
-.endm; .macro enum.mut.enum_parse.fprs, self, va:vararg
-
-.endm
-
-
-
-
-sp.mem_ID$ = 0
-sp.items_ID$ = 0
-sp.mem_state = 0
-stack sp.mem_ID, sp.mem_lrsp.__items
-sp.__new_sp_obj sp.sp
-sp.__new_sp_obj sp.sprs
-sp.__new_sp_obj sp.gprs
-sp.__new_sp_obj sp.fprs
-sp.__new_sp_obj sp.temp
-
-enc sp.sampler, [0], [2]  # only sample chars 0, 1, and 2 when sampling register names
-
-
-
-
-
-
-
-
-
-
-
-
-
-.macro sp.push, va:vararg
-  sp.mem_stack.push
-  # flush current buffer
-
-  sp.mem_stack.push sp.mem_ID, sp.mem_gprs, sp.mem_fprs, sp.mem_sprs, sp.mem_lr
-  sp.mem_ID$ = sp.mem_ID$ + 1
-  sp.mem_ID = sp.mem_ID$
-  # increment unique memory frame ID counter
-
-  .irp self, sp.fprs, sp.gprs, sp.sprs, sp.temp; sp.__gen \self; .endr
-  # generate new enumerator variables, for flushing on sp.pop
-
-  sp.mem_lr = 0
-  sp.mem_gprs = 0
-  sp.mem_fprs = 0
-  sp.mem_sprs = 0
-  sp.mem_sprs.init = 1
-  .ifnb \va; sp.sprs.items \va; .endif
-  sp.sprs \va
-  # initial args go to sprs enumerator
-
-  sp.mem_stack.pop
-  # discard top of stack, and buffer top of memory instead
-
-
-.endm; .macro sp.pop
-  sp.frame_size = 0x10
-  .if sp.temp.low < 0;  sp.frame_size = 0x10 -(sp.temp.low + 1); .endif
-  sp.temp.size = (sp.temp.high + 0xF) & ~0xF
-  sp.frame_size = sp.frame_size & ~0xF
-  # if negative temp offsets were given, then offset the base of temp offsets to include them
-
-  sp.sprs.size = sp.sprs.size << 2
-  sp.gprs.size = sp.gprs.size << 2
-  sp.fprs.size = sp.fprs.size << 3
-  # finalize size of register lists
-
-  .if sp.fprs.size; lmfd 31, sp.fprs.base(sp), 31-sp.fprs.size;.endif
-  .if sp.gprs.size; lmw 31-sp.gprs.size, sp.gprs.base(sp);.endif
-  .if sp.sprs.size;str.litq sp.sprs.items_ex, lmspr r0, sp.sprs.base(sp); .endif
-  # write epilog restores
-
-  .if sp.mem_lr; sidx.noalt "<lwz r0, sp.frame_size>", sp.mem_ID, "<+4(sp)>"; .endif
-  sidx.noalt "<addi sp, sp, sp.frame_size>", sp.mem_ID
-  .if sp.mem_lr; mtlr r0; .endif
-  # write epilog
-
-  .irp self, sp.temp, sp.sprs, sp.gprs, sp.fprs; sp.__flush \self; .endr
-  # flush pending enumerator values
-
-
-  sp.frame_size = (sp.frame_size + 0x17) & ~0xF
-  sidx.noalt "<sp.frame_size>", sp.mem_ID, "< = sp.frame_size>"
-  sp.mem_stack.pop sp.mem_lr, sp.mem_sprs, sp.mem_fprs, sp.mem_gprs, sp.mem_ID
-  # restore old mem_ID to return to previous nested frame (or initial frame state, which is blank)
-
-
-.endm; .macro enum.new_sp_obj, self, va:vararg
-  enum.new sp.\self, \va
-  sp.\self\().mode restart, sp
-  sp.\self\().mode enum_parse, sp
-  sp.\self\().mode count, sp
-  # mutate new enumerator to make an 'sp_obj'
-
-  sp.items_gen sp.\self
-  # generate a new blank string
-
-  .irp x, .base, .lowest, .highest, .total, .low, .high, .size; sp.\self\x = 0;.endr
-  sp.\self\().restart
-  # set default properties
-
-  .macro sp.\self\().items, varg:vararg
-    .ifb \varg;
-      .if sp.\self\().size; sp.\self\().restart; str.lit sp.\self\().items, sp.\self; .endif
-    .else; str.concitems sp.\self\().items, \varg
-    .endif
-  .endm # '.items' method restores past recored input arguments, or concatenates new items to list
-
-.endm; .macro sp.items_gen, self
-  sp.items_ID$ = sp.items_ID$ + 1
-  \self\().items = str$ + 1
-  sidx.noalt "<str \self\().items>", sp.items_ID$
-
-.endm; .macro sp.__gen, self
-  sp.mem_stack.push \self\().items
-  sp.items_gen \self
-  # push items list, and generate a new one
-
-  .irp x, .base, .lowest, .highest, .total;
-    sp.mem_stack.push \self\x
-    sidx.noalt "<\self\x = \self\x>", sp.mem_ID
-  .endr  # push all delayed descriptor variables, and generate new ones
-
-  \self\().restart
-  # restart enumerator
-
-.endm; .macro sp.__flush, self
-  sidx.noalt "<\self\().total>", sp.mem_ID, "< = \self\().size>"
-  sidx.noalt "<\self\().highest>", sp.mem_ID, "< = \self\().high>"
-  sidx.noalt "<\self\().lowest>", sp.mem_ID, "< = \self\().low>"
-  sidx.noalt "<\self\().base>", sp.mem_ID, "< = sp.frame_size>"
-  sp.frame_size = sp.frame_size + (\self\().size + 0xF) & ~0xF
-  # flush delayed assignments to finalize prolog/epilog information
-
-  .irp x, .total, .highest, .lowest, .base
-    sp.mem_stack.pop \self\x
-  .endr # restore old values from stack
-
-  sp.mem_stack.pop \self\().items
-  # restore old items from stacked items strings
-
-  \self\().items
-
-.endm
-
-
-
-# --- enum mutators:
-.macro enum.mut.restart.sp, self, va:vararg
-  enum.mut.restart.default \self
-  \self\().low = \self\().count
-  \self\().high = \self\().count
-  \self\().size = 0
-  # extend default restart event
-
-.endm; .macro enum.mut.count.sp, self, sym, va:vararg
-  enum.mut.count.default \self, \sym, \va
-  .if \self\().count < \self\().low; \self\().low = \self\().count; .endif
-  .if \self\().count > \self\().high; \self\().high = \self\().count; .endif
-  # update highs and lows on count
-
-
-.endm; .macro enum.mut.enum_parse.sp, self, pfx, sfx, va:vararg
-  enum.mut.enum_parse.default \self, \pfx, \sfx, \va
-  \self\().size = \self\().high - \self\().low
-  \self\().items \va
-  # update size, and append items
-
-.endm; .macro enum.mut.enum_parse.sprs, self, pfx, sfx, va:vararg
-  str sp.sprs.items_ex
-  # generate/clear temporary items string for loop to collect spr register names/numbers in
-
-  sp.mem_lr = 0
-  .irp arg, \va
-    .ifnb \arg
-      sp.sampler.s[0]
-      sp.sampler.enc "\arg"
-      .if sp.sampler.s >= 2
-        .if (sp.sampler$1 >= 0x30) && (sp.sampler$1 <=0x39)    # decimal number
-          .if (sp.sampler$0 == 0x72) || (sp.sampler$0 == 0x52) # r or R
-            .if \arg <= sp.gprs.low; sp.gprs.low = \arg-1; .endif; sp.sampler.s = 0
-            # if 'rN' then update lowest GPRs
-
-          .elseif (sp.sampler$0 == 0x66) || (sp.sampler$0 == 0x46) # f or F
-            .if \arg <= sp.fprs.low; sp.fprs.low = \arg-1; .endif; sp.sampler.s = 0
-            # if 'fN' then update lowest FPRs
-
-          .endif
-        .endif
-      .endif
-      .if sp.sampler.s >= 2
-        .ifc "\arg", "lr"; sp.mem_lr = 1
-        .else; .ifc "\arg", "LR"; sp.mem_lr = 1
-        # if 'lr' then save flag
-
-          .else; sp.sprs.items_ex.concitems \arg; sp.sprs.size = sp.sprs.size + 1;
-        .endif; .endif; # else, save argument for passing to spr macro
-      .endif
-    .endif
-  .endr
-  sp.gprs.size = sp.gprs.high - sp.gprs.low
-  sp.fprs.size = sp.fprs.high - sp.fprs.low
-  # update sizes from parse to compare against memory values
-
-  .if sp.mem_sprs.init
-   .if sp.mem_lr; mflr r0; .endif
-    sidx.noalt "<stwu sp, -sp.frame_size>", sp.mem_ID, "<(sp)>"
-    .if sp.mem_lr; sidx.noalt "<stw r0, sp.frame_size>", sp.mem_ID, "<+4(sp)>"; .endif
-    # prolog
-
-  .endif
-
-
-  .if (sp.mem_gprs == 0) && sp.gprs.size
-    sidx.noalt "<stmw sp.gprs.lowest>", sp.mem_ID, "<+1, sp.gprs.base(sp)>"
-    sp.mem_gprs = sp.gprs.size
-    sp.gprs.count = sp.gprs.low
-    # gpr storage (for gprs detected in sprs line)
-
-  .endif
-  .if sp.mem_fprs != sp.fprs.size
-    stmfd 31-sp.mem_fprs, (sp.mem_fprs<<3)+sp.fprs.base(sp), sp.fprs.low+1
-    sp.mem_fprs = sp.fprs.size
-    sp.fprs.count = sp.fprs.low
-    # fpr storage (partial, for fprs detected in sprs line)
-
-  .endif
-  .if sp.mem_sprs.init && sp.sprs.size
-    sp.sprs.items_ex.litq stmspr, r0, sp.sprs.base(sp)
-    spr.mem_sprs = sp.sprs.size
-  .endif
-  sp.mem_sprs.init = 0
-
-.endm; .macro enum.mut.enum_parse.gprs, self, va:vararg
-  enum.mut.enum_parse.sp \self, \va
-  .if (sp.mem_gprs == 0) && \self\().size
-    stmw \self\().lowest+1, \self\().base(sp)
-  .endif;  sp.mem_gprs = \self\().size
-  # update sp.gprs.size, and write late stmw if not already written for this frame
-
-
-.endm; .macro enum.mut.enum_parse.fprs, self, va:vararg
-  enum.mut.enum_parse.sp \self, \va
-  .if sp.mem_fprs != \self\().size
-    stmfd 31-sp.mem_fprs, (sp.mem_fprs<<3)+\self\().base(sp), \self\().low+1
-  .endif;  sp.mem_fprs = \self\().size
-  # update sp.fprs.size, and write new stfds if necessary
-
-.endm
-
-enum.new_sp_obj gprs, , , (31), -1
-sp.gprs.mode enum_parse, gprs
-
-enum.new_sp_obj sprs
-sp.sprs.mode enum_parse, sprs
-
-enum.new_sp_obj fprs, , , (31), -1
-sp.fprs.mode enum_parse, fprs
-
-enum.new_sp_obj temp, "sp.", , (0), +4
 .endif
