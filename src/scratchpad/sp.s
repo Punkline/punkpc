@@ -14,20 +14,14 @@
 /*## Attributes:
 
 # --- Class Properties
-
-# --- sp   - a stack that holds the state of unfinished frames when nesting a new one internally
-# - mutated push and pop methods are used to manage the sp object environment
-
-# The only extra user-level property 'sp' has is a frame size value:
 # --- sp.frame  - the final size of this stack frame
-
 
 
 # The following are are all enumerators:
 # --- sp.temp     - can be called to define temporary space inside a stack frame
 # --- sp.gprs     - can be called to define named backed-up registers for this stack frame
 # --- sp.fprs     - like gprs, but for floats
-# --- sp.main     - invoked by the mutated 'sp' stack push method
+# --- sp.sprs     - invoked by the mutated 'sp' stack push method
 
 # Each has the following extended properties:
 # --- sp.*.byte_align
@@ -45,8 +39,12 @@
 #   - attempting to use them before 'sp.pop' will create errata that is resolved at end of assembly
 #     - attempts at immediate evaluation will create errors complaining about 'non-constants'
 
+# --- sp.*.__has_items - a read-only property updated by the module
+# - this may be checked for as a 0 or not-0 to determine whether the stack contains a type of item
 
-# Multiple copies of these and other enumerator properties can be backed up in scalar 'sp' memory
+
+
+# Multiple copies of these and other enumerator properties are backed up in scalar 'sp.mem'
 # - this allows you to nest frames within frames, for creating complex recursive functions
 
 
@@ -125,14 +123,28 @@
 # May be called shortly after 'sp.push' to back up floating point registers
 # - can be invoked by 'sp.push' by feeding it 'fName' arguments
 
+# --- sp.sprs ...
+# May be called shortly after 'sp.push' to back up special purpose registers
+
 # --- regs ...
 # May be used to define volatile registers that are not backed up by the stack frame, or 'sp'
-# - gets reset by 'sp.pop'
+# - starts at r3, increments by +1
+# - gets restarted by 'sp.pop'
 
 # --- sp.pop
 # Finalizes all generatted errata expressions by defining the missing vars for all enumerations
 # - this generates the '.base' and '.total' values referenced by enumerators
 # - popping a nested frame will return to the old frame context
+
+
+
+# --- prolog ...
+# An alternative to 'sp.push' that implies use of the 'lr' keyword
+
+# --- epilog
+# An alias for 'sp.pop' that matches the 'prolog' naming convention
+
+
 
 # 'lmf' and 'spr' modules are available for multiple float/spr loads/stores external from the stack
 
@@ -143,11 +155,137 @@ punkpc sp
 # Use the 'punkpc' statement to load this module, or include the module file directly
 
 
+
+# --- CREATING A SIMPLE STACK FRAME ---
+
+# Writing a function in PowerPC requires that you 'push a frame onto the runtime stack'
+# - this means adding N bytes to a pointer index describing a place in 'temporary memory'
+#   - temporarilly allocated memory like this can be used by a function for backing up registers
+
+
+mflr r0
+stwu sp, -0x20(sp)
+stw r0, 0x24(sp)
+stmw r30, 0x10(sp)
+
+# ... a function that makes calls, and uses saved registers r30 and r31 goes here ...
+
+lmw r30, 0x10(sp)
+lwz r0, 0x24(sp)
+addi sp, sp, 0x20
+mtlr r0
+
+
+# The 8 instructions above 'push' and 'pop' create a block context for defining function on PowerPC
+
+# The purpose of this block is to manage the 'stack pointer' register (sp) with 'stwu' and 'addi'
+#   - these atomic stores/loads of the stack pointer help inform the callstack, when debugging
+# The 'stmw' and 'lmw' instructions back up (store) and recover (load) r30 and r31
+#   - this allows the function to then use these saved registers during the middle part, in-between
+# The backing up and restoring of 'lr' with 'mflr' and 'mtlr' provides a return point for execution
+#   - this is necessary if the function is to make any calls, internally
+#     - backing up the lr may not be necessary in 'leaf' functions, which make no calls
+
+
+
+
+# The 'sp' module provides macro-instructions that handle this with fewer inputs:
+
+sp.push lr, r30
+
+# ...
+
+sp.pop
+
+# These 2 macro-instructions will emit the exact same instructions as shown above
+
+# Arguments for 'sp.push' allow you to configure the stack frame as needed, with input keywords
+# - 'lr' will cause the frame to back up and recover 'lr' to make it call-safe
+# - 'r30' is recognized as a register count to put in 'stmw' and 'lmw'
+
+
+
+
+# If you prefer, the convenience macros 'prolog' and 'epilog' are also available, and imply 'lr'
+
+prolog r30
+
+# ...
+
+epilog
+# This block is identical to the above 'sp.push' and 'sp.pop' block
+# - it does not need to specify 'lr', though it will accept it
+
+
+
+
+# --- CREATING A MORE COMPLEX STACK FRAME ---
+
+# As the requirements of a function increase, so too will the complexity of 'pushing' and 'popping':
+
+mflr r0
+stwu sp, -0x40(sp)
+stw r0, 0x44(sp)
+mfctr r0
+stw r0, 0x20(sp)
+stmw r29, 0x24(sp)
+stfd f31, 0x30(sp)
+stfd f30, 0x38(sp)
+
+# ... a function that makes calls, uses 0x10 bytes, r29, r30, r31, f30, f31, and ctr goes here ...
+
+lfd f30, 0x38(sp)
+lfd f31, 0x30(sp)
+lmw r29, 0x24(sp)
+lwz r0, 0x20(sp)
+mtctr r0
+lwz r0, 0x44(sp)
+addi sp, sp, 0x44
+mtlr r0
+
+
+# The 2-macro equivalent uses the following keywords:
+
+prolog 0x10, r29, f30, ctr
+
+# ...
+
+epilog
+
+# In this case, we use 'prolog' to invoke the 'lr' keyword automatically, and specify the rest:
+
+# '0x10' - a literal expression like this will define a number of bytes in temporary memory
+# 'r29'  - specifies that we back up r29, r30, and r31 with the singular 'stmw' instruction
+# 'f31'  - specifies that we back up f30, and f31 with individual 'stfd' instructions
+
+
+# Stack frames are organized within the module using the following layers:
+
+# [ PAD   ] - 0x10 bytes of padding are always given to beginning of a frame, for stacking
+# [ TEMP  ] - temporary memory allocations always beginnin at 0x10(sp)
+# [ SPRS  ] - special purpose registers are backed up after end of user memory definitions
+# [ GPRS  ] - general purpose registers are backed up after end of SPRS
+# [ FPRS  ] - floating point registers are backed up after end of GPRS
+
+
+# The 'temp' space is meant to be easilly accessibly by the user, so it always starts at the top
+# - this is where the '0x10' bytes of memory get allocated to
+# - it will always start after the 'padding', which is there to give some room for stack params
+#   - these params get defined by other frames called by your frame, so they need to be left alone
+
+# The 'sprs' space is where non-gpr and non-spr (or lr) registers are stored, when backing up
+# - this is where 'ctr' goes -- adjacent to the user's temporary memory in case it needs referencing
+
+# The 'gprs' and 'fprs' spaces are then stuffed into space added onto the end
+# - multiple 'gprs' can be backed up with the cost of only 1 instruction in the prolog/epilog
+#   - while this is only 1 instruction in size -- it is slow; and slower for each added register
+# - multiple 'fprs' will require an extra instruction in the prolog/epilog for each register
+
 ##*/
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module sp, 1
-.if module.included == 0; punkpc regs, enc, lmf, spr, items, dbg
+.if module.included == 0; punkpc regs, enc, lmf, spr, items
 
 .macro sp_obj.init
   .purgem sp_obj.init
@@ -215,8 +353,8 @@ punkpc.module sp, 1
   .ifnb \va
     enum.mut.enum_parse.default \va
     .if sp.gprs.__has_items == 0; .if sp.gprs.bytes; sp.gprs.__has_items = 1
-        sidx.noalt2 "<stmw 32-(sp.gprs.total>", sp.mem_ID, /*
-        */"<!>!>sp.gprs.byte_align), sp.gprs.base>", sp.mem_ID, "<(sp)>"
+        sidx.noalt2 "<stmw sp.gprs.lowest>", sp.mem_ID, /*
+        */"<, sp.gprs.base>", sp.mem_ID, "<(sp)>"
     .endif; .endif
   .endif
   # sp.gprs flag is used by the module to detect if 'stmw' is already written
@@ -226,10 +364,10 @@ punkpc.module sp, 1
     enum.mut.enum_parse.default \va
   .endif
   .if (sp.fprs.high - sp.fprs.low) > sp.fprs.__has_items
-    .rept (sp.fprs.high - sp.fprs.low) - sp.fprs.__has_items
-      sp.fprs.__has_items = sp.fprs.__has_items + 1; sidx.noalt /*
-*/ "<stfd 32 - sp.fprs.__has_items, (sp.fprs.__has_items!<!<sp.fprs.byte_align) + sp.fprs.base>"/*
+    .rept (sp.fprs.high - sp.fprs.low) - sp.fprs.__has_items sidx.noalt /*
+*/ "<stfd 32-(sp.fprs.__has_items+1), (sp.fprs.__has_items!<!<sp.fprs.byte_align) + sp.fprs.base>"/*
 */, sp.mem_ID, "<(sp)>"
+    sp.fprs.__has_items = sp.fprs.__has_items + 1;
     .endr
   .endif
   # sp.fprs flag is also a count of the current number of fpr stores that have been written
@@ -275,22 +413,14 @@ punkpc.module sp, 1
   items.alloc sp.sprs.__items
   sp.mem_ID$ = sp.mem_ID$ + 1
   sp.mem_ID = sp.mem_ID$
-  sp.temp.__items,, 0x10
-  sp.temp.base = 0
+  sp.temp.low = 0
+  sp.temp.high = 16
+  sp.temp.bytes = 16
+  sp.temp.count = 16
   sp.lr.__has_items = 0
+  sp.__errata
   # Start new context with a unique 'mem_ID'
 
-  sidx.noalt "<sp.frame = sp.frame>", sp.mem_ID
-  sidx.noalt "<sp.temp.total = sp.temp.total>", sp.mem_ID
-  sidx.noalt "<sp.sprs.total = sp.sprs.total>", sp.mem_ID
-  sidx.noalt "<sp.gprs.total = sp.gprs.total>", sp.mem_ID
-  sidx.noalt "<sp.fprs.total = sp.fprs.total>", sp.mem_ID
-  sidx.noalt "<sp.sprs.base =  sp.temp.total>", sp.mem_ID
-  sidx.noalt "<sp.gprs.base = sp.sprs.base + sp.sprs.total>", sp.mem_ID
-  sidx.noalt "<sp.fprs.base = sp.gprs.base + sp.gprs.total>", sp.mem_ID
-  # Generate new errata for this context
-  # - 'sidx' will create assignments using scalar names generated from the 'sp.mem_ID' index
-  # - all of this will be resolved in a corresponding 'sp.pop' call that ends this context
 
   .irp arg, \va; .ifnb \arg
     sp.chars.reset
@@ -298,8 +428,8 @@ punkpc.module sp, 1
     # sample first 2 chars of each arg
 
     num = sp.chars$0
-    .if num == 'r; sp.__checkreg \arg, sp.gprs.__items
-    .elseif num == 'f; sp.__checkreg \arg, sp.fprs.__items
+    .if num == 'r; sp.__checkreg \arg, sp.gprs
+    .elseif num == 'f; sp.__checkreg \arg, sp.fprs
     .elseif num == 'x; sp.__checkx \arg, sp.temp.__items
     .else; sp.__checkelse \arg; .endif
     # dispatch args to special handlers if they begin with certain characters
@@ -338,13 +468,17 @@ punkpc.module sp, 1
 
     sidx.noalt3 "<sp.gprs.base>", sp.mem_ID, "< = sp.sprs.total>" /*
     */, sp.mem_ID, "< + sp.sprs.base>", sp.mem_ID
-    sidx.noalt "<sp.gprs.total>", sp.mem_ID, "< = (sp.gprs.bytes + 3) !& ~3>"
+    sidx.noalt "<sp.gprs.total>", sp.mem_ID, "< = (sp.gprs.bytes + 7) !& ~7>"
     sidx.noalt "<sp.gprs.total = sp.gprs.total>", sp.mem_ID
+    sidx.noalt "<sp.gprs.lowest>", sp.mem_ID, "< = sp.gprs.low+1>"
+    sp.gprs.lowest = sp.gprs.low+1
 
     sidx.noalt3 "<sp.fprs.base>", sp.mem_ID, "< = sp.gprs.total>" /*
     */, sp.mem_ID, "< + sp.gprs.base>", sp.mem_ID
     sidx.noalt "<sp.fprs.total>", sp.mem_ID, "< = (sp.fprs.bytes + 7) !& ~7>"
     sidx.noalt "<sp.fprs.total = sp.fprs.total>", sp.mem_ID
+    sidx.noalt "<sp.fprs.lowest>", sp.mem_ID, "< = sp.fprs.low+1>"
+    sp.fprs.lowest = sp.fprs.low+1
 
     sidx.noalt3 "<sp.frame>", sp.mem_ID, "< = (sp.fprs.base>" /*
     */, sp.mem_ID, "< + sp.fprs.total>", sp.mem_ID, "< + 15) !& ~15>"
@@ -353,11 +487,12 @@ punkpc.module sp, 1
   # - else, pop will call this commit automatically
 
 .endm; .macro sp.pop, va:vararg
+  regs.restart
   sp.commit
   # .frame and all *.base and *.total values are final now
 
-  .if sp.fprs.__has_items; lmfd sp.fprs.low+1, sp.fprs.base(sp); .endif
-  .if sp.gprs.__has_items; lmw sp.gprs.low+1, sp.gprs.base(sp); .endif
+  .if sp.fprs.__has_items; lmfd 31, sp.fprs.base(sp), sp.fprs.lowest; .endif
+  .if sp.gprs.__has_items; lmw sp.gprs.lowest, sp.gprs.base(sp); .endif
   .if sp.sprs.__has_items; sp.sprs.__items sp.__lmspr; .endif
   .if sp.lr.__has_items; lwz r0, sp.frame+4(sp); .endif; addi sp, sp, sp.frame
   .if sp.lr.__has_items; mtlr r0; .endif
@@ -379,18 +514,38 @@ punkpc.module sp, 1
   */, sp.lr.__has_items, sp.mem_ID, sp.frame, sp.prolog, sp.sprs.__items
   # recover old state properies for enumerators
 
+  sp.__errata
 
+.endm; .macro prolog, va:vararg; sp.push lr, \va
+.endm; .macro epilog, va:vararg; sp.pop
 
 # --- hidden layer
+
+.endm; .macro sp.__errata
+  .if sp.mem_ID
+    sp.temp.base = 0
+    sidx.noalt "<sp.frame = sp.frame>", sp.mem_ID
+    sidx.noalt "<sp.temp.total = sp.temp.total>", sp.mem_ID
+    sidx.noalt "<sp.sprs.total = sp.sprs.total>", sp.mem_ID
+    sidx.noalt "<sp.gprs.total = sp.gprs.total>", sp.mem_ID
+    sidx.noalt "<sp.fprs.total = sp.fprs.total>", sp.mem_ID
+    sidx.noalt "<sp.sprs.base =  sp.temp.total>", sp.mem_ID
+    sidx.noalt "<sp.gprs.base = sp.sprs.base + sp.sprs.total>", sp.mem_ID
+    sidx.noalt "<sp.fprs.base = sp.gprs.base + sp.gprs.total>", sp.mem_ID
+    sidx.noalt "<sp.gprs.lowest = sp.gprs.lowest>", sp.mem_ID
+    sidx.noalt "<sp.fprs.lowest = sp.fprs.lowest>", sp.mem_ID
+  .endif  # Generate new errata for this context
+  # - 'sidx' will create assignments using scalar names generated from the 'sp.mem_ID' index
+  # - all of this will be resolved in a corresponding 'sp.pop' call that ends this context
 
 .endm; .macro sp.__lmspr, va:vararg
   lmspr r0, sp.sprs.base(sp), \va
 
-.endm; .macro sp.__checkreg, arg, items
+.endm; .macro sp.__checkreg, arg, enum
   .if (sp.chars$1 >= 0x30) && (sp.chars$1 <=0x33);
-    sp.__temp_step\@ = sp.temp.step
-    \items, ,\arg, sp.__temp, +sp.__temp_step\@
-  .else; sp.__checkx \arg, \items; .endif
+    enum.mut.count.sp_obj \enum, \arg - \enum\().step
+    enum.mut.count.sp_obj \enum, \arg
+  .else; sp.__checkx \arg, \enum\().__items; .endif
   # catches 'rN' and 'rName', if 'N' is a number between 0...3, or 'Name' starts in upper case
   # works for names starting with 'r' or 'f'
 
@@ -404,12 +559,10 @@ punkpc.module sp, 1
   # catch 'lr' keyword as a special case, instead of as part of sprs
 
   ifnum.check_ascii
-  .if num;
-    sp.__temp_step\@ = sp.temp.step
-    sp.temp.__items, ,+\arg, sp.__temp, +sp.__temp_step\@
+  .if num; enum.mut.count.sp_obj sp.temp, sp.temp.count + \arg
   # if it's an expression, then consider it a size for adding as padding in temp memory
 
-  .else; ifdef spr.\arg
+  .else; ifdef spr., \arg
     .if def; sp.sprs.__items, \arg
     # if it's a valid spr keyword, append spr items
 
@@ -417,5 +570,4 @@ punkpc.module sp, 1
     # otherwise, just assume it's meant to be a temp offset name
 
 .endm; sp_obj.init  # ready to go
-
 .endif
