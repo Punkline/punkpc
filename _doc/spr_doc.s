@@ -5,6 +5,8 @@
 
 # --- Updates:
 
+# version 0.0.3
+# - extended symbols dictionary to include 'spr.cr', 'spr.sr', and 'spr.msr'
 # version 0.0.2
 # - changed unspecific 'qr' keyword to default to 'qr1' instead of 'qr7'
 # - added 'spr_count' return property, for counting the number of spr args that were given

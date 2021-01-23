@@ -1,5 +1,5 @@
 .ifndef punkpc.library.included
-  .include "punkpc.s";.endif;punkpc.module spr, 2
+  .include "punkpc.s";.endif;punkpc.module spr, 3
 .if module.included == 0;  punkpc idxr, regs
   .macro lmspr,  a,  idxr,  sprs:vararg;  idxr \idxr;spr_count = 0
     .irp spr,  \sprs
@@ -90,5 +90,6 @@
   spr.TBU = 269;spr.tbu = 269;spr.UTBL = 284;spr.utbl = 284;spr.UTBU = 285;spr.utbu = 285
   spr.PVR = 287;spr.pvr = 287;spr.UMMCR0 = 936;spr.ummcr0 = 936;spr.UPMC1 = 937;spr.upmc1 = 937
   spr.UPMC2 = 938;spr.upmc2 = 938;spr.USIA = 939;spr.usia = 939;spr.UMMCR1 = 940;spr.ummcr1 = 940
-  spr.UPMC3 = 941;spr.upmc3 = 941;spr.UPMC4 = 942;spr.upmc4 = 942;.endif
+  spr.UPMC3 = 941;spr.upmc3 = 941;spr.UPMC4 = 942;spr.upmc4 = 942;spr.cr = 0;spr.CR = 0
+  spr.sr = 0;spr.SR = 0;spr.msr = 0;spr.MSR = 0;.endif
 

@@ -1,7 +1,7 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module spr, 2
+punkpc.module spr, 3
 .if module.included == 0
   punkpc idxr, regs
   .macro lmspr,  a,  idxr,  sprs:vararg
@@ -297,5 +297,11 @@ punkpc.module spr, 2
   spr.upmc3 = 941
   spr.UPMC4 = 942
   spr.upmc4 = 942
+  spr.cr = 0
+  spr.CR = 0
+  spr.sr = 0
+  spr.SR = 0
+  spr.msr = 0
+  spr.MSR = 0
 .endif
 

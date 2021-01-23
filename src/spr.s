@@ -6,6 +6,8 @@
 
 ##*/
 ##/* Updates:
+# version 0.0.3
+# - extended symbols dictionary to include 'spr.cr', 'spr.sr', and 'spr.msr'
 # version 0.0.2
 # - changed unspecific 'qr' keyword to default to 'qr1' instead of 'qr7'
 # - added 'spr_count' return property, for counting the number of spr args that were given
@@ -89,7 +91,7 @@ lmspr  r0, 0x10(sp), cr, ctr, lr, qr7, srr0, srr1, msr, tbu, tbl
 
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module spr, 2
+punkpc.module spr, 3
 .if module.included == 0; punkpc idxr, regs
 
 .macro lmspr, a, idxr, sprs:vararg
@@ -323,6 +325,16 @@ spr.UPMC3  = 941
 spr.upmc3  = 941
 spr.UPMC4  = 942
 spr.upmc4  = 942
+
+# --- extra symbols
+# - for recognition as part of dictionary
+# - (even though they're not technically SPRs, they can be handled by the macro)
+spr.cr  = 0
+spr.CR  = 0
+spr.sr  = 0
+spr.SR  = 0
+spr.msr = 0
+spr.MSR = 0
 
 .endif
 /**/
