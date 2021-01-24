@@ -4,7 +4,8 @@
 
 ##*/
 ##/* Updates:
-
+# version 0.0.2
+# - updated list to include sp module, as intended
 # version 0.0.1
 # - added to punkpc module library
 ##*/
@@ -45,7 +46,7 @@
 # --- regs
 # Enables generic gpr, fpr, and cr names as symbols with an expression emitter
 
-# --- bcount, hidden, if, mut, obj, sidx, list, str
+# --- bcount, hidden, if, mut, obj, sidx, stack, items
 # - these are also include, as part of the prereqs for the other modules
 
 
@@ -59,9 +60,9 @@ punkpc ppc
 ##*/
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module ppc, 1
+punkpc.module ppc, 2
 .if module.included == 0
 
-  punkpc branch, cr, data, enum, idxr, load, lmf, small, spr, regs #, sp
+  punkpc branch, cr, data, idxr, load, small, sp
 
 .endif
