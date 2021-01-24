@@ -131,6 +131,9 @@
 # - starts at r3, increments by +1
 # - gets restarted by 'sp.pop'
 
+# --- sp.commit
+# May be used to finalize a frame's parameters before calling sp.pop, for immediate evaluations
+
 # --- sp.pop
 # Finalizes all generatted errata expressions by defining the missing vars for all enumerations
 # - this generates the '.base' and '.total' values referenced by enumerators
@@ -148,11 +151,111 @@
 
 # 'lmf' and 'spr' modules are available for multiple float/spr loads/stores external from the stack
 
+## Binary from examples:
+
+## 7C0802A6 9421FFE0
+## 90010024 BFC10010
+## BBC10010 80010024
+## 38210020 7C0803A6
+## 7C0802A6 9421FFE0
+## 90010024 BFC10010
+## BBC10010 80010024
+## 38210020 7C0803A6
+## 7C0802A6 9421FFE0
+## 90010024 BFC10010
+## BBC10010 80010024
+## 38210020 7C0803A6
+## 7C0802A6 9421FFC0
+## 90010044 7C0902A6
+## 90010020 BFA10024
+## DBE10030 DBC10038
+## CBE10030 CBC10038
+## BBA10024 80010020
+## 7C0903A6 80010044
+## 38210040 7C0803A6
+## 7C0802A6 9421FFC0
+## 90010044 7C0902A6
+## 90010020 BFA10024
+## DBE10030 DBC10038
+## CBE10030 CBC10038
+## BBA10024 80010020
+## 7C0903A6 80010044
+## 38210040 7C0803A6
+## 7C0802A6 9421FFA0
+## 90010064 7C0902A6
+## 90010010 7C000026
+## 90010014 7C0000A6
+## 90010018 7C17E2A6
+## 9001001C BE010020
+## 7C0802A6 9421FFD0
+## 90010034 7C0902A6
+## 90010010 BF810014
+## 2C800000 4086FFE5
+## BB810014 80010010
+## 7C0903A6 80010034
+## 38210030 7C0803A6
+## 4DA60020 BA010020
+## 80010010 7C0903A6
+## 80010014 7C0FF120
+## 80010018 7C000124
+## 8001001C 7C17E3A6
+## 80010064 38210060
+## 7C0803A6 4E800020
+## 7C0802A6 9421FFE0
+## 90010024 BFA10010
+## 83E30000 83C30004
+## 83A40000 BBA10010
+## 80010024 38210020
+## 7C0803A6 7C0802A6
+## 9421FFE0 90010024
+## BFA10010 83E30000
+## 83C30004 83A40000
+## BBA10010 80010024
+## 38210020 7C0803A6
+## 7C0802A6 9421FFE0
+## 90010024 BFA10010
+## 83E30000 83C30004
+## 83A40000 BBA10010
+## 80010024 38210020
+## 7C0803A6 7C0802A6
+## 9421FFD0 90010034
+## DBE10010 DBC10018
+## DBA10020 DB810028
+## C3E30000 C3C30004
+## C3A30008 139FF420
+## CBE10010 CBC10018
+## CBA10020 CB810028
+## 80010034 38210030
+## 7C0803A6 7C0802A6
+## 9421FFE0 90010024
+## BFA10010 83E30000
+## 83C30004 83A40000
+## 80A40004 E0050000
+## C0250008 BBA10010
+## 80010024 38210020
+## 7C0803A6 7C0802A6
+## 9421FFD0 90010034
+## 39210010 7C69C5AA
+## 80010034 38210030
+## 7C0803A6 7C0802A6
+## 9421FFC0 90010044
+## 39210010 7C69C5AA
+## 39210028 7C839CAA
+## 7C899DAA 80010044
+## 38210040 7C0803A6
+## 9421FFE0 F0217010
+## F0417012 80610010
+## 38210020
+
+
+
 ##*/
 /*## Examples:
 .include "punkpc.s"
 punkpc sp
 # Use the 'punkpc' statement to load this module, or include the module file directly
+
+
 
 
 
@@ -189,6 +292,7 @@ mtlr r0
 
 
 
+
 # The 'sp' module provides macro-instructions that handle this with fewer inputs:
 
 sp.push lr, r30
@@ -206,6 +310,8 @@ sp.pop
 
 
 
+
+
 # If you prefer, the convenience macros 'prolog' and 'epilog' are also available, and imply 'lr'
 
 prolog r30
@@ -219,7 +325,9 @@ epilog
 
 
 
-# --- CREATING A MORE COMPLEX STACK FRAME ---
+
+
+# --- SIMPLIFYING COMPLEX FRAME DEFINITIONS---
 
 # As the requirements of a function increase, so too will the complexity of 'pushing' and 'popping':
 
@@ -234,14 +342,17 @@ stfd f30, 0x38(sp)
 
 # ... a function that makes calls, uses 0x10 bytes, r29, r30, r31, f30, f31, and ctr goes here ...
 
-lfd f30, 0x38(sp)
 lfd f31, 0x30(sp)
+lfd f30, 0x38(sp)
 lmw r29, 0x24(sp)
 lwz r0, 0x20(sp)
 mtctr r0
 lwz r0, 0x44(sp)
-addi sp, sp, 0x44
+addi sp, sp, 0x40
 mtlr r0
+
+
+
 
 
 # The 2-macro equivalent uses the following keywords:
@@ -256,13 +367,16 @@ epilog
 
 # '0x10' - a literal expression like this will define a number of bytes in temporary memory
 # 'r29'  - specifies that we back up r29, r30, and r31 with the singular 'stmw' instruction
-# 'f31'  - specifies that we back up f30, and f31 with individual 'stfd' instructions
+# 'f30'  - specifies that we back up f30, and f31 with individual 'stfd' instructions
+
+
+
 
 
 # Stack frames are organized within the module using the following layers:
 
-# [ PAD   ] - 0x10 bytes of padding are always given to beginning of a frame, for stacking
-# [ TEMP  ] - temporary memory allocations always beginnin at 0x10(sp)
+# [ PAD   ] - 0x10 bytes of padding are always given to the beginning of a frame, for stacking
+# [ TEMP  ] - temporary memory allocations always begin at 0x10(sp)
 # [ SPRS  ] - special purpose registers are backed up after end of user memory definitions
 # [ GPRS  ] - general purpose registers are backed up after end of SPRS
 # [ FPRS  ] - floating point registers are backed up after end of GPRS
@@ -280,6 +394,236 @@ epilog
 # - multiple 'gprs' can be backed up with the cost of only 1 instruction in the prolog/epilog
 #   - while this is only 1 instruction in size -- it is slow; and slower for each added register
 # - multiple 'fprs' will require an extra instruction in the prolog/epilog for each register
+
+
+
+
+# Frames can be safely nested without losing information about parent prologs:
+
+prolog r16, ctr, cr, msr, qr7, xer
+
+  _recurse:
+  prolog ctr, r28
+
+    # ...
+
+    cmpwi cr1, r0, 0
+    bnel+ cr1, _recurse
+
+  epilog
+  beqlr+ cr1
+
+epilog
+blr
+# The epilog will remember your inputs in the prolog, even when nesting stack frames
+# - this may be useful for extending saved registers, recursion, or for defining callbacks
+
+
+
+
+
+
+# --- NAMING SAVED REGISTERS ---
+
+# We've seen how saved registers can be defined in the prolog args:
+
+prolog r29
+
+  lwz r31, 0x0(r3)
+  lwz r30, 0x4(r3)
+  lwz r29, 0x0(r4)
+
+  # ...
+
+epilog
+# When backing up registers with a number like this, they are anonymous
+# You may still reference them by index number, but no special names are given to the registers
+
+
+
+
+
+# You may instead specify saved registers by naming them 1 by 1
+# Each name must start with a lowercase 'r' and then an uppercase alphabetical char, like 'rName'
+
+prolog rIndex, rBase, rString
+
+  lwz rIndex,  0x0(r3)
+  lwz rBase,   0x4(r3)
+  lwz rString, 0x0(r4)
+
+  # ...
+
+epilog
+# This is identical to the above function, but is easier to read by humans
+
+
+
+
+
+
+# If you would prefer to give your registers more flexible names, you can use the 'sp.gprs' instead
+# 'sp.gprs' may be called anywhere in the function to influence the emitted 'stmw' instruction:
+
+prolog
+
+  sp.gprs reg_index, reg_base
+  # the first gpr must always be specified close to the prolog
+  # - otherwise, the 'stmw' instruction will appear in the middle of the function~
+
+  lwz reg_index,  0x0(r3)
+  lwz reg_base,   0x4(r3)
+  lwz reg_str,    0x0(r4)
+
+  sp.gprs reg_str
+  # (defining AFTER use is ok with this method if at least one other register is already defined)
+
+  # ...
+
+epilog
+
+
+
+
+
+
+# The same is true of 'sp.fprs' for floats:
+
+prolog fX, fY, fZ
+
+  regs rVec
+  sp.fprs pair_xy
+  lfs fX, 0x0(rVec)
+  lfs fY, 0x4(rVec)
+  lfs fZ, 0x8(rVec)
+  ps_merge00 pair_xy, fX, fY
+
+  # ...
+
+epilog
+# Unlike gprs, fprs will require extra instructions in the prolog and epilog for each register
+# - gprs only ever need 1 instruction to account for all registers
+# - fprs need N instructions for N registers
+
+# 'sp.sprs' has a similar limitation, but requires 2 instructions per register
+# - you should
+
+
+
+
+
+# If you would like to specify register names for UNSAVED registers, you can use 'regs' instead:
+
+prolog rIndex, rBase, rString
+
+  regs rParams, rStruct, rVec
+  # 'regs' always starts at r3 and counts up; resetting after each 'sp.pop' or 'epilog' call
+
+  regs (0), +1, fXY, fZ
+  # you can manage the index with the standard 'enum' syntax, using '+' '-' and '()' expressions
+  #   (number) sets the register count to a new index, directly
+  #   +/-number sets the iteration step, for incrementing or decrementing
+
+  lwz rIndex,  0x0(rParams)
+  lwz rBase,   0x4(rParams)
+  lwz rString, 0x0(rStruct)
+  lwz rVec,    0x4(rStruct)
+  psq_l fXY,   0x0(rVec), 0, 0
+  lfs fZ,      0x8(rVec)
+
+  # ...
+
+epilog
+# By naming all of your registers, you can hint at what your arguments/returns/working values are
+# Any registers named by 'regs' will not influence the size of the stack frame
+# - because of this, 'regs' works for both volatile gprs and fprs
+
+
+
+
+
+
+# --- ALLOCATING AND NAMING TEMPORARY MEMORY ---
+
+# When working with a stack frame, you have the opportunity to create a small amount of workspace
+
+# Giving 'sp.push' or 'prolog' an expression as an input will add that many bytes to the workspace:
+
+prolog 0x18
+
+  addi r9, sp, 0x10
+  # 0x10 bytes of padding always comes before the workspace
+
+  stswi r3, r9, 0x18
+  # store 0x18 bytes of arguments into our workspace, declared in the prolog
+
+epilog
+
+
+
+
+
+
+# You may also create indices in-between allocations by using a lowercase 'x' in an 'xName' syntax:
+
+Args   = 0x18
+String = 0x13
+# sizes of workspace sections...
+
+prolog xArgs, (Args), xString, (String)
+# 'prolog' and 'sp.push' pass these values to the 'sp.temp' enumerator
+# - the default step is '0', causing each 'xName' symbol to index the current count and not iterate
+#   - each (expression) in parentheses then explicitly defines a size for the last created index
+
+  regs rString, (r9), rTemp
+  # r3 ... r8 contain 'Args' that we will store in the workspace
+
+  addi rTemp, sp, sp.xArgs
+  stswi r3, rTemp, Args
+  # This is our created 'temp' memory
+  # 'sp.*' is used to protect the offset names
+  # - we reference the start of our temporary memory as 'sp.xArgs'
+
+  addi rTemp, sp, sp.xString
+  lswi r4, rString, String
+  stswi r4, rTemp, String
+  # - the same is true for 'sp.xString'
+
+  # ...
+
+epilog
+# When misaligned like this (0x3B byte frame) - padding is introduced to the frame size
+# - frame is ultimately aligned to 0x10 bytes, with smaller alignments in-between each section
+
+
+
+
+
+
+# --- All temporary memory offsets are given 'sp.*' as a prefix
+# You may make * anything you like by using 'sp.temp' instead of inputs in the prolog:
+
+sp.push
+
+  sp.temp +2, rg, ba
+  # '+' and '-' can still be used to change the step size
+  # - this makes it not-0, so we can just make a sequence of assignments without defining each size
+
+  psq_st f1, sp.rg(sp), 0, 7
+  psq_st f2, sp.ba(sp), 0, 7
+  lwz r3, sp.rg(sp)
+  # load 'rgba' from quantized store of f1(r,g) f2(b,a)
+
+sp.pop
+# Remember that 'sp.push' and 'sp.pop' are just more explicit versions of 'prolog' and 'epilog'
+
+# When naming offsets without the 'xName' syntax, be careful not to override any 'sp.*' attributes
+# - (... unless that's what you're trying to do)
+
+
+
+
+
 
 ##*/
 
@@ -312,7 +656,7 @@ punkpc.module sp, 1
   sp_obj sp.sprs, 2, , ,  (0), +1
   sp_obj sp.gprs, 2, , , (31), -1
   sp_obj sp.fprs, 3, , , (31), -1
-  sp_obj sp.temp, 0, sp., , (0), +4
+  sp_obj sp.temp, 0, sp., , (0), +0
   .purgem sp_obj # done with temp constructor
   # mutators common to these objects were applied in constructor
 
@@ -320,6 +664,7 @@ punkpc.module sp, 1
   sp.gprs.mode enum_parse, sp.gprs
   sp.fprs.mode enum_parse, sp.fprs
   sp.temp.mode enum_parse, sp.temp
+  sp.temp.mode numerical, relative
   # mutators unique to each object
 
 # all 'mutators' that come with the module are presented as 'modes'
@@ -458,24 +803,24 @@ punkpc.module sp, 1
   .if sp.epilog == 0
     sp.epilog = sp.mem_ID
     sidx.noalt "<sp.temp.base>", sp.mem_ID, "< = sp.temp.base>"
-    sidx.noalt "<sp.temp.total>", sp.mem_ID, "< = (sp.temp.bytes + 3) !& ~3>"
+    sidx.noalt "<sp.temp.total>", sp.mem_ID, "< = sp.temp.bytes>"
     sidx.noalt "<sp.temp.total = sp.temp.total>", sp.mem_ID
 
-    sidx.noalt3 "<sp.sprs.base>", sp.mem_ID, "< = sp.temp.total>" /*
-    */, sp.mem_ID, "< + sp.temp.base>", sp.mem_ID
-    sidx.noalt "<sp.sprs.total>", sp.mem_ID, "< = (sp.sprs.bytes + 3) !& ~3>"
+    sidx.noalt3 "<sp.sprs.base>", sp.mem_ID, "< = (sp.temp.total>" /*
+    */, sp.mem_ID, "< + sp.temp.base>", sp.mem_ID, "< + 3) !& ~3>"
+    sidx.noalt "<sp.sprs.total>", sp.mem_ID, "< = sp.sprs.bytes>"
     sidx.noalt "<sp.sprs.total = sp.sprs.total>", sp.mem_ID
 
-    sidx.noalt3 "<sp.gprs.base>", sp.mem_ID, "< = sp.sprs.total>" /*
-    */, sp.mem_ID, "< + sp.sprs.base>", sp.mem_ID
-    sidx.noalt "<sp.gprs.total>", sp.mem_ID, "< = (sp.gprs.bytes + 7) !& ~7>"
+    sidx.noalt3 "<sp.gprs.base>", sp.mem_ID, "< = (sp.sprs.total>" /*
+    */, sp.mem_ID, "< + sp.sprs.base>", sp.mem_ID, "< + 3) !& ~3>"
+    sidx.noalt "<sp.gprs.total>", sp.mem_ID, "< = sp.gprs.bytes>"
     sidx.noalt "<sp.gprs.total = sp.gprs.total>", sp.mem_ID
     sidx.noalt "<sp.gprs.lowest>", sp.mem_ID, "< = sp.gprs.low+1>"
     sp.gprs.lowest = sp.gprs.low+1
 
-    sidx.noalt3 "<sp.fprs.base>", sp.mem_ID, "< = sp.gprs.total>" /*
-    */, sp.mem_ID, "< + sp.gprs.base>", sp.mem_ID
-    sidx.noalt "<sp.fprs.total>", sp.mem_ID, "< = (sp.fprs.bytes + 7) !& ~7>"
+    sidx.noalt3 "<sp.fprs.base>", sp.mem_ID, "< = (sp.gprs.total>" /*
+    */, sp.mem_ID, "< + sp.gprs.base>", sp.mem_ID, "< + 7) !& ~7>"
+    sidx.noalt "<sp.fprs.total>", sp.mem_ID, "< = sp.fprs.bytes>"
     sidx.noalt "<sp.fprs.total = sp.fprs.total>", sp.mem_ID
     sidx.noalt "<sp.fprs.lowest>", sp.mem_ID, "< = sp.fprs.low+1>"
     sp.fprs.lowest = sp.fprs.low+1
@@ -543,8 +888,8 @@ punkpc.module sp, 1
 
 .endm; .macro sp.__checkreg, arg, enum
   .if (sp.chars$1 >= 0x30) && (sp.chars$1 <=0x33);
-    enum.mut.count.sp_obj \enum, \arg - \enum\().step
     enum.mut.count.sp_obj \enum, \arg
+    enum.mut.count.sp_obj \enum, \enum\().count + \enum\().step
   .else; sp.__checkx \arg, \enum\().__items; .endif
   # catches 'rN' and 'rName', if 'N' is a number between 0...3, or 'Name' starts in upper case
   # works for names starting with 'r' or 'f'
@@ -558,8 +903,12 @@ punkpc.module sp, 1
   .ifc \arg, LR; sp.lr.__has_items = 1; .exitm; .endif
   # catch 'lr' keyword as a special case, instead of as part of sprs
 
+  .ifc \arg, no_lr; sp.lr.__has_items = 0; .exitm; .endif
+  .ifc \arg, NO_LR; sp.lr.__has_items = 0; .exitm; .endif
+  # also catch 'no_lr' to toggle lr off, in case of using the 'prolog' macro
+
   ifnum.check_ascii
-  .if num; enum.mut.count.sp_obj sp.temp, sp.temp.count + \arg
+  .if num; sp.temp.__items,, \arg
   # if it's an expression, then consider it a size for adding as padding in temp memory
 
   .else; ifdef spr., \arg
