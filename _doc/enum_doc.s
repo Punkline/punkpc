@@ -6,6 +6,10 @@
 # --- Updates:
 
 
+# version 0.2.2
+# - added 'en' module, for fast (featureless) enumeration processes
+# - added 'quick' 'enum_parse_iter' mutator mode, for implementing 'en'-like enumerator objects
+# - added 'relative' 'numerical' mutator mode, to edit count index relatively instead of absolutely
 # version 0.2.1
 # - implemented default mutator hooks, to lower the number of macros required for each object
 # - changed order of operations in loading old 'xem' prereq with 'regs' at end of module
@@ -659,6 +663,9 @@ hex hello, world
     # --- count, bool
     # Assigns count after ANDing it by 0x1F -- creating a modulo range of 0...31
 
+
+    # --- numerical, relative
+    # Causes adjustments to the count index to be relative instead of absolute
 
 
 

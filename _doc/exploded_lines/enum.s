@@ -1,9 +1,9 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module enum, 0x201
+punkpc.module enum, 0x202
 .if module.included == 0
-  punkpc obj
+  punkpc obj, en
   enum.uses_mutators = 1
   obj.class enum
   enum.uses_pointers = 1
@@ -161,6 +161,23 @@ punkpc.module enum, 0x201
   .macro enum.mut.count.bool,  self,  arg,  va:vararg
     \self\().last = \self\().count
     \self\().count = \arg & 0x1F
+  .endm;
+  .macro enum.mut.numerical.relative,  self,  arg,  char,  va:vararg
+    .if \char == 0x28
+      mut.call \self, count, default, enum, , , \self\().count + \arg, \va
+    .elseif \char >= 0x30;
+      .if \char <= 0x39
+        mut.call \self, count, default, enum, , , \self\().count + \arg, \va
+      .endif;
+    .elseif \char == 0x2B;
+      mut.call \self, step, default, enum, , , \arg, \va
+    .elseif \char == 0x2D;
+      mut.call \self, step, default, enum, , , \arg, \va
+    .endif;
+  .endm;
+  .macro enum.mut.enum_parse_iter.quick,  self,  arg,  va:vararg
+    \arg=\self\().count
+    \self\().count = \self\().count + \self\().step
   .endm;
   enum.new enum.temp
   enumb.new enumb.temp, , , -1, (31)

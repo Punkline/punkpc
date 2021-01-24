@@ -7,6 +7,10 @@
 
 ##/* Updates:
 
+# version 0.2.2
+# - added 'en' module, for fast (featureless) enumeration processes
+# - added 'quick' 'enum_parse_iter' mutator mode, for implementing 'en'-like enumerator objects
+# - added 'relative' 'numerical' mutator mode, to edit count index relatively instead of absolutely
 # version 0.2.1
 # - implemented default mutator hooks, to lower the number of macros required for each object
 # - changed order of operations in loading old 'xem' prereq with 'regs' at end of module
@@ -179,6 +183,9 @@
     # --- count, bool
     # Assigns count after ANDing it by 0x1F -- creating a modulo range of 0...31
 
+
+    # --- numerical, relative
+    # Causes adjustments to the count index to be relative instead of absolute
 
 
 
@@ -785,10 +792,10 @@ hex hello, world
 ##*/
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module enum, 0x201
+punkpc.module enum, 0x202
 .if module.included == 0
 
-  punkpc obj
+  punkpc obj, en
   # import punkpc class module prereqs, if not already in assembler environment
   enum.uses_mutators = 1
   obj.class enum
@@ -1000,6 +1007,21 @@ enum.meth, enum_parse, enum_parse_iter, numerical, literal, count, step, mask
 
   .endm; .macro enum.mut.count.bool, self, arg, va:vararg
     \self\().last = \self\().count; \self\().count = \arg & 0x1F
+
+
+
+  .endm; .macro enum.mut.numerical.relative, self, arg, char, va:vararg
+    .if \char == 0x28;     mut.call \self, count, default, enum, , , \self\().count + \arg, \va
+    .elseif \char >= 0x30
+      .if \char <= 0x39;   mut.call \self, count, default, enum, , , \self\().count + \arg, \va;
+      .endif
+    .elseif \char == 0x2B; mut.call \self, step, default, enum, , , \arg, \va
+    .elseif \char == 0x2D; mut.call \self, step, default, enum, , , \arg, \va
+    .endif
+
+
+  .endm; .macro enum.mut.enum_parse_iter.quick, self, arg, va:vararg
+    \arg=\self\().count; \self\().count = \self\().count + \self\().step
 
   .endm
 
