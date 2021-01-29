@@ -139,11 +139,12 @@ myLib.raw "GALE01/ItCo.usd, 0xF4A40, 0x1000", "GALE01/ItCo.usd, 0xF5A40, 0x200"
 
 
 # --- Constructor Method
-# --- module.library  name, ext
+# --- module.library  name, ext, ...
 # This creates a library object of the given name, like the 'punkpc' object
-# - it can be used to store a path to your module files, and called in order to feed it module names
+# - it can be used to store a path to your module files, and called to feed it module names
 # - any given module name will then be .included if the module version doesn't exist, or is null
 # - if 'ext' is blank, the default extension will be '.s'
+# - '...' allows you to input a list of default modules to load if no args are provided
 
 # Library names must be checked literally before passing them to the module.library call
 # - use a .ifdef block and a literal name to do this easily

@@ -1,7 +1,7 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module obj, 1
+punkpc.module obj, 2
 .if module.included == 0
   punkpc if, hidden, mut
   obj.state.altm = alt

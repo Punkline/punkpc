@@ -268,7 +268,7 @@ epilog
 # - fprs need N instructions for N registers
 
 # 'sp.sprs' has a similar limitation, but requires 2 instructions per register
-# - you should
+# - you should always define these immediately after the prolog since they always emit instructions
 
 
 

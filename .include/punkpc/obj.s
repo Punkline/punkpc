@@ -1,5 +1,5 @@
 .ifndef punkpc.library.included
-  .include "punkpc.s";.endif;punkpc.module obj, 1
+  .include "punkpc.s";.endif;punkpc.module obj, 2
 .if module.included == 0;  punkpc if, hidden, mut;obj.state.altm = alt;obj.state.alt = 0
   objClasses$ = 0;obj.class.uses_pointers = 1;obj.class.self_pointers = 0
   obj.class.uses_mutators = 0;obj.class..uses_obj_mut_methods = 1
