@@ -1,5 +1,5 @@
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module mut, 3
+punkpc.module mut, 5
 .if module.included == 0; punkpc ifdef
 
   mut.mutable_class$ = 0
@@ -21,18 +21,19 @@ punkpc.module mut, 3
       .if ndef; \class\().uses_obj_mut_methods = mut.uses_obj_mut_methods; .endif
 
       # instantiated class-level constructor methods:
-      .macro \class\().hook, hook, obj
+      .macro \class\().hook, obj, hook
         mut.hook \hook, \obj, \class, \mut_ns, \hook_ns
 
-      .endm; .macro \class\().mut, mut, hook, obj
-      # --- if only 'mut' is given, it becomes 'self' in an object constructor
-      # if only 1 arg, assume it's an obj that needs to be given mutator construction methods
+      .endm; .macro \class\().mut, obj, mut, hook
+      # if only 'obj' is given, it becomes 'self' in an object constructor
+      # if 'hook' is blank, 'mut' becomes the object constructor's hook namespace
+      # else args work as named...
 
-        .ifb \obj; .ifnb \hook; mut.obj \mut, \class, \mut_ns, \hook;
-          .else; mut.obj \mut, \class, \mut_ns, \hook_ns; .endif
+        .ifb \hook; .ifnb \mut; mut.obj \obj, \class, \mut_ns, \mut;
+          .else; mut.obj \obj, \class, \mut_ns, \hook_ns; .endif
         .else; mut.mut \mut, \hook, \obj, \hook_ns; .endif
 
-      .endm; .macro \class\().mode, mode, hook, obj;
+      .endm; .macro \class\().mode, obj, mode, hook;
         mut.mode \mode, \hook, \obj, \class, \mut_ns, \hook_ns
 
       .endm; .macro \class\().call_\hook_ns, obj, hook, mode=default, va:vararg

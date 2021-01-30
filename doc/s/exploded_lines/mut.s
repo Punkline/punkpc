@@ -1,7 +1,7 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module mut, 3
+punkpc.module mut, 5
 .if module.included == 0
   punkpc ifdef
   mut.mutable_class$ = 0
@@ -18,21 +18,21 @@ punkpc.module mut, 3
       .if ndef
         \class\().uses_obj_mut_methods = mut.uses_obj_mut_methods
       .endif;
-      .macro \class\().hook,  hook,  obj
+      .macro \class\().hook,  obj,  hook
         mut.hook \hook, \obj, \class, \mut_ns, \hook_ns
       .endm;
-      .macro \class\().mut,  mut,  hook,  obj
-        .ifb \obj
-          .ifnb \hook
-            mut.obj \mut, \class, \mut_ns, \hook
+      .macro \class\().mut,  obj,  mut,  hook
+        .ifb \hook
+          .ifnb \mut
+            mut.obj \obj, \class, \mut_ns, \mut
           .else;
-            mut.obj \mut, \class, \mut_ns, \hook_ns
+            mut.obj \obj, \class, \mut_ns, \hook_ns
           .endif;
         .else;
           mut.mut \mut, \hook, \obj, \hook_ns
         .endif;
       .endm;
-      .macro \class\().mode,  mode,  hook,  obj
+      .macro \class\().mode,  obj,  mode,  hook
         mut.mode \mode, \hook, \obj, \class, \mut_ns, \hook_ns
       .endm;
       .macro \class\().call_\hook_ns,  obj,  hook,  mode=default,  va:vararg

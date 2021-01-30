@@ -1,18 +1,18 @@
 .ifndef punkpc.library.included
-  .include "punkpc.s";.endif;punkpc.module mut, 3
+  .include "punkpc.s";.endif;punkpc.module mut, 5
 .if module.included == 0;  punkpc ifdef;mut.mutable_class$ = 0;mut.mutable_obj$ = 0
   mut.mutator$ = 0;mut.mutable_mode$ = 0;mut.uses_obj_mut_methods = 1
   .macro mut.class,  class,  mut_ns=mut,  hook_ns=hook;  ifdef \class\().is_mutable_class
     .if ndef;  mut.mutable_class$ = mut.mutable_class$ + 1
       \class\().is_mutable_class=mut.mutable_class$;ifdef \class\().uses_obj_mut_methods
       .if ndef;  \class\().uses_obj_mut_methods = mut.uses_obj_mut_methods;.endif;
-      .macro \class\().hook,  hook,  obj;  mut.hook \hook, \obj, \class, \mut_ns, \hook_ns
-      .endm;.macro \class\().mut,  mut,  hook,  obj
-        .ifb \obj
-          .ifnb \hook;  mut.obj \mut, \class, \mut_ns, \hook
-          .else;  mut.obj \mut, \class, \mut_ns, \hook_ns;.endif;
+      .macro \class\().hook,  obj,  hook;  mut.hook \hook, \obj, \class, \mut_ns, \hook_ns
+      .endm;.macro \class\().mut,  obj,  mut,  hook
+        .ifb \hook
+          .ifnb \mut;  mut.obj \obj, \class, \mut_ns, \mut
+          .else;  mut.obj \obj, \class, \mut_ns, \hook_ns;.endif;
         .else;  mut.mut \mut, \hook, \obj, \hook_ns;.endif;
-      .endm;.macro \class\().mode,  mode,  hook,  obj
+      .endm;.macro \class\().mode,  obj,  mode,  hook
         mut.mode \mode, \hook, \obj, \class, \mut_ns, \hook_ns
       .endm;.macro \class\().call_\hook_ns,  obj,  hook,  mode=default,  va:vararg
         mut.call \obj, \hook, \mode, \class, \mut_ns, \hook_ns, \va

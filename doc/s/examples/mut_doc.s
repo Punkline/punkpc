@@ -11,6 +11,9 @@
 
 # --- Updates:
 
+# Version 0.0.5
+# - changed annoying order of arguments in class-level methods
+#   - 'obj' now comes as first argument, as one might intuit
 # Version 0.0.4
 # - added '.uses_obj_mut_methods' flag to class and module levels
 #   - flagging this as false will cause the affected class to generate objects with no mut methods
@@ -321,9 +324,9 @@ i.mode decr, word
 
 
   # --- Class Methods
-  # --- .hook        hook, obj  - construct mutator hooks
-  # --- .mut   mut,  hook, obj  - mutate hook with unregistered mutation callback
-  # --- .mode  mode, hook, obj  - mutate hook with a registered mode keyword
+  # --- .hook  obj,       hook  - construct mutator hooks
+  # --- .mut   obj, mut,  hook  - mutate hook with unregistered mutation callback
+  # --- .mode  obj, mode, hook  - mutate hook with a registered mode keyword
   # These all pass  class, hook_ns,  and  mut_ns  to corresponding corresponding 'mut.*' methods
   # - they are constructed by the mut.class method
 
