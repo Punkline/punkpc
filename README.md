@@ -1,10 +1,10 @@
 # punkpc
 
-Punkpc is a collection of several loose experiments in GNU Assembler that assist in writing small binaries without relying on a linker or a compiler for high level features. It is intended for use with the PowerPC instruction set.
+Punkpc is a collection of several loose experiments made for use in GNU Assembler that may assist in writing small binaries. The tools are presented as importable modules with a special macro that handles `.include` statements as needed for branching prerequisites.
 
 ## About
 
-I started this project after exploring the kind of utility that could be squeezed out of basic symbol and macro primitives in GAS. It provides in-assembler tools that are useful for writing injection code, function libraries, and small files with just `as.exe`.
+I started this project after exploring the kind of utility that could be squeezed out of basic symbol and macro primitives in GAS. It provides in-assembler tools that are useful for writing injection code, function libraries, and small files with just `as.exe`. It's intended to be usable without relying on a linker or a compiler for high level features.
 
 Some of the modules offer convenient tweaks and extensions to the PowerPC language. They are all collected under the module called `ppc`:
 
@@ -12,29 +12,35 @@ Some of the modules offer convenient tweaks and extensions to the PowerPC langua
 
 ---
 
-Other modules provide 'classes' in GAS that can instantiate objects for use in the assembler environment.
+Punkpc is intended for use with the PowerPC instruction set, but contains tools that work with just GNU Assembler, as well. Other modules provide 'classes' in GAS that can instantiate objects for use in the assembler. These classes are simply strict uses of namespaces in macros and symbols.
 
-Strings can be accessed with the `str` module. These objects allow for scalar literal memory to be stored, appended, and emitted elsewhere in the assembly program as part of a statement:
+For instance: the `str` module offers a useful class of 'string' objects for the GAS environment. These allow for scalar literal memory to be stored, appended, and emitted elsewhere in the assembly program as part of a statement:
 
 ![example use of the 'str' module][img_str]
 
 ---
 
-Stacks can be accessed with the `stack` module. They allow for scalar integer memory to be stored, appended, and accessed through a scalar variable, or through discretely named symbols, directly.
+The `stack` module is another example of a useful class of object. They allow for a different type of scalar memory that uses integers through a scalar variable, or through references to discretely named symbols.
+
+Stack objects are also made with the `obj` module, and can be extended and mutated.
 
 Lists from the `list` module are an extended version of stacks that include features for iterating through a stack of integer values, or reading/writing to them more easily with random access:
 
 ![example use of the 'list' module][img_list]
 
-- For a full list of the provided modules, see the extra readme in the [doc directory][doc].
+---
+
+It's possible to do tasks such as sorting, pointing, and concatenation with scalar buffers provided by these objects. These kinds of constructs are normally very tedious to create in GAS, but become much easier to implement and make use of through this meta-object system.
+
+- For a full list of the provided class modules, and some guides on how to use them -- see the table of contents in the extra readme in the [doc directory][doc].
 
 
 
 ## Installation
 
-Simply copy the contents of the [.include directory][inc] into your working `as.exe` directory.
+To install punkpc, simply copy the contents of the [.include directory][inc] into your working `as.exe` directory.
 
-- alternatively, copy them into a place that is accessed by the `-I` [command][icommand], for include directories.
+> alternatively, copy the contents into a place that is accessed by the `-I` [command][icommand], for include directories.
 
 
 
@@ -54,6 +60,8 @@ punkpc str, list, data
 ```
 
 Each 'module' argument `*` corresponds with a `*.s` file in the library object's designated folder. For punkpc, this is the `punkpc/` folder. You may adjust this as needed by your assembler environment.
+
+Modules are imported through conditional use of the `.include` statement, which can be used as a manual alternative to using library objects, if desired.
 
 
 ## More Info
