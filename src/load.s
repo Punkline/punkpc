@@ -1,7 +1,8 @@
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module load, 2
+punkpc.module load, 3
 .if module.included == 0; punkpc regs
-.ifndef load.purge; load.purge = 0; .endif; .if load.purge; load.purge = 0; .purgem load; .endif
+.ifndef load.purgem; load.purgem = 0; .endif
+.if load.purgem; .purgem load; .endif; load.purgem = 1
   .irp x,bufa,bufb,bufi,len,w,em,strinput;load.__\x=0;.endr; load.opt=1
   .macro load,r=-31,va:vararg; load.__rev=0;i=0;load.__str=0;
     .irp x,bufa,bufb,bufi,len,w,em,strinput;load.__\x=0;.endr;
