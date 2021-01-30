@@ -1,6 +1,6 @@
 # punkpc
 
-Punkpc is a collection of several loose experiments in GNU Assembler that assist in writing small binaries without relying on a linker or a compiler for high level features. It is intended for use with the PowerPC instruction set, which can exploit the `blrl` instruction to create in-line data tables that are detected relative to the program counter at runtime, and require no formal `.data` section in the assembly to access.
+Punkpc is a collection of several loose experiments in GNU Assembler that assist in writing small binaries without relying on a linker or a compiler for high level features. It is intended for use with the PowerPC instruction set.
 
 ## About
 
@@ -10,6 +10,7 @@ Some of the modules offer convenient tweaks and extensions to the PowerPC langua
 
 ![example use of the 'ppc' module][img_ppc]
 
+---
 
 Other modules provide 'classes' in GAS that can instantiate objects for use in the assembler environment.
 
@@ -17,6 +18,7 @@ Strings can be accessed with the `str` module. These objects allow for scalar li
 
 ![example use of the 'str' module][img_str]
 
+---
 
 Stacks can be accessed with the `stack` module. They allow for scalar integer memory to be stored, appended, and accessed through a scalar variable, or through discretely named symbols, directly.
 
@@ -40,14 +42,14 @@ Simply copy the contents of the [.include directory][inc] into your working `as.
 
 Use the `.include` directive to load **"punkpc.s"** (in quotes, all lowercase):
 
-```
+```YAML
 .include "punkpc.s"
 ```
 
 
 This gives you access to the `punkpc` library object, which you can invoke it to import modules:
 
-```
+```YAML
 punkpc str, list, data
 ```
 
@@ -56,12 +58,8 @@ Each 'module' argument `*` corresponds with a `*.s` file in the library object's
 
 ## More Info
 
-- See the [doc directory][doc] for examples and documentation of various punkpc class modules
+- See the [doc directory][doc] for examples, documentation, and guides
 - See the [src directory][src] for commented source and scratch notes
-
-#### Guides:
-
-- [Creating New Library Objects][guide_library_objects]
 
 [doc]: /doc/
 [src]: /src/
