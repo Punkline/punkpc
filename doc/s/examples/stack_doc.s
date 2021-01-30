@@ -6,6 +6,12 @@
 
 # --- Updates:
 
+# version 0.2.1
+# - added '.rept' and '.rept_range' class level methods
+#   - can be used iterate through a stack range without modifying a stack's index counter(s)
+# - added 'skip_blank' mutator mode for '.push' hook
+# - added 'relative' mutator mode for '.s' hook
+
 # --- version 0.2.0
 # - renamed 'stacks' to 'stack', for module name coherency
 # - split many 'stack' features into extensions in the form of the new 'list' module
@@ -272,6 +278,32 @@ a = sidx
 .long a
 # >>> 3
 
+
+
+
+
+# --- CLASS LEVEL ITERATORS
+# You may call the class-level 'stack.rept' method to iterate through a stack's contents
+
+stack  my_set
+my_set.push  1, 3, 5, 7, 9, 11, 13, 15
+# the range of 'my_set' is currently 8, from '.q' to '.s'
+
+stack.rept  my_set, .byte
+# >>> 1, 3, 5, 7, 9, 11, 13, 15
+# This passes they symbols associated with stack memory in 'my_set' to the '.byte' directive
+# - it reads from the current '.q' and '.s' index range, but does not modify them
+# - each item is passed to the directive separately in an individual iteration in the sequence
+
+stack.rept_range  my_set, [4], [6], .long
+# >>> 9, 11, 13
+# You can use a range specified entirely by arguments this way using the '.rept_range' variant
+# - specified range is inclusive, and index is 0-based
+# - brackets [] are optional
+
+stack.rept_range  my_set, [6], [4], .long
+# >>> 13, 11, 9
+# If you specify a ceiling that is less than the floor index, then it will iter in reverse order
 
 
 
@@ -563,7 +595,11 @@ stack.point stacks, .long
 ## 00000003 00000004
 ## 00000001 00000002
 ## 00000003 00000004
-## 00000003 01030307
+## 00000003 01030507
+## 090B0D0F 00000009
+## 0000000B 0000000D
+## 0000000D 0000000B
+## 00000009 01030307
 ## 00000000 01030307
 ## 01030307 01030307
 ## 07070707 01030307

@@ -1,5 +1,5 @@
 .ifndef punkpc.library.included
-  .include "punkpc.s";.endif;punkpc.module stack, 0x200
+  .include "punkpc.s";.endif;punkpc.module stack, 0x201
 .if module.included == 0;  punkpc sidx, if, obj;stack.fill = 0;stack.size = 0;stack.sss = 1<<31-1
   stack$ = 0;stack.idx = 0;stack.oob = 0;stack.uses_mutators = 1;obj.class stack;mut.class stack
   .macro stack,  self,  varg:vararg;  stack.obj \self
@@ -25,7 +25,29 @@
     .ifnb \varg;  stack \varg
     .else;  .irp ppt,  fill,  size,  ;  stack.\ppt = 0;.endr;.endif;
   .endm;stack.meth, fill, s, ss, q, new, reset, push, pop, popm, deq
-  .macro stack.__fill,  self,  start,  size,  fill;  LOCAL i, idx, f
+  .macro stack.rept,  self,  va:vararg;  stack.memalt = alt;ifalt;stack.alt = alt
+    stack.pointer \self;stack.point, stack.__rept, +1, , , \va
+  .endm;.macro stack.rept_range,  self,  va:vararg;  stack.memalt = alt;ifalt;stack.alt = alt
+    stack.pointer \self;stack.point, stack.__rept, +1, \va
+  .endm;.macro stack.__rept,  self,  step,  start,  end,  macro,  va:vararg
+    .ifb \start;  stack.__rept \self, +1, \self\().q, \self\().s-1, "\macro", \va
+    .elseif (\step > 0) && (\start > \end);
+      stack.__rept \self, -1, \start, \end, "\macro", \va;.else;  stack.__rept = \start
+      stack.__rept_count = (\end+1) - \start
+      .if stack.__rept_count < 0
+        stack.__rept_count = -stack.__rept_count +2;.endif;
+      .if stack.__rept_count
+        .rept stack.__rept_count
+          .ifb \va;  sidx.noalt "<stack.__rept_iter \macro, \self>", stack.__rept
+          .else;  sidx.noalt "<stack.__rept_iter \macro, \self>", stack.__rept, , , \va
+          .endif;stack.__rept = stack.__rept + \step;.endr;ifalt.reset stack.alt
+        alt = stack.memalt;.endif;.endif;
+  .endm;.macro stack.__rept_iter,  macro,  mem,  va:vararg;  ifalt.reset stack.alt
+    \macro \mem \va
+  .endm;.macro stack.__check_first_blank,  arg,  va:vararg
+    .ifb \arg;  stack.__check_blank = 1
+    .else;  stack.__check_blank = 0;.endif;
+  .endm;.macro stack.__fill,  self,  start,  size,  fill;  LOCAL i, idx, f
     .ifb \start;  idx = \self\().qq
     .else;  idx = \start;.endif;
     .ifb \size;  i = \self\().init_size
@@ -102,6 +124,11 @@
           .if stack.oob==0;  sidx.ema <\self\().deq=\self>, %\self\().q
             \sym = \self\().deq;\self\().q = \self\().q + 1;.endif;.endif;stack.oob=0;.endr;
       ifalt.reset stack.memalt;stack.oob=0;.endif;
+  .endm;.macro stack.mut.s.relative,  self,  idx=1,  va:vararg
+    stack.mut.s.default \self, \self\().s + \idx, \va
+  .endm;.macro stack.mut.push.skip_blank,  self,  va:vararg;  stack.__check_first_blank \va
+    .if stack.__check_blank;  stack.mut.s.relative \self, \va
+    .else;  stack.mut.push.default \self, \va;.endif;
   .endm;.macro stack.mut.oob_pop.default,  va:vararg;  stack.mut.oob_pop.null \va
   .endm;.macro stack.mut.oob_deq.default,  va:vararg;  stack.mut.oob_deq.null \va
   .endm;.macro stack.mut.oob_push.default,  va:vararg;  stack.mut.oob_push.incr \va
