@@ -2,8 +2,9 @@
   punkpc.library.version = 0
 .endif;
 .ifeq punkpc.library.version
-  punkpc.library.version = 1
+  punkpc.library.version = 2
   module.included = 1
+  _punkpc = .
   .macro module.library,  self,  ext=".s",  default:vararg
     .macro \self,  va:vararg
       .ifb \va

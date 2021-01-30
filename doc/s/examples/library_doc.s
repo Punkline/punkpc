@@ -11,6 +11,8 @@
 
 # --- Updates:
 
+# version 0.0.2
+# - added a label variable, marking the program counter where library module was loaded
 # version 0.0.1
 # - added to punkpc module library
 
@@ -135,6 +137,9 @@ myLib.raw "GALE01/ItCo.usd, 0xF4A40, 0x1000", "GALE01/ItCo.usd, 0xF5A40, 0x200"
 # - this comes from the 'punkpc' library, and stores the version of this class module
 #   - other similarly named properties will be created for instantiated libraries and class modules
 
+# --- _punkpc - a label marking the starting point that the library object module was loaded
+# - label is a variable, but should remain read-only in most cases
+#   - as a variable, overriding it is possible if needed
 
 
 
