@@ -16,9 +16,11 @@
 
 # --- Updates:
 
-# version 0.0.3:
+# version 0.0.4
+# - added '.rept' method, from old 'stack' module
+# version 0.0.3
 # - added get/set methods
-# version 0.0.2:
+# version 0.0.2
 # - refactored namespace to match module name
 # version 0.0.1
 # - added to punkpc module library
@@ -29,6 +31,10 @@
 .include "punkpc.s"
 punkpc sidx
 # Use the 'punkpc' statement to load this module, or include the module file directly
+
+
+
+# --- MULTIDIMENSIONAL SCALAR INDICES ---
 
 myIndex=3
 classID=4
@@ -56,6 +62,9 @@ sidx.noalt3 myNamespace, myIndex, "<=myClass>", classID, .myObj, objID
 # >>> 00000006
 
 
+
+
+# --- GET AND SET ---
 # You can also use a simpler I/O interface in noaltmacro mode using the .get and .set methods:
 
 idx = 1000
@@ -78,6 +87,27 @@ sidx.set4 mykeys, idx, idx, idx, idx
 .long mykeys$1000$1000$1000$1000
 # >>> 00000005
 # example of a complex index
+
+
+
+
+# --- REPT ---
+
+a$1 = 100
+a$2 = 101
+a$3 = 102
+a$4 = 103
+# set some values in a sequence of indices
+
+sidx.rept a, 1, 4, .long
+# >>> 100, 101, 102, 103
+# The sequence of values in range 1 ... 4 are passed to the '.byte' directive
+# - this is done one item at a time
+#   - the macro or directive recieves the literals 'a$1', 'a$2', etc
+
+sidx.rept a, 4, 1, .long
+# >>> 103, 102, 101, 100
+# If the indices are reversed, then they will be passed in descending order instead of ascending
 
 
 # --- Module attributes:
@@ -130,14 +160,22 @@ sidx.set4 mykeys, idx, idx, idx, idx
 # --- sidx.set4   p, i, i2, i3, i4
 # - use 'sidx' property to input/output values from various scalar symbols this way
 
-
+# --- sidx.rept   p, start, end, macro, ...
+# A loop dispatcher that passes p$i, for sequence start...end
+# - 'macro' is the name of a macro, instruction, or directive that handles the outputs
+# - '...' may contain any args that come after the output
+# - if start and/or end are blank, they will be set to '0'
 
 ## Binary from examples:
 
 ## 00000006 00000006
 ## 00000006 00000006
 ## 00000005 00000005
-## 00000005
+## 00000005 00000064
+## 00000065 00000066
+## 00000067 00000067
+## 00000066 00000065
+## 00000064
 
 
 

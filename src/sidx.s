@@ -1,6 +1,7 @@
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module sidx, 3
+punkpc.module sidx, 4
 .if module.included == 0
+punkpc ifalt
 
 .altmacro
 .macro sidx.em,p,i,s,va:vararg;.noaltmacro;\p\()$\i\s\va
@@ -50,7 +51,28 @@ punkpc.module sidx, 3
 .macro sidx.set4,p,i,i2,i3,i4; .altmacro; sidx.ema4 \p, %\i,,%\i2,,%\i3,,%\i4,<=sidx>;
   .noaltmacro; .endm
 
+  .noaltmacro
 
-.noaltmacro
+.macro sidx.rept, self, va:vararg
+  sidx.memalt = alt; ifalt
+  sidx.alt = alt
+  sidx.__rept \self, +1, \va
+.endm; .macro sidx.__rept, self, step, start=0, end=0, macro, va:vararg
+  .if (\step > 0) && (\start > \end); sidx.__rept \self, -1, \start, \end, "\macro", \va
+  .else; sidx.__rept = \start
+    sidx.__rept_count = (\end+1) - \start
+    .if sidx.__rept_count < 0; sidx.__rept_count = -sidx.__rept_count +2; .endif
+    .if sidx.__rept_count
+      .rept sidx.__rept_count;
+        .ifb \va; sidx.noalt "<sidx.__rept_iter \macro, \self>", sidx.__rept
+        .else; sidx.noalt "<sidx.__rept_iter \macro, \self>", sidx.__rept,,,\va; .endif
+        sidx.__rept = sidx.__rept + \step
+      .endr; ifalt.reset sidx.alt; alt = sidx.memalt
+    .endif
+  .endif
+.endm; .macro sidx.__rept_iter, macro, mem, va:vararg
+  ifalt.reset sidx.alt; \macro \mem \va
+.endm
+
 .endif
 /**/
