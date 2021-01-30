@@ -1,5 +1,5 @@
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module stack, 0x201
+punkpc.module stack, 0x202
 .if module.included == 0; punkpc sidx, if, obj
 
 # Static Properties:
@@ -65,34 +65,21 @@ stack.meth, fill, s, ss, q, new, reset, push, pop, popm, deq
   # these class-level methods can handle object pointers without invoking methods
 
 .macro stack.rept, self, va:vararg
-  stack.memalt = alt; ifalt
-  stack.alt = alt
+  sidx.memalt = alt; ifalt
+  sidx.alt = alt
   stack.pointer \self
   stack.point, stack.__rept, +1, , , \va
 .endm; .macro stack.rept_range, self, va:vararg
-  stack.memalt = alt; ifalt
-  stack.alt = alt
+  sidx.memalt = alt; ifalt
+  sidx.alt = alt
   stack.pointer \self
   stack.point, stack.__rept, +1, \va
 .endm; .macro stack.__rept, self, step, start, end, macro, va:vararg
   .ifb \start; stack.__rept \self, +1, \self\().q, \self\().s-1, "\macro", \va
-  .elseif (\step > 0) && (\start > \end); stack.__rept \self, -1, \start, \end, "\macro", \va
-  .else; stack.__rept = \start
-    stack.__rept_count = (\end+1) - \start
-    .if stack.__rept_count < 0; stack.__rept_count = -stack.__rept_count +2; .endif
-    .if stack.__rept_count
-      .rept stack.__rept_count;
-        .ifb \va; sidx.noalt "<stack.__rept_iter \macro, \self>", stack.__rept
-        .else; sidx.noalt "<stack.__rept_iter \macro, \self>", stack.__rept,,,\va; .endif
-        stack.__rept = stack.__rept + \step
-      .endr; ifalt.reset stack.alt; alt = stack.memalt
-    .endif
-  .endif
-.endm; .macro stack.__rept_iter, macro, mem, va:vararg
-  ifalt.reset stack.alt; \macro \mem \va
+  .else; sidx.__rept \self, \step, \start, \end, "\macro", \va; .endif
 .endm; .macro stack.__check_first_blank, arg, va:vararg
   .ifb \arg; stack.__check_blank = 1; .else; stack.__check_blank = 0; .endif
-  # syntax helpers
+  # syntax helper
 
 
 .endm; .macro stack.__fill, self, start, size, fill; LOCAL i, idx, f#

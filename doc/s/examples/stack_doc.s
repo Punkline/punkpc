@@ -6,6 +6,9 @@
 
 # --- Updates:
 
+# version 0.2.2
+# - moved bulk of new '.rept' guts over to lower level 'sidx' module
+#   - stacks now use sidx to power their own '.rept' class methods
 # version 0.2.1
 # - added '.rept' and '.rept_range' class level methods
 #   - can be used iterate through a stack range without modifying a stack's index counter(s)
