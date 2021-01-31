@@ -321,8 +321,6 @@ i.mode decr, word
   # --- .uses_obj_mut_methods - flag for conditionally constructing obj-level methods in new objs
   # - flag can be set preemptively, before instantiating with 'mut.class'
 
-
-
   # --- Class Methods
   # --- .hook  obj,       hook  - construct mutator hooks
   # --- .mut   obj, mut,  hook  - mutate hook with unregistered mutation callback
@@ -335,11 +333,15 @@ i.mode decr, word
   # - if 'hook_ns' is blank, object hooks namespaces will use '\obj.hook.*' as a namespace
   # - this is a shorthand for calling 'mut.obj'
 
-  # --- .call  obj, hook, mode, ...
+  # --- .call_hook  obj, hook, mode, ...
   # Use this to invoke a hook with a fallback default mode to use if the hook doesn't exist
   # - if a hook is not initialized, purged, or otherwise disabled -- 'mode' is used instead
   # - if 'mode' is blank, the mode keyword 'default' is used to defer to a default mutator
   # - args in '...' are passed in the resulting call
+
+  # --- .purge_hook  obj, hook, ...
+  # Use this to ensure that a hook has been initialized, and is available for instantiation
+
 
 
 

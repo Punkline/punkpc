@@ -544,8 +544,19 @@ hider.get myCopy
   #  'ppt' is the name of a property
   #  'val' is an expression to assign to the property (if blank '.property' is used)
 
+  # --- .meth          obj, method, ...
+  # Instantiate methods that hook directly into default mutators of the same names
+  # - these don't have to be given hook instances to function
+  # 'obj' is the name of an object to create methods for
+  #   - if blank, the methods are created for the class-level, instead
+  # 'method' is the name of an object method
 
-  # --- .obj    obj
+  # --- .call_\mut_ns  obj, hook, mode, ...
+  # Call an object method without having to invoke the object directly
+  # - if the hook instance isn't found, it will default to the given mode keyword
+  # - otherwise, it will prioritize a found hook instance directing to a specific mutator
+
+  # --- .obj           obj
   # The object instantiater method, for registering an object namespace and giving it a pointer
   # - obj can be any unused namespace that is appropriate for your class object
 

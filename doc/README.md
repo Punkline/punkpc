@@ -121,6 +121,16 @@ Enumerator Objects
 > [source](/src/enum.s), [examples](/doc/s/examples/enum_doc.s)
 ---
 
+### errata
+Errata Objects
+- for generating constants that can be referenced before they are defined
+- requires that the errata doesn't need to be immediately evaluated after being emitted
+- useful for making cumulative results of an arbitrary number of operations
+  - delaying the assignment of a constant until it is ready can be a useful concept in GAS
+
+> [source](/src/errata.s), [examples](/doc/s/examples/errata_doc.s)
+---
+
 ### hidden
 Hidden Symbol Names
 - a tool for creating hidden symbol names
@@ -199,8 +209,8 @@ List Objects
 ---
 
 ### lmf
-load multiple floats
-- can be used similarly to the `stmw` and `lmw` instructions, but for various float types
+Load Multiple Floats
+- can be used similarly to the `lmw` and `stmw` instructions, but for various float types
   - `lmfs` and `stmfs` for single-precision
   - `lmfd` and `stmfd` for double-precision
 - does not change the number of instructions required for multiple registers
@@ -258,7 +268,7 @@ Register Symbols
 
 ### sidx
 Scalar Index Tools
-- useful for referencing object/dictionary that are part of an array of symbols
+- useful for referencing object/dictionary elements as part of an array of indexed symbols
   - symbol arrays are indexed literally by casting evaluated indices into decimal literals
   - the decimal literals are appended to symbol names with a `$` delimitter
 
