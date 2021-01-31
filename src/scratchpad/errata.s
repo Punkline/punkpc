@@ -5,25 +5,113 @@
 # - solve the symbol to resolve all future references in the errata step of the assembly
 
 ##*/
-##/* Updates
+##/* Updates:
 # version 0.0.1
 # - added to punkpc module library
 ##*/
 /*## Attributes:
-
-# --- Class Properties ---
-
-
 # --- Constructor Method ---
+# --- errata.new  self, ...
+# Creates a new errata object with name given by 'self'
+# - multiple objects can be defined at once with '...' varargs
+
+
 
   # --- Object Properties ---
 
+  # --- .i - index of current tuple, in errata array memory
+
+
+
   # --- Object Methods ---
+
+  # --- .ref  sym, ...
+  # Reference an errata tuple's memory at the current the current index with a symbol assignment
+  # Each additional symbol name provided in '...' will reference the next element in a tuple
+  # - 'sym' is the name of a symbol that receives the reference assignment
+  #   - each reference may be to undefined memory, so long as it become defined before assembly end
+
+  # '.ref' and can accept numbers in place of arguments, to change the '.i' property
+  # - if wrapped in [] brackets or () parentheses, any symbol can be interpreted like a number
+
+
+  # --- .solve  val, ...
+  # Solve for all previous references of tuple indices at the current index
+  # Each additional value provided in '...' will provide a result for the next element in a tuple
+  # - 'val' must be an absolute expression, meaning that it has to be immediately evaluable
+  #   - all previous references to undefined memory will recieve the first solve -- like a constant
+  #     - this only works if the values being solved for have not yet been defined
+
+
+
 
 # --- Class Methods ---
 
+# --- errata.ref     obj, sym, ...
+# --- errata.solve   obj, val, ...
+# class-level methods for invoking object methods, optionally via pointer
+
+
+
+# --- errata.point         obj, macro, ...
+# --- errata.pointq        obj, macro, ...
+# --- errata.pointer       obj, sym
+# --- errata.call_mut      obj, hook, mode, ...
+# --- errata.get_property  obj, ppt, symbol
+# --- errata.set_property  obj, ppt, value
+# 'obj' pointer methods, for handling both objects and pointers to objects in the same fashion
+
+
+
+# --- errata.hook       obj,       hook
+# --- errata.mut        obj, mut,  hook
+# --- errata.mode       obj, mode, hook
+# --- errata.call_hook  obj, hook, mode, ...
+# --- errata.purge_hook obj, hook, ...
+# 'mut' class-level methods, for handling mutable behaviors
+# - they do not accept pointers, but can be handlers for the 'errata.point' method
+
+
+
+# --- Errata Modes:
+
+  # Object Method Overrides:
+  #     hook        mode
+  # --- ref,        default
+  # --- solve,      default
+  # --- ref_iter,   default
+  # --- solve_iter, default
+  # Set these to a custom mode/mutator to override default behaviors
+
+  # Custom Modes:
+  # --- solve_iter, stack
+  # - causes solving a piece of errata to push the index by +1
+
+
+
+# --- Errata Hooks:
+  #     hook        args
+  # --- ref         self, arg, ...
+  # --- solve       self, arg, ...
+  # --- ref_iter    self, arg, ...
+  # --- solve_iter  self, arg, ...
+  # Override these with custom mutators
+
+
 
 ## Binary from examples:
+
+## 00000000 00000001
+## 38600004 38800004
+## 38A00008 38C00018
+## 00000001 00000018
+## 00000004 00000004
+## 00000000 00000001
+## 00000002 00000006
+## 00000064 00000065
+## 00000066 00000067
+## 00000001 00000001
+## 00000004 00000008
 
 
 ##*/
@@ -178,6 +266,9 @@ e.ref [0], x, y
 
 # --- ERRATA MUTATORS ---
 # Mutators can be applied to errata objects from the class level using '.mut', '.mode', or '.hook'
+# Note: errata objects do not have object-level mode changing methods, only class-level
+# - this is to keep the objects as light-weight as possible
+
 
 errata.mode  e,  my_mode,  ref
 # this mutates the '.ref' method to a custom behavior mode called 'my_mode'
@@ -224,8 +315,24 @@ e.ref +1
 
 
 
-# Note: errata objects do not have object-level mode changing methods, only class-level
-# - this is to keep the objects as light-weight as possible
+# The only default mutator mode available for errata objects is the 'stack' solve_iter mode:
+
+errata.mode e, stack, solve_iter
+# this mode automatically pushes 'i' like a stack, when solving
+
+e.solve [4], 100, 101
+.long e.i
+# >>> 6
+# This errata object now creates a growing tower of solved constants, instead of a tuple
+
+e.solve 102, 103
+.long e$4, e$5, e$6, e$7
+# >>> 100, 101, 102, 103
+# The errata can be referenced directly, using their sidx names
+# - as you can see, the indices 4 ... 7 have all been pushed with the new 'solve_iter' behavior
+
+e.i = 2
+# reset '.i' manually, since there is no popping off of stack mode via methods
 
 
 
@@ -266,8 +373,6 @@ punkpc.module errata, 1
 .if module.included == 0
 
   punkpc obj, sidx, if
-  errata=0
-  errata$=0
   errata.uses_mutators = 1
   errata.uses_pointers = 1
   errata.self_pointers = 1
@@ -278,13 +383,30 @@ punkpc.module errata, 1
       errata.obj \self
       .if obj.ndef
         errata.meth \self, ref, solve
+        errata.purge_hook \self, ref_iter, solve_iter
         \self\().i = 0
         \self\().__val = 0
       .endif
       errata.new \va
     .endif
-  .endm; .macro errata.mut.ref.default, va:vararg;  errata.__loop ref, \va
-  .endm; .macro errata.mut.solve.default, va:vararg; errata.__loop solve, \va
+  .endm; .macro errata.mut.ref.default, va:vararg;  errata.__loop ref_iter, \va
+  .endm; .macro errata.mut.solve.default, va:vararg; errata.__loop solve_iter, \va
+  .endm; .macro errata.mut.ref_iter.default, self, arg, va:vararg
+    ifnum \arg
+    .if num; errata.__i = errata.__i - 1; \self\().i = \arg
+    .else; sidx.noalt "<\arg = \self>", \self\().i + errata.__i; .endif
+  .endm; .macro errata.mut.solve_iter.default, self, arg, va:vararg
+    ifnum_ascii \arg
+    .if num == '[; errata.__i = errata.__i - 1; \self\().i = \arg
+    .else; \self\().__val = \arg
+      sidx.noalt "<\self>", \self\().i + errata.__i, "< = \self\().__val>"
+    .endif
+  .endm; .macro errata.mut.solve_iter.stack, self, va:vararg
+    errata.mut.solve_iter.default \self, \va
+    .if num != '[
+      errata.__i = errata.__i - 1
+      \self\().i = \self\().i + 1
+    .endif
   .endm; errata.meth, ref, solve
   # methods use pointers to default mutator modes
 
@@ -292,22 +414,11 @@ punkpc.module errata, 1
     errata.__i = 0; errata.__altm = alt
     ifalt; errata.__alt = alt; .noaltmacro
     .irp arg, \va;
-      .ifnb \arg; errata.__\meth \self, \arg; .endif;
+      .ifnb \arg; errata.call_mut \self, \meth, default, \arg; .endif;
       errata.__i = errata.__i + 1
     .endr; ifalt.reset errata.__alt; alt = errata.__altm
     # call method once per non-blank arg; incr 'i' for each arg (blank or not)
-    # - preserves altmacro mode
 
-    .endm; .macro errata.__ref, self, arg
-      ifnum \arg
-      .if num; errata.__i = errata.__i - 1; \self\().i = \arg
-      .else; sidx.noalt "<\arg = \self>", \self\().i + errata.__i; .endif
-    .endm; .macro errata.__solve, self, arg
-      ifnum \arg
-      .if num; errata.__i = errata.__i - 1; \self\().i = \arg
-      .else; \self\().__val = \arg
-        sidx.noalt "<\self>", \self\().i + errata.__i, "< = \self\().__val>"
-      .endif
-    .endm
+  .endm
 
 .endif
