@@ -3,8 +3,7 @@
 # desc
 # - detail
 
-##*/
-##/* Updates
+##/* Updates:
 # version 0.0.1
 # - added to punkpc module library
 ##*/

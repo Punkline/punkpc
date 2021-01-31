@@ -1,39 +1,17 @@
-# Documentation
+# More Info:
 
-
-- [Guides](/doc#Guides)
-- [Modules](/doc#Modules)
-  - [align](/doc#align)
-  - [bcount](/doc#bcount)
-  - [branch](/doc#branch)
-  - [cr](/doc#cr)
-  - [data](/doc#data)
-  - [dbg](/doc#dbg)
-  - [en](/doc#en)
-  - [enc](/doc#enc)
-  - [enum](/doc#enum)
-  - [hidden](/doc#hidden)
-  - [idxr](/doc#idxr)
-  - [if](/doc#if)
-  - [ifalt](/doc#ifalt)
-  - [ifdef](/doc#ifdef)
-  - [ifnum](/doc#ifnum)
-  - [items](/doc#items)
-  - [library](/doc#library)
-  - [list](/doc#list)
-  - [lmf](/doc#lmf)
-  - [load](/doc#load)
-  - [mut](/doc#mut)
-  - [obj](/doc#obj)
-  - [ppc](/doc#ppc)
-  - [regs](/doc#regs)
-  - [sidx](/doc#sidx)
-  - [small](/doc#small)
-  - [sp](/doc#sp)
-  - [stack](/doc#stack)
-  - [str](/doc#str)
-  - [xem](/doc#xem)
-  - [xev](/doc#xev)
+- [**Guides**](/doc#Guides)
+- [**Modules**](/doc#Modules) : *documentation*
+  - [**library**](/doc#library) : *generic tools*
+    - [align](/doc#align), [bcount](/doc#bcount), [dbg](/doc#dbg), [en](/doc#en), [idxr](/doc#idxr), [xem](/doc#xem), [xev](/doc#xev)
+    - [**if**](/doc#if) : *special if statements*
+      - [ifalt](/doc#ifalt), [ifdef](/doc#ifdef), [ifnum](/doc#ifnum)
+  - [**ppc**](/doc#ppc) : *powerpc tools*
+    - [branch](/doc#branch), [cr](/doc#cr), [data](/doc#data), [lmf](/doc#lmf), [load](/doc#load), [regs](/doc#regs), [small](/doc#small), [sp](/doc#sp)
+  - [**obj**](/doc#obj) : *class tools*
+    - [mut](/doc#mut), [hidden](/doc#hidden)
+    - [enum](/doc#enum), [items](/doc#items), [str](/doc#str)
+    - [sidx](/doc#sidx), [stack](/doc#stack), [list](/doc#list), [enc](/doc#enc), [errata](/doc#errata)
 
 
 ## Guides

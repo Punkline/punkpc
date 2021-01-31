@@ -1,0 +1,4 @@
+# no support for correct ASM syntax on github, so use YAML to at least detect comments correctly
+doc/s/* linguist-language=YAML
+src/* linguist-language=YAML
+src/* linguist-documentation=true
