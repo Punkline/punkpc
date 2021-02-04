@@ -4,7 +4,11 @@
 # - useful for creating iterators that do not attempt to evaluate the contents
 #   - buffers are similar to `str` objects, but are much lighter-weight and less featured
 
-
+# --- Updates:
+# version 0.0.2
+# - fixed bug where appends to items list did not take context out of altmacro mode
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties ---
 # --- items       - input/output property, for interacting with class methods

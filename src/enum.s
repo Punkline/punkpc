@@ -4,7 +4,48 @@
 # - default behaviors are useful for counting named registers and offsets
 # - highly mutable objects may be individually mutated for custom behaviors
 
+# --- Updates:
+# version 0.2.2
+# - added 'en' module, for fast (featureless) enumeration processes
+# - added 'quick' 'enum_parse_iter' mutator mode, for implementing 'en'-like enumerator objects
+# - added 'relative' 'numerical' mutator mode, to edit count index relatively instead of absolutely
+# version 0.2.1
+# - implemented default mutator hooks, to lower the number of macros required for each object
+# - changed order of operations in loading old 'xem' prereq with 'regs' at end of module
+#   - 'regs' relies on macros defined by enum, so it must come after the module is initialized
 
+# --- version 0.2.0
+# - rewrote entire module from scratch, simplified many things
+# - everything is now driven by mutator hooks from the 'mut' module
+#   - whole object may be re-designed through the use of custom behaviors
+#   - broke into different default constructors that support different hook modes
+# - implemented object pointers, with the 'obj' module
+
+# --- version 0.1.0
+# - completely remodeled object system to be mutator-based
+# - added sidx.s and ifalt.s to module, for 4D scalars and altmacro mode checks
+# - removed 'enum.bool' and 'enum.bool_restart' methods in favor of mutated 'enum'
+# - added new state flags that can be used to drive the enumerator parse through callbacks
+# - fleshed out callback system to support many new method mutators
+# - added a generic mutator class method that can be used to assign macros in place of obj methods
+# - remodeled character parse to be mutable, so that you can add new types of argument syntaxes
+# version 0.0.5
+# - fixed bug in original code that was preventing crf from updating correctly in .mask methods
+# - merged the enum and enumb constructors into one class
+# - provided mutators that create backwards compatability with old enumb namespaces
+# - remamed '.reset' to '.restart' to avoid conflict with stack method names
+# - created a separate restart method for bool counting
+# - added overridable dummy callbacks to object methods
+# version 0.0.4
+# - added '.reset' methods to enumerator objects
+# - added a '.last' and '.reset' property for enumerator objects
+# version 0.0.3
+# - added varargs to constructors, so initial settings can be added to enum generators
+# - updated documentation attributes
+# version 0.0.2
+# - added xem.s to module, for register names
+# - added *.pfx variants of old functions, to support prefix namespaces
+# - added a constructor, for instantiating enumerators with a private count, and name
 
 # --- Constructor Methods
 

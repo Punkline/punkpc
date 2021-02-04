@@ -2,7 +2,9 @@
 #>toc library
 # - a fast, featureless enumeration tool for naming offset and register symbols
 
-
+# --- Updates:
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties ---
 

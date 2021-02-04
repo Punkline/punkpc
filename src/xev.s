@@ -3,7 +3,9 @@
 # - for extracting evaluable literals from 2 known character indices in a given string argument
 # - useful when parsing complex inputs for evaluable sub-expressions
 
-
+# --- Updates:
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 

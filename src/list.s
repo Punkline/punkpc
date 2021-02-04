@@ -5,7 +5,10 @@
 #   - indexing allows for random-access get/set features at the object-level
 #   - mutable iterator and indexing methods can be given custom behaviors
 
-
+# --- Updates:
+# version 0.0.1
+# - split off from the old 'stack' module with methods for 'list' objects
+# - added to punkpc library
 
 # --- Class Methods ---
 # --- stack.i     obj, idx, ...

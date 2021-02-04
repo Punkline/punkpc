@@ -3,7 +3,11 @@
 # - a simple evaluation tool, for debugging symbol values
 #
 
-
+# --- Updates:
+# version 0.0.2
+# - changed '.error' directive into a '.warning' directive
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class method
 # --- dbg  expression

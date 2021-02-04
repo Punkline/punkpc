@@ -5,7 +5,9 @@
 # - useful for making cumulative results of an arbitrary number of operations
 #   - delaying the assignment of a constant until it is ready can be a useful concept in GAS
 
-
+# --- Updates:
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Constructor Method ---
 # --- errata.new  self, ...

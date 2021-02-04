@@ -4,7 +4,15 @@
 #   - this is needed to prevent errors when testing argument names in macro definitions
 # - used to provide most protections for object and class namespaces
 
-
+# --- Updates:
+# version 0.0.3
+# - ifalt is now used to correct the altmacro mode after calling ifdef, automatically
+#   - it is no longer required to use ifalt externally to maintain altmacro state with ifdef
+# version 0.0.2
+# - added varargs support, for serial concatenation before committing to name
+# - added 'def_value' return property, for copying symbol value with a static property name
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 

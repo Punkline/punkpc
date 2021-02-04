@@ -3,7 +3,9 @@
 # - a collection of various checks that may be used with `.if` block directives
 # - intended for making useful checks of difficult to compare things in GAS
 
-
+# --- Updates:
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 

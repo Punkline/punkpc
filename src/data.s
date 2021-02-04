@@ -4,7 +4,9 @@
 # - instructions are capable of referencing data local to the program counter
 # - also includes some utilities for creating binary data structs
 
-
+# --- Updates:
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 

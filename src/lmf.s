@@ -5,7 +5,11 @@
 #   - `lmfd` and `stmfd` for double-precision
 # - does not change the number of instructions required for multiple registers
 
-
+# --- Updates:
+# version 0.0.2
+# - fixed symbol name typo in stmfd macro that was causing errors
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Methods:
 # - these emit PowerPC instructions, and follow the instruction naming convention of lmw, stmw:

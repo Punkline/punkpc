@@ -3,7 +3,12 @@
 # - an if tool that can be used to check the current altmacro environment state
 # - used to preserve the altmacro mode, and avoid ruining string interpretations
 
-
+# --- Updates:
+# version 0.0.2:
+# - rewrote ifalt to not use a bogus argument, and in a way that won't conflict with other symbols
+# - added 'ifalt.reset' to easily implement a reset method using generated 'alt' bool
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 

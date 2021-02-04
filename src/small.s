@@ -5,7 +5,21 @@
 #   - 3-argument syntax implies all rotation math, requiring only a mask symbol, and registers
 #   - existing 4-argument and 5-argument syntaxes are reverted to, when detected
 
+# --- Updates:
+# --- version 0.1.0
+# - renamed to 'small' for 'small integers'
+# - included 'bcount' module
+#   - bcount methods can be used to measure int sizes
+# - included 'enum' module
+#   - enumb can be used to build bool masks
+# - removed 'extr' and 'insr', and added their features as obfuscating macros 'rlwinm' and 'rliwmi'
+#   - these macros check the number of comma-separated arguments
+#   - if 4 or 5 are counted, the default instructions are invoked
+#   - if 3 are counted, then old 'extr' and 'insr' features are invoked
+#     - (all cases result in rlwinm or rlwimi instructions being assembled)
 
+# version 0.0.1
+# - added to punkpc module library
 
 # --- PowerPC Instruction Syntax Extensions
 

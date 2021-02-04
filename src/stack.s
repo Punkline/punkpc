@@ -6,7 +6,40 @@
 # - can be easily fashioned into arrays, structs, or pointer tables
 # - can be easily extended to create more specific features that require scalar memory
 
+# --- Updates:
+# version 0.2.2
+# - moved bulk of new '.rept' guts over to lower level 'sidx' module
+#   - stacks now use sidx to power their own '.rept' class methods
+# version 0.2.1
+# - added '.rept' and '.rept_range' class level methods
+#   - can be used iterate through a stack range without modifying a stack's index counter(s)
+# - added 'skip_blank' mutator mode for '.push' hook
+# - added 'relative' mutator mode for '.s' hook
 
+# --- version 0.2.0
+# - renamed 'stacks' to 'stack', for module name coherency
+# - split many 'stack' features into extensions in the form of the new 'list' module
+#   - 'stack' objects are now dramatically simplified, and scale less expensively than lists
+# - implemented obj module, to make stack pointers (and multi-dimensional stacks)
+# - implemented changes to mutator hooks, removing 'self' arguments from hook calls
+# - replaced static methods with methods that support pointers
+# - replaced object methods with hooks that can be overridden with mutations
+# - implemented new mutator hook method for lighter objects (fewer macros in unmutated objects)
+
+# --- version 0.1.0
+# - implemented mutator class to handle stack modes
+# - added .get and .set methods, to implement new sidx features
+# - added .i property, for using .get and .set independently from stack/queue indices
+# - added .iter method, for popping from .i by invoking the mutable .i index method
+# - added mutable nops, for plugging in behavior for push, iter, i, get, and set
+# - removed planned-but-unwritten '.purge' object method -- may re-implement later
+# - moved object method guts into static methods, for lighter-weight objects
+# - implemented ifalt, to handle case of altmacro usage automatically
+# - lots of examples
+# version 0.0.2
+# - added altmacro methods '.pusha' '.popa' and '.deqa'
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 

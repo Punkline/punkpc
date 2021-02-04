@@ -4,7 +4,24 @@
 # - useful for making your class/objects customizable
 # - extended by the `obj` module
 
-
+# --- Updates:
+# Version 0.0.5
+# - changed annoying order of arguments in class-level methods
+#   - 'obj' now comes as first argument, as one might intuit
+# Version 0.0.4
+# - added '.uses_obj_mut_methods' flag to class and module levels
+#   - flagging this as false will cause the affected class to generate objects with no mut methods
+#   - this includes '.hook', '.mut', and '.mode'
+#   - intended for objects meant to be operated entirely by class methods
+# Version 0.0.3
+# - object hooks now imply 'self' as the first argument, so it doesn't need to be passed each time
+# - changed default mutator namespace to be reachable as a mode keyword, 'default'
+#   - 'myClass.mut.myBehavior'   is now   'myClass.mut.myBehavior.default'
+#     - this lets 'default' be used as a mode keyword
+# Version 0.0.2
+# - enquoted mutator argument in obj.mut method, allowing for prefix statements
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 

@@ -5,7 +5,15 @@
 #   - the decimal literals are appended to symbol names with a `$` delimitter
 #     - '$' stands for 'Scalar Index'
 
-
+# --- Updates:
+# version 0.0.4
+# - added '.rept' method, from old 'stack' module
+# version 0.0.3
+# - added get/set methods
+# version 0.0.2
+# - refactored namespace to match module name
+# version 0.0.1
+# - added to punkpc module library
 
 # The '$' symbol char will be used in names to indicate a 'scalar index' value that follows it:
 # --- myNamespace$1        - example of a scalar symbol name, using index '1'

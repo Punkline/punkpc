@@ -4,7 +4,9 @@
 #   - exploits support of the `\001` char in temp labels
 # - intended for use without a linker
 
-
+# --- Updates:
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 # --- hidden.count - a number counting the times 'hidden' has been called

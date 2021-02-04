@@ -4,7 +4,12 @@
 # - useful for enabling registers for use like indices as part of counters
 # - also includes names for cr bits and fields
 
-
+# --- Updates:
+# version 0.0.2
+# - re-added initial call to regs.rebuild
+# - now includes 'enum' module to provide a default 'regs' enumerator, for volatile register names
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties ---
 # ---  lt, gt, eq, so     - cr bit names                 0 ... 3

@@ -3,7 +3,9 @@
 # - a tiny precursor to `sidx` that names things without any special delimiters
 # - used in the `regs` module to create register names
 
-
+# --- Updates:
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 

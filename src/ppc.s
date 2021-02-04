@@ -4,7 +4,11 @@
 # - version 0.0.2 includes: `branch`, `cr`, `data`, `idxr`, `load`, `small`, and `sp`
 # - if no args are given to `punkpc` when calling it, this module is loaded by default
 
-
+# --- Updates:
+# version 0.0.2
+# - updated list to include sp module, as intended
+# version 0.0.1
+# - added to punkpc module library
 
 # --- included modules
 

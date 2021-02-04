@@ -1,9 +1,10 @@
 /*## Header:
-# --- title
-# desc
+# --- subtitle
+#>toc library
 # - detail
 
-##/* Updates:
+##*/
+/*## Updates:
 # version 0.0.1
 # - added to punkpc module library
 ##*/
@@ -26,6 +27,8 @@ punkpc myModule
 # Use the 'punkpc' statement to load this module, or include the module file directly
 
 
+##*/
+/*## Results:
 ##*/
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif

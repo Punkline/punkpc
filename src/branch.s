@@ -3,7 +3,16 @@
 # - absolute branch macroinstructions that replace the `bla` and `ba` instructions
 #   - these create long-form 4-instruction absolute calls/branches via `blrl` or `bctr`
 
-
+# --- Updates:
+# version 0.0.3
+# - renamed '.purge' property to '.purgem' in order to match name of GAS directive of the same name
+# - '.purgem' values are marked true once macros are defined (and purgable)
+# version 0.0.2
+# - renamed to 'branch' module, to avoid confusion
+# - added 'branchl.purge' property, for preempting a purge of existing 'branch/branchl'' macros
+#   - provides compatability with commonly used macros when including blaba
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 

@@ -1,5 +1,5 @@
 # --- Objects (and Classes)
-#>toc Modules : objects and classes
+#>toc library : objects and classes
 # - a core module for defining classes that construct objects
 # - objects are uniquely named
 # - unique objects may be given pointer IDs, for identifying instances of a class
@@ -7,7 +7,18 @@
 #   - mutable object methods may be reached via pointers, at the class level
 # - object properties may be given hidden names, used internally by the constructor
 
-
+# --- Updates:
+# version 0.0.2
+# - added support for null object pointers by checking for a positive number before dispatch
+#   - this results in a nop when attempting to do anything with a null object pointer
+#   - both '0' and negative numbers count as null -- allowing you to flip sign to toggle a pointer
+# - added support for 'anonymous' objects
+#   - objects instantiated without a name will be given one generated
+# - added volatile return property 'obj.point', when generating new objects from any class
+#   - can be used to reference newly generated 'anonymous' objects
+# - implemented new '.uses_obj_mut_methods' parameter
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 # --- obj.class.uses_pointers  - use pointers by default

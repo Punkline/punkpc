@@ -3,7 +3,13 @@
 # - index (register) input extraction tool
 # - useful for simulating load/store syntaxes, like `lwz r3, 0x20(r30)`
 
-
+# --- Updates:
+# version 0.0.2:
+# - refactored namespace to fit module name
+# - refactored '.idx' and '.reg'  properties to 'x' and 'r' respectively
+# - changed xr argument to a vararg, to allow for whitespace in input
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 

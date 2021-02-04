@@ -3,7 +3,9 @@
 # - cr instruction fixes, and utilities for working with cr fields
 # - used to more efficiently (and legibly) write binary trees in PowerPC functions
 
-
+# --- Updates:
+# version 0.0.1
+# - added to punkpc module library
 
 # --- PowerPC Instruction Extensions
 

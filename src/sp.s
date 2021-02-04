@@ -8,7 +8,11 @@
 #   - includes anonymous and named temporary memory allocation offset names
 #   - includes all special-purpose register names
 
-
+# --- Updates:
+# version 0.0.2
+# - added check to .push syntax for 'x' that allows lowercase 'xer' spr keyword to be recognized
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 # --- sp.frame  - the final size of this stack frame

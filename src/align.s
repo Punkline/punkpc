@@ -4,7 +4,9 @@
 # - useful for measuring arbitrary body sizes that include un-aligned data
 #   - byte arrays and strings are examples of structs that commonly need re-alignment
 
-
+# --- Updates:
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties ---
 # --- _align.__start - a copy of the '_punkpc' library object label

@@ -2,7 +2,9 @@
 #>toc library
 # - useful for finding int sizes when creating masks, for compression
 
-
+# --- Updates:
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 

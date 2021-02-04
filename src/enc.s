@@ -3,7 +3,11 @@
 # - for converting source literals into ascii ints
 # - may be used to create pseudo-regex-like parses of input literals
 
-
+# --- Updates:
+# version 0.0.2
+# - changed constructor name to 'enc.new' instead of 'enc'
+# version 0.0.1
+# - added to punkpc module library
 
 # --- ENCODER OBJECTS
 # Extends stack objects to provide extra methods for pushing bytes generated from input literals

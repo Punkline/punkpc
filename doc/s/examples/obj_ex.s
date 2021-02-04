@@ -1,5 +1,5 @@
 # --- Objects (and Classes)
-#>toc Modules : objects and classes
+#>toc library : objects and classes
 # - a core module for defining classes that construct objects
 # - objects are uniquely named
 # - unique objects may be given pointer IDs, for identifying instances of a class

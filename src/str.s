@@ -6,7 +6,32 @@
 # - can store `literal strings` that are unprotected, and can be executed like macros
 #   - unlike the `items` class, no delimiting commas are implied, and buffers can use prefix concatenation methods
 
+# --- Updates:
+# version 0.1.1
+# - replaced pointer methods with 'obj' module implementation
+# - reorganized namespaces into hidden and non-hidden layers, with '.__' delimiters
+# - moved object guts into class-level methods, for smaller object instances
+# - added a '.concitems' and '.pfxitems' method, for creating lists of symbol items
 
+# --- version 0.1.0
+# - added high-level convenience macros for using multiple strings in the following directives:
+#   - .error, .warning, .print, .ascii, .asciz
+#   - also added special '.asciiz' method, for creating a single null-terminated string from args
+# - added 'str.emit' class method, for building and emitting temp strings from args and pointers
+# - added 'str.self_pointers' property, to allow string object names to evaluate as string pointers
+# - added counting features for comma-separated items and characters
+# - added a '.irpc' method to complement the '.irp' method
+# - fixed bug where '.strq' method would have reversed vararg order if done from normal string mem
+# version 0.0.4
+# - added high-level convenience macros for operating with write methods of objects through pointers
+# version 0.0.3
+# - fixed bug where commas would be added to strings when whitespace was added
+# - created a pointer.get feature, for handling both a str obj and a str pointer in the same way
+# - added high-level convenience macros for creating iterators out of strings or string pointers
+# - added high-level convenience macros for operating with read methods of objects through pointers
+# version 0.0.2
+# - added a lazy '.is_blank' flag update that can be used to help find empty buffers
+# version 0.0.1 - added to punkpc module library
 
 # --- Class Properties
 

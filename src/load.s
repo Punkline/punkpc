@@ -4,7 +4,15 @@
 # - immediates larger than 16-bits will require multiple instructions
 #   - you can use this macroinstruction to string together as many as you need for a given input
 
-
+# --- Updates:
+# version 0.0.3
+# - renamed 'load.purge' to 'load.purgem', and set it to true when macros are defined
+# version 0.0.2
+# - renamed module to 'load', because old name was not appropriate
+#   - old name 'ld' is a powerpc instruction not used in mgekko, and is dissimilar to this macro
+# - added 'load.purge'
+# version 0.0.1
+# - added to punkpc module library
 
 # --- Class Properties
 
