@@ -1,5 +1,153 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module sp, 1
+# --- Runtime Stack Pointer (prolog/epilog block generators)
+#>toc ppc
+# - dramatically simplifies function writing
+# - makes it very easy to create and use named registers, quickly
+# - supports nested and/or serial frame definitions
+# - comes with enumerators mutated to handle definition of all temporary memory in stack frame
+#   - includes anonymous and named register backups/restores
+#   - includes anonymous and named temporary memory allocation offset names
+#   - includes all special-purpose register names
+
+
+
+# --- Class Properties
+# --- sp.frame  - the final size of this stack frame
+
+
+# The following are are all enumerators:
+# --- sp.temp     - can be called to define temporary space inside a stack frame
+# --- sp.gprs     - can be called to define named backed-up registers for this stack frame
+# --- sp.fprs     - like gprs, but for floats
+# --- sp.sprs     - invoked by the mutated 'sp' stack push method
+
+# Each has the following extended properties:
+# --- sp.*.byte_align
+# - this is assigned on initialization, and stays constant to inform the '.bytes' update
+
+# --- sp.*.low    - keeps track of the lowest counted enumeration
+# --- sp.*.high   - keeps track of the highest counted enumeration
+# --- sp.*.bytes  - counts the number of bytes these enumerations have claimed so far
+# - these 3 are updated immediately through method calls
+#   - they are safe for things like .if evaluations in the assembler before a frame is done
+
+# --- sp.*.total  - the final byte count for these enumerations in this frame
+# --- sp.*.base   - the base offset in the stack frame that these bytes begin at
+# - these are only updated after 'sp.pop' is called
+#   - attempting to use them before 'sp.pop' will create errata that is resolved at end of assembly
+#     - attempts at immediate evaluation will create errors complaining about 'non-constants'
+
+# --- sp.*.__has_items - a read-only property updated by the module
+# - this may be checked for as a 0 or not-0 to determine whether the stack contains a type of item
+
+
+
+# Multiple copies of these and other enumerator properties are backed up in scalar 'sp.mem'
+# - this allows you to nest frames within frames, for creating complex recursive functions
+
+
+# Errata is purposefully utilized to delay '.total' and '.base' updates
+# - all inputs will generate offsets that create errata on references in the body
+#   - offsets cannot be immediately evaluated unless 'sp.pop' has already finalized their values
+# - this allows the user to define parts of the frame anywhere in the body without errors
+
+
+# The 'sp.temp' enumerator will create properties in the 'sp' namespace defining temporary memory
+
+# --- sp.*  - generated from 'sp.temp'
+# example:  sp.temp   xRGBA, +0x40, xString, +4, xCast, xFloat,
+#
+# outputs:  sp.xRGBA   = sp.temp.base + 0x00
+#           sp.xString = sp.temp.base + 0x04
+#           sp.xCast   = sp.temp.base + 0x44
+#           sp.xFloat  = sp.temp.base + 0x48
+
+
+
+
+# --- Class Methods ---
+
+# --- sp.push  ...
+# This begining of a prolog for a new stack frame
+# Must be paired with an ending 'sp.pop' when finishing a function using this frame
+
+# '...' allows for spr keywords to be used for backing up registers and
+# Some example keywords for populating a '...' argument list:
+
+# ... (expression) -- numerical expression
+# ... xName -- a temporary memory offset - where 'Name' starts in upper-case
+#     - these are fed
+
+# ... rName -- a named saved GPR -- where 'Name' starts in upper-case
+# ... fName -- a named saved FPR -- where 'Name' starts in upper-case
+#     - these are fed into 'sp.gprs' and 'sp.fprs'
+#     - 'Name' can be anything that starts with a capital alphabetical char, or an underscore '_'
+
+# ... rN -- anonymous saved GPRs -- where 'N' is a decimal number
+# ... fN -- anonymous saved FPRs -- where 'N' is a decimal number
+#     - all registers between your specification and 'r31' are backed up, without names
+#     - specifying 'r16' for example will back up 'r16 ... r31'
+#     - only 1 instruction is needed for gprs, but fprs require 1 instruction per register
+
+# ... lr -- link register
+#     - backing this up is necessary to make your function call-safe
+#     - if ommitted, the prolog and epilog will only be for a 'leaf' in the call stack
+
+# ... cr  --  condition/comparison register/fields
+#     - backing this up allows you to safely use all 32 bits in cr
+
+# ... ctr --  counter register
+#     - backing this up lets your function be safely called from within another ctr loop
+
+# ... qr0...7 -- Graphical Quantization Register
+# ... qr, gqr -- (alias for qr1)
+#     - backing any of these up lets you define scales for working with compressed floating points
+
+# ... (other spr) -- see 'spr' punkpc module for a complete list of valid spr keywords
+
+
+# --- sp.temp ...
+# May be called anywhere in-between 'sp.push' and 'sp.pop' to allocate temporary memory in the frame
+# - the number of bytes allocated does not change the number of instructions in the prolog/epilog
+# - can be invoked by 'sp.push' by feeding it 'xName' and expressions arguments
+
+# --- sp.gprs ...
+# May be called anywhere in-between 'sp.push' and 'sp.pop' to allocate saved GPRs used by a function
+# - the number of GPRs allocated does not change the number of instructions in the prolog/epilog
+#   - only 1 is needed for any amount of GPR backups, and another for restores
+# - can be invoked by 'sp.push' by feeding it 'rName' arguments
+
+# --- sp.fprs ...
+# May be called shortly after 'sp.push' to back up floating point registers
+# - can be invoked by 'sp.push' by feeding it 'fName' arguments
+
+# --- sp.sprs ...
+# May be called shortly after 'sp.push' to back up special purpose registers
+
+# --- regs ...
+# May be used to define volatile registers that are not backed up by the stack frame, or 'sp'
+# - starts at r3, increments by +1
+# - gets restarted by 'sp.pop'
+
+# --- sp.commit
+# May be used to finalize a frame's parameters before calling sp.pop, for immediate evaluations
+
+# --- sp.pop
+# Finalizes all generatted errata expressions by defining the missing vars for all enumerations
+# - this generates the '.base' and '.total' values referenced by enumerators
+# - popping a nested frame will return to the old frame context
+
+
+
+# --- prolog ...
+# An alternative to 'sp.push' that implies use of the 'lr' keyword
+
+# --- epilog
+# An alias for 'sp.pop' that matches the 'prolog' naming convention
+
+
+
+# 'lmf' and 'spr' modules are available for multiple float/spr loads/stores external from the stack.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+punkpc.module sp, 2
 .if module.included == 0; punkpc regs, enc, lmf, spr, items
 
 .macro sp_obj.init
@@ -266,7 +414,7 @@ punkpc.module sp, 1
   # works for names starting with 'r' or 'f'
 
 .endm; .macro sp.__checkx, arg, items
-  .if sp.chars$1 >= 0x41; \items, \arg
+  .if (sp.chars$1 >= 0x41) && (sp.chars$1 < 0x60); \items, \arg
   .else; sp.__checkelse \arg; .endif
 
 .endm; .macro sp.__checkelse, arg

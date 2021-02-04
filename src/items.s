@@ -1,4 +1,83 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Argument Item Buffer Objects
+#>toc str
+# - a scalar buffer object pseudo-class that can efficiently store `:vararg` items
+# - useful for creating iterators that do not attempt to evaluate the contents
+#   - buffers are similar to `str` objects, but are much lighter-weight and less featured
+
+
+
+# --- Class Properties ---
+# --- items       - input/output property, for interacting with class methods
+# --- items.free  - number of free items buffers
+# --- items.alloc - number of allocated items buffers
+
+
+
+# --- Constructor Method ---
+
+# --- items.method   self, pointer_property
+# Creates an object that manages and provides access to an items buffer
+# Object only has one method, with an associated property and identity that is used by the method:
+
+  # --- Method Object Property:
+  # --- .is_items_method - object identity is the first assigned items buffer ID
+  #                        - this points to an identifying buffer instance
+  #                        - the ID may change each time a buffer is cleared
+  # --- .\point - points to an items buffer - can be nullified
+  #             - if pointer is 0, buffer will be cleared and a new one will be made on next call
+  #             - if pointer is negative, method will be virtually disabled
+
+
+  # --- Method Object Method:
+  # Has 3 syntaxes, depending on which parts of the input are blank:
+  # - attempting to use any of these with a negative pointer value will result in no operation
+  # - attempting to use any of these with null pointer will 'clear' the obj buffer before use
+  #   - 'clear' means to free the current buffer, and allocate a free one with blank memory
+  #   - objects only 'clear' the buffer they are identifying with, in '.is_items_method'
+  #     - objects will not clear other allocated buffers
+
+  # --- (self)   macro, ...
+  # Invokes 'items.emit' for the pointer in class property 'items'
+  # --- (self)        , ...
+  # Invokes 'items.append' for the pointer in class property 'items'
+  # --- (self)
+  # Clears this buffer, or re-points the pointer property to the one saved by object identity
+  # - if the pointer is still pointing to the one made by this object, it is 'cleared'
+  # - if the pointer is not pointing to the one made by this object, that pointer is recovered
+
+
+
+
+# --- Class Methods ---
+
+# --- items.alloc   pointer, ...
+# Allocate an item buffer and point to it one for each given symbol name
+# - 'pointer' becomes a pointer symbol that can be used in the other 'items' class methods
+# - if there are any freed items buffers available, they will be reused before generating new ones
+
+# --- items.free    pointer, ...
+# Free an allocated item buffer vis pointer references
+# - 'pointer' will be cleared, and item buffer it pointed to will be purged, and freed
+# - freed buffers will be reused on next allocation(s)
+
+# --- items.append  pointer, ...
+# Appends items to item list pointed to by 'pointer'
+# -   pointer -> [items, ...]
+
+# --- items.emit    pointer, macro, ...
+# Emit items as :varargs that trail behind '...' in a call to 'macro'
+# -   macro  ..., [items]
+
+# --- items.irp     pointer, macro, ...
+# Emit items one at a time that trail behind '...' in a call to 'macro'
+
+# --- items.irpc    pointer, macro, ...
+# Emit characters one at a time that trail behind '...' in a call to 'macro'
+
+
+
+# --- Class Level Object ---
+# --- items - generic buffer, for volatile use.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module items, 2
 .if module.included == 0
 items.__free$ = 0

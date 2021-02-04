@@ -1,4 +1,39 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Register Symbols
+#>toc ppc
+# - a module that defines normal register indices like `r3`, `r4`, `r5` as global symbols
+# - useful for enabling registers for use like indices as part of counters
+# - also includes names for cr bits and fields
+
+
+
+# --- Class Properties ---
+# ---  lt, gt, eq, so     - cr bit names                 0 ... 3
+# --- cr0.lt ... cr7.so   - cr bit names (full)          0 ... 31
+# ---     r0 ... r31      - gpr index names              0 ... 31
+# ---     f0 ... f31      - fpr index names              0 ... 31
+# ---     b0 ... b31      - bit index names              0 ... 31
+# ---     m0 ... m31      - mask index names    0x80000000 >>> 0x00000001
+
+# --- Class Methods ---
+# --- regs ...
+# List comma-separated names for registers, starting at r3, r4, r5, ...
+# - use parentheses (x) to set the count to a new index 'x'
+# - use +i or -i to change the count step to 'i'
+# ex:   regs rTo, rFrom, rSize                # rTo = 3;  rFrom = 4;  rSize = 5
+# ex:   regs (12), -1, rCallback, rCounter    # rCallback = 12;  rCounter = 11
+
+# --- regs.rebuild
+# Call this to re-define all register symbols
+
+# --- regs.enumerate  pfx, sfx, start, "op", count
+# Create symbols out of an iterating expression, using \pfx%ID\sfx names
+# 'pfx' must start with an alphabetical char, or one of the following chars  ._$
+# 'op' is part of a quoted expression that each iteration uses to update the iterated ID
+#  - it includes an operator like '+', and an operand like '1'
+#  - ex:   "+ 1",    ">> 1",   "* 12",   "+ (my_step * my_stride)"
+
+# --- xem  pfx, expr, sfx
+# Emit an evaluated expression as decimal literals, with optional literal prefix/suffix.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module regs, 1; .if module.included == 0; punkpc xem, enum
 .macro regs.enumerate, pfx, sfx, start=0, op="+1", cstart, cop, count=32
   .ifb \cop; regs.enumerate \pfx, \sfx, \start, \op, \cstart, \op, \count; .exitm; .endif

@@ -1,4 +1,23 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- SPR utilities
+#>toc ppc
+# - creates macroinstructions for loading and storing multiple special purpose registers
+#   - each load or store costs 2 sintructions (a 'move' and a 'read/write')
+# - includes a dictionary of spr keywords, unified by the `spr.*` namespace
+
+
+
+# --- Class Properties:
+# - see the SPR IDS below
+
+
+
+# --- Class Methods:
+
+# --- stmspr  a, idx(r), spr, ...
+# --- lmspr   a, idx(r), spr, ...
+# These can be used to load/store multiple special purpose registers using working register
+# - any number of SPR IDs, or keywords may be provided as a sequence of comma-separated 'spr' args
+# - in addition to SPRs -- CR, SR, and MSR are supported as special keywords.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module spr, 3
 .if module.included == 0; punkpc idxr, regs
 

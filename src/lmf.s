@@ -1,4 +1,23 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Load Multiple Floats
+#>toc ppc
+# - can be used similarly to the `lmw` and `stmw` instructions, but for various float types
+#   - `lmfs` and `stmfs` for single-precision
+#   - `lmfd` and `stmfd` for double-precision
+# - does not change the number of instructions required for multiple registers
+
+
+
+# --- Class Methods:
+# - these emit PowerPC instructions, and follow the instruction naming convention of lmw, stmw:
+
+#                            [optional]
+# --- lmfs   fStart, idx(r),  [ fEnd ]  - floating point singles
+# --- stmfs  fStart, idx(r),  [ fEnd ]
+# --- lmfd   fStart, idx(r),  [ fEnd ]  - floating point doubles
+# --- stmfd  fStart, idx(r),  [ fEnd ]
+# These can be used to load/store multiple floating points to/from an array of registers/RAM
+# if 'fEnd' is left blank, then the argumen becomes 'f31' automatically -- simulating lmw, stmw
+# if 'fEnd' is smaller than 'fStart' -- then the register sequence descends instead of ascends.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module lmf, 2
 .if module.included == 0; punkpc regs, idxr
 

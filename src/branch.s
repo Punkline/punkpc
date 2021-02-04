@@ -1,4 +1,33 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Branch (absolute)
+#>toc ppc
+# - absolute branch macroinstructions that replace the `bla` and `ba` instructions
+#   - these create long-form 4-instruction absolute calls/branches via `blrl` or `bctr`
+
+
+
+# --- Class Properties
+
+# --- branchl.purgem - if this is set to a non-0 value before loading blaba, macros will be purged
+
+
+
+
+# --- Class methods
+
+# --- branch  target
+# create a long-form bctr; branch to a target absolute address
+
+# --- branch  reg, target
+# - an optional variation that lets you specify a register other than r0 to build address in
+
+# --- branchl
+# a branch link version of 'branch'
+# - these use a blrl instead of a bctr
+
+
+# Class methods override the following instructions in the -mgekko machine architecture:
+# --- bla - branch link absolute
+# --- ba - branch absolute.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module branch, 3
 .if module.included == 0
 .ifndef branchl.purgem; branchl.purgem = 0; .endif

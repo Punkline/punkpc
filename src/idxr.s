@@ -1,4 +1,33 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Index (Register)
+#>toc library
+# - index (register) input extraction tool
+# - useful for simulating load/store syntaxes, like `lwz r3, 0x20(r30)`
+
+
+
+# --- Class Properties
+
+# --- idxr.x  - extracted index value
+# --- idxr.r  - extracted register value
+
+
+
+# ---Class Methods
+
+# --- idxr  x(r)
+# extract an index value and a register value from an input argument
+# x  : becomes idxr.x value
+# r  : becomes idxr.r value
+# - right-most parentheses '( )' captures 'r'
+
+
+
+
+
+## Binary from examples:
+
+## 00000400 0000001F
+## 00000400 0000001F.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module idxr, 2
 .if module.included == 0; punkpc xev
 

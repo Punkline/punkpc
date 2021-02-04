@@ -1,4 +1,50 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Encoder Stacks
+#>toc sidx
+# - for converting source literals into ascii ints
+# - may be used to create pseudo-regex-like parses of input literals
+
+
+
+# --- ENCODER OBJECTS
+# Extends stack objects to provide extra methods for pushing bytes generated from input literals
+
+# --- Constructor Method
+# --- enc.new  name, start, end
+# Construct a new encoder object with name 'name'
+#  Start and End args will create a default character index range, for parsing inputs
+# - if 'start' is blank, 0 is assumed   (parse begins at start of string)
+# - if 'end' is blank, -1 is assumed    (parse to end of string)
+
+
+
+  # --- Object Properties
+  # extends 'stack' properties
+
+  # --- .enc_start  - memory of the given 'start' argument
+  # --- .enc_end    - memory of the given 'end argument
+  # - changing these properties will change the parse range on encoding with '.enc'
+  # - these properties can be overridden on a per-call basis with '.enc_range'
+
+
+
+  # --- Object Methods
+  # extends 'stack' methods
+
+  # --- .enc      input
+  # Push bytes for each character in 'input'
+  #  (only the 'start' and 'end' range of chars is parsed)
+  # - quotes are ignored by encoder, but will protect the input literals for using special chars
+  #   - special chars include anything that confuses the GAS parser, and '\' escapes
+  #   - quotes that start with a '\' will be escaped and encoded
+  #   - ascii escapes '\n', '\r', and '\t' are supported
+  #   - hex escapes of any char '\x00' are supported
+
+  # --- .enc_range  start, end, input
+  # Variation of '.enc' method that overrides '.enc_start' and '.enc_end' properties with args
+
+  # --- .enc_raw    start, end, input
+  # Variation of '.enc_range' that does not escape quotes or backslashes for special chars
+  # - can be used to detect quotes in quoted inputs.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module enc, 1
 .if module.included == 0; punkpc stack, if
 

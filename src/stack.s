@@ -1,4 +1,171 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Stack Objects
+#>toc sidx
+# - a scalar stack object class, powered by `sidx`
+# - useful for making scalar variables that can be pushed, popped, dequeued
+#   - corresponding symbol memory can be accessed randomly, if referenced directly
+# - can be easily fashioned into arrays, structs, or pointer tables
+# - can be easily extended to create more specific features that require scalar memory
+
+
+
+# --- Class Properties
+
+# --- stack.fill - default fill value for blank push streams and null init values
+# --- stack.size - default number of null elements to start in stack
+# --- stack.sss  - default maximum index
+# --- stack$     - stack ID counter
+
+
+
+# --- Class Methods ---
+
+# --- stack.fill   stack, start, size, fill
+# Fill a contiguous area in a stack, in altmacro mode
+#  stack : the stack to fill
+#  start : the index to begin fill at
+#   size : the number of elements to fill
+#   fill : the value to fill with
+
+# --- stack.point  pointer, handler
+# Handle a stack object with the macro or directive, 'handler'
+# - pointer is converted into an object name for 'handler' to handle
+# - can be used to reference stacks remotely with saved pointer values
+#   - saved values can be stacked in other stacks to make multi-dimensional stacks
+
+# --- stack.push  obj, ...
+# --- stack.pop   obj, ...
+# --- stack.deq   obj, ...
+# --- stack.iter  obj, ...
+# class-level methods for handling object-level args
+
+
+
+
+# --- Stack Objects ---
+
+# --- stack  name, ...
+# Stack objects create index memory variables and stack I/O methods for a given namespace
+# - if multiple names are given, then multiple stacks are created
+# - you may modify stack.fill or stack.size to change the initial state of each stack
+#   - these arguments will return back to their defaults for the next call to the constructor
+
+# --- Object Properties:
+  # --- (self)    - scalar property buffers values for pushing and popping, as I/O interface
+  # --- .is_stack  - unique non-0 stack ID creates a pointer usable with 'stack.point' method
+  # --- .sss      - stack index -- the maximum index of this stack object
+  # --- .ss       - stack index -- the highest index of this stack object (that has been written)
+  # --- .s        - stack index -- the current index of this stack object
+  # --- .pop      - outpipe memory of last popped value (from self buffer)
+  # --- .deq      - outpipe memory of last dequeued value (from memory)
+  # --- .q        - queue index -- the current bottom of pipe window
+  # --- .qq       - queue index -- the lowest index of this pipe window
+  # --- .qqq      - queue index -- the minimum index of this stack object
+
+
+
+# --- Stack Object Methods:
+
+  # --- .push   val, ...
+  # Push value(s) to stack memory
+  # - if no value is given, self is pushed instead of an input value
+  #   - when self is pushed, the buffer will be assigned a fill value, which is normally 0
+  # - multiple values can be stacked in the order given
+  # - value of self is cleared with self.fill value
+
+  # --- .pop    sym, ...
+  # Copy self to pop stream output, and update self with top memorized push value
+  # - if no symbol is given, self.pop is used for output stream
+  # - multiple symbols will cause popped values to be assigned to each, in a sequence
+
+  # --- .popm   sym, ...
+  # A variation of '.pop' that uses top of memory instead of self buffer
+  # - if no symbols are provided, then it will be the same as the normal '.pop' method
+
+  # --- .deq    sym, ...
+  # Copy bottom memorized push value to deq stream output, ignoring self buffer
+  # - if no symbol is given, self.deq is used for output stream
+  # - multiple symbols will cause dequeued values to be assigned to each, in a sequenc
+
+  # --- .reset fill, start, size
+  # Reset the queue position to lowest memory, and the stack position according to given size
+  # - if a fill value is given, then the range will be filled, updating boundaries accordingly
+  # - at end of reset, minimum and maximum boundaries are checked, and idices are adjusted
+
+
+  # --- .mut   macro, hook_name, ...
+  # Mutate the object's hook 'hook_name' to use behavior of 'macro' instead of its current behavior
+  # - see below for stack of mutable behaviors
+
+  # --- .mode  hook_name, mode_name, ...
+  # low level method for interacting with real macro names for mode behaviors
+
+  # --- .hook  hook_name, ...
+  # Automatically initializes hooks by mapping them to the default 'stack.mut.\hook_name' macro
+
+
+
+# --- Stack Modes:
+# Use '.mode' to set these keyword combinations '\hook, \mode' manually
+# - each of the following is a \hook, \mode  keyword combination
+
+
+  # Object Method Overrides:
+  #     hook   mode
+  # --- reset, default
+  # --- push,  default
+  # --- pop,   default
+  # --- popm,  default
+  # --- deq,   default
+  # Set these to a custom mode/mutator to override default behaviors
+  # - use 'stack.mut.(hook).default' to call these directly for extending the default behavior
+
+
+  # Out-Of-Bounds (oob) Exception Modes:
+  # - behaviors for handling navigations that move out of index limitations
+  # --- oob_push,  incr  -- push default
+  # 'incr' mode keyword, for handling writing OOB
+  # - this just increments the stack size to accomodate a push that would be out of write bounds
+  # - replacing this with 'nop' will disalow pushing the frame beyond the '.ss' index
+
+  # --- oob_push,  step
+  # 'step' mode keyword allows for iterating in strides determined by 'step' size
+
+  # --- oob_push,  nop
+  # --- oob_pop,   nop
+  # --- oob_deq,   nop
+  # 'nop' mode keywords, for no action on both read and write OOB
+
+  # --- oob_push,  rot
+  # --- oob_pop,   rot
+  # --- oob_deq,   rot
+  # 'rot' mode keyword, for rotating back to opposite side of memory range
+
+  # --- oob_pop,   null  -- pop default
+  # --- oob_deq,   null  -- deq default
+  # 'null' will freeze the stack index, and produce blank 'fill' values in pop stream
+
+  # --- oob_pop,   cap
+  # --- oob_deq,   cap
+  # 'cap' mode keywords, for undoing the iteration of a count that reads OOB
+  # - this will subtract index step that was just made so that the final element is re-read
+
+
+
+# --- Stack Hooks:
+# Use '.mut' with these keywords to assign new macros in place of default hooks
+# - Mutators will be called like callbacks, with the following provided arguments
+
+  # --- popm      self, ...
+  # --- reset     self, ...
+  # --- push      self, ...
+  # --- pop       self, ...
+  # --- deq       self, ...
+  # Override these to completely change the corresponding methods
+
+  # --- oob_push  self, sym, ...
+  # --- oob_pop   self, sym, ...
+  # --- oob_deq   self, sym, ...
+  # Override these to implement custom exceptions/navigation methods.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module stack, 0x202
 .if module.included == 0; punkpc sidx, if, obj
 

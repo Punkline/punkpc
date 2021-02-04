@@ -1,7 +1,7 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module sp, 1
+punkpc.module sp, 2
 .if module.included == 0
   punkpc regs, enc, lmf, spr, items
   .macro sp_obj.init
@@ -252,7 +252,7 @@ punkpc.module sp, 1
     .endif;
   .endm;
   .macro sp.__checkx,  arg,  items
-    .if sp.chars$1 >= 0x41
+    .if (sp.chars$1 >= 0x41) && (sp.chars$1 < 0x60)
       \items, \arg
     .else;
       sp.__checkelse \arg

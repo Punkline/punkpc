@@ -1,4 +1,25 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Check if Input Starts with a Numerical Expression
+#>toc if
+# - an if tool that checks the first char of input literals for a numerical expression
+# - useful for catching arguments that can't be treated like symbols before creating any errors
+
+
+
+# --- Class Properties
+
+# --- num  - bool is True if a number is detected in first character of arg, else False
+# --- nnum - not num -- inverse of num
+# these globals can be used as evaluable properties in .if statements
+
+
+
+# --- Class Methods
+
+# --- ifnum arg
+# checks if given arg is a literal number, or an arg that starts with a non-number
+
+# --- ifnum_ascii arg
+#.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module ifnum, 4
 .if module.included == 0
 

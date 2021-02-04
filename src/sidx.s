@@ -1,4 +1,78 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Scalar Index Tools
+#>toc obj : integer buffers
+# - useful for referencing object/dictionary elements as part of an array of indexed symbols
+#   - symbol arrays are indexed literally by casting evaluated indices into decimal literals
+#   - the decimal literals are appended to symbol names with a `$` delimitter
+#     - '$' stands for 'Scalar Index'
+
+
+
+# The '$' symbol char will be used in names to indicate a 'scalar index' value that follows it:
+# --- myNamespace$1        - example of a scalar symbol name, using index '1'
+# --- class.obj$1$44$20    - example of a format with 3 indices '1, 44, 20'
+
+# If a trailing '$' doesn't have a numerical suffix, then it is a property of the whole index
+#   space, rather than an individual index within the space.
+# --- myNamespace$   - example of a property of the whole index space 'myNamespace'
+# --- myNamespacesidx.i - example of another property of attribute of 'myNamespace'
+
+
+
+
+
+# --- Class Property
+
+# --- sidx - an input/output buffer for getting and setting values to an indexed scalar symbol
+
+
+
+
+# --- Class Methods
+
+# --- sidx.alt    <prefix>, i, <suffix>, ...
+# - fastest user-level emitter method, but must be called in (and pass to) altmacro mode
+#   - strings with spaces or problematic literals can be enclosed in brackets
+#   - you may need to use a '!' prefix for to escape literal '<' '>' and '!' chars
+
+# --- sidx.toalt  "<prefix>", i, "<suffix>", ...
+# - like $noalt, but can be called from noaltmacro mode
+#   - bracket quotes must be enclosed in double qoutes, for compatibility
+
+# --- sidx.noalt  "<prefix>", i, "<suffix>", ...
+# - like $toalt, but passes to noaltmacro mode
+#   - may be called from altmacro mode if strings do not have outer double quotes
+
+# --- sidx.em and sidx.ema
+# - these may be used to call the emitters directly using the '%' escape prefix on evaluations
+#   - em emits in noaltmacro mode
+#   - ema emits in altmacro mode, and assumes it is called in altmacro mode
+# - using these directly requires a stricter input syntax, but may be faster than the other methods
+
+# You may optionally append a 2, 3, or 4 to these method names to scale the number of args:
+# --- sidx.alt2   p, i, s,  i2, s2,  ...
+# --- sidx.alt3   p, i, s,  i2, s2,  i3, s3,  ...
+# --- sidx.alt4   p, i, s,  i2, s2,  i3, s3,  i4, s4,  ...
+
+# --- sidx.get    p, i
+# - use this to quickly save the value of a target scalar index symbol to the 'sidx' property
+
+# --- sidx.set    p, i
+# - use this to quickly write the value of the 'sidx' property to a target scalar index symbol
+
+# You may alos optionally append a 2, 3, or 4 to these get/set method names;
+# --- sidx.get2   p, i, i2
+# --- sidx.get3   p, i, i2, i3
+# --- sidx.get4   p, i, i2, i3, i4
+# --- sidx.set2   p, i, i2
+# --- sidx.set3   p, i, i2, i3
+# --- sidx.set4   p, i, i2, i3, i4
+# - use 'sidx' property to input/output values from various scalar symbols this way
+
+# --- sidx.rept   p, start, end, macro, ...
+# A loop dispatcher that passes p$i, for sequence start...end
+# - 'macro' is the name of a macro, instruction, or directive that handles the outputs
+# - '...' may contain any args that come after the output
+# - if start and/or end are blank, they will be set to '0'.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module sidx, 4
 .if module.included == 0
 punkpc ifalt

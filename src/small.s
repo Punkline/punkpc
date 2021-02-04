@@ -1,4 +1,75 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Small Integer Tools/Instructions
+#>toc ppc
+# - macroinstructions for inserting/extracting small integers into/out of larger ones
+# - overrides the `rlwinm` and `rlwimi` instructions to provide an alternative 3-argument syntax
+#   - 3-argument syntax implies all rotation math, requiring only a mask symbol, and registers
+#   - existing 4-argument and 5-argument syntaxes are reverted to, when detected
+
+
+
+# --- PowerPC Instruction Syntax Extensions
+
+# --- rlwinm    rD, rA, extr_mask
+# A new rlwinm syntax that uses 3 args to extract a small int from a larger int
+#   extr_mask  : rA will be ANDED by this mask, and the result will be zero-aligned
+#              - 0x00FFFF00 would be right-shifted by 8, for example
+#              - null masks cause the immediate '0' to be generated with an 'li' instruction
+
+# --- rlwimi    rD, rA, insr_mask
+# A new rlwimi syntax that uses 3 args to insert a small int into a larger int
+#   insr_mask  : rA will be rotated from zero into place of this mask, ANDED, and inserted into rD
+
+# --- rlwinm.
+# --- rlwimi.
+# Variation also compare the result of rD to 0 in cr0
+# - while enabled, rotation args are still accepted in 4 and 5 arg syntaxes
+#   - syntax extension also masks rotation argument, allowing for negatives
+
+# --- small.enable_insr_extr
+# --- small.disable_insr_extr
+# Use these macros to toggle the syntax on or off
+
+
+
+
+# --- Class Properties
+
+# --- small.rot_bits - record of the bits used in last shorthand rlwnim/rlwimi instruction
+# --- small.rot_mask - record of the mask used in last shorthand rlwnim/rlwimi instruction
+
+# --- bcount      - return value; to be copied to other symbols or used directly on macro return
+# --- bcount.sign - returned sign of integer as 1 or 0, for signed methods
+
+# --- enumb.count - bit index for bool enumerator
+# --- enumb.step  - added index to each step in bool enumerator
+# --- enumb.mask  - last generated mask from bool enumerator mask generator
+# --- enumb.crf   - crf mask for the 'mtcrf' instruction, corresponding with enumb.mask contents
+
+
+
+# --- Class Methods
+
+# --- bcount      int
+# Count the number of bits used by an unsigned integer
+# - looks for most significant true bit
+# - this is an alias of "bcount.le" (little-endian bit count)
+# --- bcount.signed   int
+# Count the number of bits used by a signed integer
+# - always includes sign + up to 31 bits on Little End
+# --- bcount.zsigned  int
+# Count the number of unused bits in a signed integer
+# - does not include sign, but counts up to 31 sign-duplicate bits on Big End
+
+# --- bcount.zbe  int
+# Count the number of Zeroed bits on the Big End (bigger digits, left side) of given integer
+# --- bcount.zle  int
+# Count the number of Zeroed bits on the Little End (smaller digits, right side) of given integer
+# --- bcount.be   int
+# Count the number of bits in use by a big-endian value (by inverting bcount.zbe)
+# --- bcount.le   int
+# Count the number of bits in use by a little-endian value (by inverting bcound.zle)
+
+# --- See 'enum.s' for details about 'enumb' bool mask counters.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module small, 0x100
 .if module.included == 0
   punkpc bcount, enum

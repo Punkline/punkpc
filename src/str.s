@@ -1,4 +1,174 @@
-.ifndef punkpc.library.included;
+# --- String Objects
+#>toc obj : literal buffers
+# - a scalar buffer object class that stores literal memory
+# - can store "quoted strings" for pretecting literals
+# - can store \<\<nestable\>, \<altmacro strings\>\> for creating complex tuples
+# - can store `literal strings` that are unprotected, and can be executed like macros
+#   - unlike the `items` class, no delimiting commas are implied, and buffers can use prefix concatenation methods
+
+
+
+# --- Class Properties
+
+# --- str$                - String ID counter
+# used to enable string pointers by assigning each string object a unique ID
+
+# --- str.self_pointers   - Bool option (true by default)
+# copies object '.is_str' to 'self' when a string is newly created
+# - keeping this on allows string names to be evaluated as pointers in addition to object names
+# - if you don't want the constructor to assign a property to self, you may turn this off
+#   - turning this off will still allow string pointers to be referenced from the '.is_str' property
+
+
+
+# --- Object Constructors
+
+# --- str  name, string
+# Create a new string buffer, or overwrite an existing string/literal buffer
+#  name   : the name of the string/literal buffer to use
+#  string : a starting string to start with (can be blank)
+# - string buffers concatenate internally from a pair of quotes in the buffer
+# - string buffers can protect its contents from being interpreted literally
+# - string buffers can optionally be emitted as literals
+
+# --- lit  name, string
+# Create a new literal buffer, or overwrite an existing string/literal buffer
+# - literal buffers concatenate externally from any quotes in the buffer
+# - literal buffers can emit source literals that include quotes in the buffer
+# - literal buffers may be re-quoted as strings if they contain no quotes internally
+
+
+  # ---Object Properties:
+
+  # --- .is_str      - a unique ID for this buffer (can be used with str.point to pass a str name)
+  # --- .is_blank - a bool that is 0 (false) if the string buffer is (thought to be) empty
+  # --- .litmode    - a read-only status of literal buffer memory mode type
+  # - litmode determines whether a buffer is a string or a literal string
+
+
+  # ---Object Methods:
+
+  # --- .clear
+  # Clear the memory in this buffer, and reset to string mode if in literal memory mode
+
+  # --- .conc    sfx
+  # Concatenate a suffix to this string/literal buffer
+  # - this will try to input c as one whole string rather than multiple literal arguments
+  # sfx : suffix to concatenate
+
+  # --- .pfx     pfx
+  # Concatenate a prefix to this string/literal buffer
+  # - this will try to input c as one whole string rather than multiple literal arguments
+  # pfx : prefix to concatenate
+
+  # --- .str    macro, trailing...
+  # Pass the string buffer to given macro (or directive) with optional trailing args
+  #   macro    : the name of a macro or directive to use when handling this string buffer
+  #   trailing : arguments that would come AFTER the output string argument; for macro call
+  # - if in litmode, the object will try to quote the contents before passing them
+
+  # --- .strq   macro, leading...
+  # Pass the buffer contents to given macro (or directive) with optional leading args
+  #   macro    : the name of a macro or directive to use when handling this string buffer
+  #   trailing : arguments that would come BEFORE the output string argument; for macro call
+  # - if in litmode, the object will try to quote the contents before passing them
+
+
+  # literal buffer variations:
+  # --- .conclit  sfx...
+  # variant of '.conc' that forces the buffer into literal memory mode
+  # - suffix can be multiple arguments, and concatenation will come after any buffered quotes
+  #   - if multiple arguments are given, then there will always be a space ' ' at point of concat
+
+  # --- .pfxlit   pfx...
+  # variant of '.pfx' that forces the buffer into literal memory mode
+  # - prefix can be multiple arguments, and concatenation will come after any buffered quotes
+  #   - if multiple arguments are given, then there will always be a space ' ' at point of concat
+
+  # --- .lit      macro, trailing...
+  # variant of '.str' that does not attempt to re-quote the output argument(s)
+  # - if used on a buffer without litmode enabled, the string memory will be unquoted on output
+  #   - if multiple trailing args are given, then they will be preceeded by a space ' '
+
+  # --- .litq     macro, leading...
+  # variant of '.str' that does not attempt to re-quote the output argument(s)
+  # - if used on a buffer without litmode enabled, the string memory will be unquoted on output
+  #   - if multiple leading args are given, then they will be preceeded by a space ' '
+
+
+  # Argument Item list variations:
+  # --- .concitems  sfx
+
+
+
+
+# --- Class Methods
+
+# --- str.point  id, macro, trailing...
+# Point to a string object by referencing a unique string ID stored in the 'self.is_str' property
+#   id       : an ID matching the '.is_str' property of an associated string
+#            - if id is blank, then the 'str.point' property will be used
+#   macro    : the name of a macro or directive to use when handling this string object name
+#   trailing : arguments that would come AFTER the output name argument; for macro call
+
+# --- str.pointer  str
+# str can be either a string object or a string pointer
+# - saves resulting string pointer in the 'str.point' property
+
+# --- str.irp        str, macro, trailing...
+# --- str.irpq       str, macro, leading...
+# These can be used to iterate through comma-separated-values saved in a string buffer
+# - str can be either a string object name or a string pointer/pointer name
+# - the macro is called once for EACH item
+# - the leading/trailing args are added to EACH item
+
+# --- str.str        str, macro, trailing...
+# --- str.strq       str, macro, leading...
+# --- str.lit        str, macro, trailing...
+# --- str.litq       str, macro, leading...
+# --- str.conc       str, ...
+# --- str.pfx        str, ...
+# --- str.conclit    str, ...
+# --- str.pfxlit     str, ...
+# --- str.clear      str, ...
+# These can be used to invoke object methods from a class level
+# - 'str' may be either a string object name or a numerical string pointer
+
+# --- str.emit   macro, str, ...
+# This lets you emit statements using a combination of strings and string pointers
+# 'str' may be specified in [brackets] to reference a string pointer
+# - creates a temporary string to be emitted, called 'str.emitter' -- which can be used afterwards
+# - string pointers must be evaluable expressions that reference the number ID given to a string
+# - all arguments are automatically given a space to separate them
+
+# --- str.error  str, ...
+# Turn multiple string arguments into a contiguous error message
+# str : a string argument (not a string object)
+# - you can use '.strq' object methods to stack up string arguments
+
+# --- str.errors str, ...
+# Turn multiple string arguments into a series of error messages
+
+
+# --- str.warning  str, ...
+# --- str.warnings str, ...
+# - a warning version of error/errors
+
+# --- str.print_line  str, ...
+# --- str.print_lines str, ...
+# - a printer version of error/errors
+
+# --- str.ascii  str, ...
+# --- str.asciz  str, ...
+# - ascii emitters; asciz adds a null terminator to the end of each string argument
+
+# --- str.asciiz str, ...
+# - special ascii emitter that makes one big null terminated string
+
+# --- Callback Methods
+
+# indexed class methods str.__strbuf_event$ 0-31 are used to handle object method cases
+# indexed class methods $_str.point$ n are used to handle string pointers.ifndef punkpc.library.included;
 .include "punkpc.s"; .endif
 punkpc.module str, 0x101
 .if module.included == 0; punkpc ifdef, ifalt, obj

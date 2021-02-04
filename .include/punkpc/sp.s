@@ -1,5 +1,5 @@
 .ifndef punkpc.library.included
-  .include "punkpc.s";.endif;punkpc.module sp, 1
+  .include "punkpc.s";.endif;punkpc.module sp, 2
 .if module.included == 0;  punkpc regs, enc, lmf, spr, items
   .macro sp_obj.init;  .purgem sp_obj.init;sp.frame = 0;sp.mem_ID = 0;sp.mem_ID$ = 0
     sp.lr.__has_items = 0;stack sp.mem;enc.new sp.chars, 0, 1
@@ -127,7 +127,7 @@
       enum.mut.count.sp_obj \enum, \enum\().count + \enum\().step
     .else;  sp.__checkx \arg, \enum\().__items;.endif;
   .endm;.macro sp.__checkx,  arg,  items
-    .if sp.chars$1 >= 0x41
+    .if (sp.chars$1 >= 0x41) && (sp.chars$1 < 0x60)
       \items, \arg;.else;  sp.__checkelse \arg;.endif;
   .endm;.macro sp.__checkelse,  arg
     .ifc \arg,  lr;  sp.lr.__has_items = 1;.exitm;.endif;

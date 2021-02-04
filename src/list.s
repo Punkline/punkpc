@@ -1,4 +1,159 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- List Objects
+#>toc sidx
+# - an extended version of a `stack` object
+#   - list objects have an internal iterator index for iterating through a stack buffer
+#   - indexing allows for random-access get/set features at the object-level
+#   - mutable iterator and indexing methods can be given custom behaviors
+
+
+
+# --- Class Methods ---
+# --- stack.i     obj, idx, ...
+# --- stack.get   obj, idx, sym, ...
+# --- stack.get   obj, idx, val, ...
+# --- stack.iter  obj, sym, ...
+# class-level methods for handling object-level args
+
+
+
+# --- List Objects ---
+
+# --- list   name, ...
+# List objects are extensions of lists that provide an [i] index
+
+
+# --- List Properties:
+  # - extends stack properties...
+
+  # --- .i        - iter index  -- the current index of this iteration, or last get/set
+  # --- .iter     - outpipe memory of last iterated value (from self buffer)
+  # --- .step     - step size   -- the number of steps that .i takes on each iteration
+
+
+
+# --- List Methods:
+  # - extends stack methods...
+
+  # --- .iter   sym, ...
+  # Copy self to iter stream output, and update self with nth memorized push value
+  # - the sequence will use the .step value to increment/decrement the index in linear steps
+  # - if no symbol is given, self.iter is used for output stream
+  # - multiple symbols will cause iterated values to be assigned to each, in a sequence
+
+  # --- .get     idx, sym, ...
+  # Get a list value by invoking a random-access sidx.get operation
+  # NOTE: this method is very fast, but not safe if the given index has not been written to yet!
+  # - assigns gotten value to self buffer
+  # - if idx is blank, then .i is used
+  # - if sym is blank, then self is used
+  # - if multiple symbols are provided, values will be gotten in a sequence using .step
+
+  # --- .set     idx, val, ...
+  # Set a list value by invoking a random-access sidx.set operation
+  # - if 'val' is blank, then value in self buffer is used
+  # - works like .get, syntactically
+
+
+  # --- .i   idx, ...
+  # List index method
+  # - contains a dummy hook, for overriding and adding functionality
+  #   - ... is passed to the dummy hook, but not used by the index method directly
+  # - without mutation, this is no different than literally assigning .i
+
+
+
+  # stack index methods are also provided at the object level, unlike stack objects themselves
+  # - these are normally only available to stacks at the class-level -- but not for lists:
+
+  # --- .q   idx
+  # Queue index method
+  # - sets index self.q
+  # - if no index is given, lowest memory index is used
+  # - caps in range self.qq ... self.s
+
+  # --- .s   idx
+  # List index method
+  # - sets index self.s
+  # - if no index is given, highest memory index is used
+  # - caps in range self.q ... self.ss
+
+  # --- .ss idx
+  # A variation of '.s' that can push '.ss' if out of bounds
+  # - caps in rage of self.q ... self.sss
+
+
+
+# --- List Modes ---
+# - extends stack modes...
+
+# Use '.mode' to set these keyword combinations '\hook, \mode' manually
+# - each of the following is a \hook, \mode  keyword combination
+
+
+
+  # Object Method Overrides:
+  #     hook   mode
+  # --- i,     default
+  # --- iter,  default
+  # --- get,   default
+  # --- set,   default
+  # Set these to a custom mode/mutator to override default behaviors
+  # - use 'stack.mut.(hook).default' to call these directly for extending the default behavior
+
+
+
+  # Index Modes:
+  # --- idx_i,     range  -- i default
+  # 'range' index mode interprets inputs as relative to [q], and limited by [q] ... [s]
+
+  # --- idx_i,     rel
+  # 'rel' index mode is like range, but input is added to current index to make a relative index
+
+  # --- idx_i,     abs
+  # 'abs' index mode uses inputs directly, but still invokes OOB errors if inputs are out of range
+
+
+
+
+  # Out-Of-Bounds (oob) Exception Modes:
+  # - behaviors for handling navigations that move out of index limitations
+
+  # --- oob_iter,  nop
+  # --- oob_i,     nop
+  # 'nop' mode keywords, for no action on both read and write OOB
+
+  # --- oob_iter,  rot  -- iter default
+  # --- oob_i,     rot  -- i default
+  # 'rot' mode keyword, for rotating back to opposite side of memory range
+
+  # --- oob_iter,  null
+  # 'null' will freeze the list index, and produce blank 'fill' values in pop stream
+
+  # --- oob_iter,  cap
+  # --- oob_i,     cap
+  # 'cap' mode keywords, for undoing the iteration of a count that reads OOB
+  # - this will subtract index step that was just made so that the final element is re-read
+
+
+
+
+# --- List Hooks ---
+# - extends stack hooks...
+
+# Use '.mut' with these keywords to assign new macros in place of default hooks
+# - Mutators will be called like callbacks, with the following provided arguments
+
+  # --- i         self, ...
+  # --- get       self, ...
+  # --- set       self, ...
+  # --- new       self, ...
+  # --- iter      self, ...
+  # Override these to completely change the corresponding methods
+
+  # --- oob_iter  self, sym, ...
+  # --- oob_i,    self, idx, ...
+  # --- idx_i     self, idx, ...
+  # Override these to implement custom exceptions/navigation methods.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module list, 0x200
 .if module.included == 0; punkpc stack
 

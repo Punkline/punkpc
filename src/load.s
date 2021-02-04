@@ -1,4 +1,33 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Load Immediate(s)
+#>toc ppc
+# - a tool for creating multi-immediate loads
+# - immediates larger than 16-bits will require multiple instructions
+#   - you can use this macroinstruction to string together as many as you need for a given input
+
+
+
+# --- Class Properties
+
+# --- load.len  - returns length of last output (in bytes)
+# --- load.opt  - optimization flag
+# - if True, (default) then fewer instructions are used to generate input, if possible
+#   - this mode is not capable of handling undefined expressions (like forward label math)
+# - if False, number of instructions used is not optimized
+#   - this mode does not evaluate undefined expressions, and thus supports them
+
+
+# --- Class Methods
+
+# --- load  reg, arg, ...
+# Loads (multiple, if needed) 32-bit immediates in 1 or 2 instructions
+# reg : register value, but has 3 methods of interpretation:
+#        if positive, register will be the base of an incrementing register number
+#        -  ex: 3 =  r3, r4, r5, r6      for a 16-byte value
+#        if reg literally starts with a '-' char, this becomes a decrementer instead
+#        -  ex: 31 = r31, r30, r29, r28  for a 16-byte value
+#        if blank, then a default of decrementing r31 is used to compliment lmw/stmw syntax
+# arg : can be be either a value or a string that starts with '>'
+# ... : multiple 32-bit args or variable-length strings can be loaded at once, in register sequence.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module load, 3
 .if module.included == 0; punkpc regs
 .ifndef load.purgem; load.purgem = 0; .endif

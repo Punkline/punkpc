@@ -1,4 +1,26 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Extract Evaluation Tool
+#>toc library
+# - for extracting evaluable literals from 2 known character indices in a given string argument
+# - useful when parsing complex inputs for evaluable sub-expressions
+
+
+
+# --- Class Properties
+
+# --- xev     - returned integer property, from xev operation
+# --- xev.beg - beginning index from previous xev operation
+# --- xev.end - ending index from previous xev operation
+# --- xev.len - total length of range from previous xev operation
+
+
+
+# --- Class Methods
+
+# --- xev  beg, end, string
+# Extract a substring from target range
+#   beg    : beginning index of range (inclusive)
+#   end    : ending index of range (inclusive)
+#   string : a string to extract a range of characters from.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module xev, 1
 .if module.included == 0
 

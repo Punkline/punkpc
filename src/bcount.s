@@ -1,4 +1,38 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Bit Counter Tools
+#>toc library
+# - useful for finding int sizes when creating masks, for compression
+
+
+
+# --- Class Properties
+
+# --- bcount      - return value; to be copied to other symbols or used directly on macro return
+# --- bcount.sign - returned sign of integer as 1 or 0, for signed methods
+
+
+
+
+# --- Class Methods
+
+# --- bcount      int
+# Count the number of bits used by an unsigned integer
+# - looks for most significant true bit
+# - this is an alias of "bcount.le" (little-endian bit count)
+# --- bcount.signed   int
+# Count the number of bits used by a signed integer
+# - always includes sign + up to 31 bits on Little End
+# --- bcount.zsigned  int
+# Count the number of unused bits in a signed integer
+# - does not include sign, but counts up to 31 sign-duplicate bits on Big End
+
+# --- bcount.zbe  int
+# Count the number of Zeroed bits on the Big End (bigger digits, left side) of given integer
+# --- bcount.zle  int
+# Count the number of Zeroed bits on the Little End (smaller digits, right side) of given integer
+# --- bcount.be   int
+# Count the number of bits in use by a big-endian value (by inverting bcount.zbe)
+# --- bcount.le   int
+# Count the number of bits in use by a little-endian value (by inverting bcound.zle).ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module bcount, 1
 .if module.included == 0
 

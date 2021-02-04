@@ -1,4 +1,161 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Object Method Mutator Hooks
+#>toc obj
+# - a core module for defining mutable behavior hooks
+# - useful for making your class/objects customizable
+# - extended by the `obj` module
+
+
+
+# --- Class Properties
+
+# --- mut.mutable_class$ -   class ID counter
+# --- mut.mutable_obj$   -     obj ID counter
+# --- mut.mutator$      - mutator ID counter
+# --- mut.mutable_mode$  -    mode ID counter
+
+# --- mut.uses_obj_mut_methods - temporary param that changes the next instantiated 'mut.class'
+
+
+
+
+# --- Mutable Class ---
+# For Mutable Classes
+# - a class namespace for collecting static method and property attributes under
+
+# --- mut.class      class, mut_ns, hook_ns
+# Creates a small object at the class level of some other module, for constructing mutators
+# - if the class 'mut_ns' is blank, class-default callbacks will use '\class.mut.*' as a namespace
+
+# Class-default behaviors must be defined by (class).(mut_ns).(hook) macro definitions, by the user
+
+
+
+  # - for (class) namespace...
+  # --- Class Properties
+  # --- .is_mutable_class     - instance of Mutatable class object
+  # --- .uses_obj_mut_methods - flag for conditionally constructing obj-level methods in new objs
+  # - flag can be set preemptively, before instantiating with 'mut.class'
+
+  # --- Class Methods
+  # --- .hook  obj,       hook  - construct mutator hooks
+  # --- .mut   obj, mut,  hook  - mutate hook with unregistered mutation callback
+  # --- .mode  obj, mode, hook  - mutate hook with a registered mode keyword
+  # These all pass  class, hook_ns,  and  mut_ns  to corresponding corresponding 'mut.*' methods
+  # - they are constructed by the mut.class method
+
+  # --- .mut   obj, hook_ns
+  # Alternative form of the .mut method will initialize an object
+  # - if 'hook_ns' is blank, object hooks namespaces will use '\obj.hook.*' as a namespace
+  # - this is a shorthand for calling 'mut.obj'
+
+  # --- .call_hook  obj, hook, mode, ...
+  # Use this to invoke a hook with a fallback default mode to use if the hook doesn't exist
+  # - if a hook is not initialized, purged, or otherwise disabled -- 'mode' is used instead
+  # - if 'mode' is blank, the mode keyword 'default' is used to defer to a default mutator
+  # - args in '...' are passed in the resulting call
+
+  # --- .purge_hook  obj, hook, ...
+  # Use this to ensure that a hook has been initialized, and is available for instantiation
+
+
+
+
+
+# --- Mutable Object ---
+# For Mutable Objects
+# - an object to be included inside of another class object constructor method
+# - summarizes given 'hook_ns' and 'mut_ns' as internalized literals
+
+# --- mut.obj   obj, class, mut_ns, hook_ns
+# A class-level backend to handle constructing objects with object-level mutator constructor methods
+# Object-level constructor calls are for initializing inside of another object constructor method
+# The .hook method can be used to assign mutators
+
+
+
+  # - for (obj) namespace...
+  # --- Object Properties
+  # --- .is_mutable_obj - instance of Mutable class object
+
+
+
+  # --- Object Methods  --- only if class '.uses_obj_mut_methods' is true...  (true by default)
+
+  # --- .hook  hook, ...
+  # Register any number of hook names as new hooks for this object
+  # - the type name must match a class-level mutator name to default to
+  # - if hook has already been created, then this will cause it to reset back to class default
+
+  # --- .mut   mut, hook, ...
+  # Mutate hook to use given mutator callback macro
+  # - callback name 'mut' does not have to be under a registered mode
+  # - if 'mut' is blank, then hook becomes a nop
+  # - if multiple hooks are given, then each hook will recieve the same callback
+  #   - this is useful for assigning multiple nops, or a implementing common handlers
+  # - if 'mut' is encapsulated in a quoted string, it may contain multiple statement prefixes
+  #   - each statement must be delimited with a ';' semicolon
+
+  # --- .mode  hook, mode ...
+  # Register any number of mode names as new modes for specified hook belonging to this object
+  # - these do not require class-level defaults, and will not have any effect until mutated
+  # - if multiple modes are given, then they will all become registered for given hook
+
+
+
+# --- Mutator Hook Object ---
+
+# For Callable Mutator Hooks
+# - a hook, as in a method that can be called like a callback event
+# - call these hook objects from within another object method to implement a mutable event
+
+# --- mut.mut   mut, hook, obj, hook_ns
+# A class-level backend for abstract '.mut' methods
+# - allows for assigning custom mutations
+# - intended to be used at the object level, to imply most arguments
+# --- mut.hook   hook, obj, class, mut_ns, hook_ns
+# Alternative class-level backend for abstract '.hook' methods
+# - only installs default (mutable) behaviors
+#   - plugs into default mut_ns namespace for mutator callbacks to install with hook
+#   - if mut_ns is blank, then the default is set to a common NOP callback
+
+# --- mut.purge_hook  hook, obj, hook_ns
+# Purges the given hook if it exists, and is purgable; registering any uninitialized hook keywords
+# - will ensure that the given hook keyword is safe to overwrite, even if it doesn't exist yet
+# This is technically the hook constructor, it's just used by the other mut.* constructors
+
+# --- mut.call   obj, hook, mode, class, mut_ns, hook_ns, ...
+# Use this to invoke a hook with a fallback default mode to use if the hook doesn't exist
+
+
+  # - for (obj).(hook_ns).(hook) namespace...
+  # --- Hook Properties
+  # --- .is_mutator - instance of a Mutator Hook object
+  # --- .mode$     - an incrementing ID counter, for assigning to new modes
+  # --- .mode      - an ID for what registered mode this mutator is in - 0 if unregistered
+  # --- .purgable  - a flag that informs the .purge_hook macro, for overwritting
+
+
+
+  # --- Hook Method
+  # --- (self)  ...
+  # can be called to invoke mutable behavior
+
+
+
+
+# --- Mutation Mode Callback Object ---
+# For Mutation Mode Callbacks
+# - mutations with keywords attached to the hook; these make a dictionary of callbacks
+
+# --- mut.mode  mode, hook, obj, class, mut_ns, hook_ns
+# A class-level backend to handle object-level '.mode' methods (see Mutable Class Object, above)
+# - registers and uses input callback names as 'modes' that can be referenced by dictionary keyword
+# - modes can be switched to easily at the user level, with provided object methods
+
+  # - for (obj).(hook_ns).(hook).(mode) namespace...
+  # --- Mode Properties
+  # --- (self) - registered mode ID for this keyword
+  # --- .is_mutator_mode - instance of Mutator Mode Callback Object.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module mut, 5
 .if module.included == 0; punkpc ifdef
 

@@ -1,4 +1,22 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Condition/Comparison Register/Fields
+#>toc ppc
+# - cr instruction fixes, and utilities for working with cr fields
+# - used to more efficiently (and legibly) write binary trees in PowerPC functions
+
+
+
+# --- PowerPC Instruction Extensions
+
+# --- crset  bD
+# Overridden with virtually equivalent crorc bD, bD, bD syntax
+
+# --- crclr  bD
+# Overridden with virtually equivalent crandc  bD, bD, bD syntax
+
+
+# --- cr.enable_overrides
+# --- cr.disable_overrides
+# Use these macros to toggle the syntax on or off.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module cr, 1
 .if module.included == 0
   punkpc enum, regs

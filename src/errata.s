@@ -1,4 +1,98 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Errata Objects
+#>toc str
+# - for generating constants that can be referenced before they are defined
+# - requires that the errata doesn't need to be immediately evaluated after being emitted
+# - useful for making cumulative results of an arbitrary number of operations
+#   - delaying the assignment of a constant until it is ready can be a useful concept in GAS
+
+
+
+# --- Constructor Method ---
+# --- errata.new  self, ...
+# Creates a new errata object with name given by 'self'
+# - multiple objects can be defined at once with '...' varargs
+
+
+
+  # --- Object Properties ---
+
+  # --- .i - index of current tuple, in errata array memory
+
+
+
+  # --- Object Methods ---
+
+  # --- .ref  sym, ...
+  # Reference an errata tuple's memory at the current the current index with a symbol assignment
+  # Each additional symbol name provided in '...' will reference the next element in a tuple
+  # - 'sym' is the name of a symbol that receives the reference assignment
+  #   - each reference may be to undefined memory, so long as it become defined before assembly end
+
+  # '.ref' and can accept numbers in place of arguments, to change the '.i' property
+  # - if wrapped in [] brackets or () parentheses, any symbol can be interpreted like a number
+
+
+  # --- .solve  val, ...
+  # Solve for all previous references of tuple indices at the current index
+  # Each additional value provided in '...' will provide a result for the next element in a tuple
+  # - 'val' must be an absolute expression, meaning that it has to be immediately evaluable
+  #   - all previous references to undefined memory will recieve the first solve -- like a constant
+  #     - this only works if the values being solved for have not yet been defined
+
+
+
+
+# --- Class Methods ---
+
+# --- errata.ref     obj, sym, ...
+# --- errata.solve   obj, val, ...
+# class-level methods for invoking object methods, optionally via pointer
+
+
+
+# --- errata.point         obj, macro, ...
+# --- errata.pointq        obj, macro, ...
+# --- errata.pointer       obj, sym
+# --- errata.call_mut      obj, hook, mode, ...
+# --- errata.get_property  obj, ppt, symbol
+# --- errata.set_property  obj, ppt, value
+# 'obj' pointer methods, for handling both objects and pointers to objects in the same fashion
+
+
+
+# --- errata.hook       obj,       hook
+# --- errata.mut        obj, mut,  hook
+# --- errata.mode       obj, mode, hook
+# --- errata.call_hook  obj, hook, mode, ...
+# --- errata.purge_hook obj, hook, ...
+# 'mut' class-level methods, for handling mutable behaviors
+# - they do not accept pointers, but can be handlers for the 'errata.point' method
+
+
+
+# --- Errata Modes:
+
+  # Object Method Overrides:
+  #     hook        mode
+  # --- ref,        default
+  # --- solve,      default
+  # --- ref_iter,   default
+  # --- solve_iter, default
+  # Set these to a custom mode/mutator to override default behaviors
+
+  # Custom Modes:
+  # --- solve_iter, stack
+  # - causes solving a piece of errata to push the index by +1
+
+
+
+# --- Errata Hooks:
+  #     hook        args
+  # --- ref         self, arg, ...
+  # --- solve       self, arg, ...
+  # --- ref_iter    self, arg, ...
+  # --- solve_iter  self, arg, ...
+  # Override these with custom mutators.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module errata, 1
 .if module.included == 0
 

@@ -1,4 +1,29 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Alignment Tool (relative)
+#>toc library
+# - an alternative to the `.align` directive that doesn't destroy absolute expressions
+# - useful for measuring arbitrary body sizes that include un-aligned data
+#   - byte arrays and strings are examples of structs that commonly need re-alignment
+
+
+
+# --- Class Properties ---
+# --- _align.__start - a copy of the '_punkpc' library object label
+# --- align.default - setting this will change the default bit alignment size
+
+# --- Class Methods ---
+# --- align  exp
+# Align the program counter in the current section using a power of 2, 'exp'
+# 'exp' - accepts values up to '15'
+# - 0 is 1-bytealignment
+# - 1 is 2-byte short alignment
+# - 2 is 4-byte word alignment (default)
+# - 3 is 8-byte alignment
+# - 4 is 16-byte alignment
+# - etc...
+
+# --- align.to  exp, label
+# This version of align accepts a base offset in the form of a label
+# 'label' can be used to override the default '_align.__start' base label.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module align, 1
 .if module.included == 0
 

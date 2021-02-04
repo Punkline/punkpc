@@ -1,4 +1,124 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Objects (and Classes)
+#>toc Modules : objects and classes
+# - a core module for defining classes that construct objects
+# - objects are uniquely named
+# - unique objects may be given pointer IDs, for identifying instances of a class
+# - object methods may be defined through hook callers, for creating mutable behaviors
+#   - mutable object methods may be reached via pointers, at the class level
+# - object properties may be given hidden names, used internally by the constructor
+
+
+
+# --- Class Properties
+# --- obj.class.uses_pointers  - use pointers by default
+# --- obj.class.self_pointers  - don't point to self by default
+# --- obj.class.uses_mutators  - use mutators by default
+# --- obj.class.uses_obj_mut_methods - uses obj-level mutator methods by default, if using mutators
+# - these flags only affect newly created object classes, not newly instantiated objects
+#   - they can be edited from the class-level at any time
+
+# --- obj.def
+# --- obj.ndef
+# - these return whether or not an object was defined or undefined before instantiation routine
+
+
+
+
+# --- Constructor Methods
+
+# There is a class-level constructor and an object-level constructor:
+
+# --- obj.class     class, class_ppt, dict, get
+# Creates class-level methods for setting up and accessing
+# You must specify a class and a class_ppt name
+# - the dict and get arguments are optional, and will default to the names 'point' and 'pointer'
+#   - these are used to create method names/properties for
+
+
+
+
+  # --- Class Object Properties
+  # --- .is_objClass - keeps track of the number of instantiated classes that count pointers
+  # --- .uses_pointers - flag enables/disables generation of pointer properties in .obj method
+  # --- .self_pointers - flag enables/disables assignment of pointer value to 'self' property
+  # --- .uses_mutators - flag enables/disabled use of mutators and method hooks
+  # --- .uses_obj_mut_methods - flag enables/disables obj-level mutator methods, if using mutators
+  # --- .\get - the pointer output property name -- called '.pointer' by default
+
+
+
+
+  # --- Class Object Methods
+  # --- .\dict  obj_point, macro, ...
+  # By default, this is called '.point'
+  # The pointer dictionary method, for accessing object name from a pointer value
+  # Emits:   \macro  (name of object(s)), ...
+  # - obj_point must be an object pointer for this class
+  # - if quoted, multiple comma-separated pointer arguments can be given
+  # - macro can be any macro or directive that can handle the object being pointed to
+
+  # --- .\dict\()q obj_point, macro, ...
+  # By default, this is called '.pointq'
+  # This variation can queue the argument instead of stacking it when emitted:
+  # Emits:   \macro  ..., (name of object(s)
+
+  # --- .\get   obj, sym
+  # By default, this is called '.pointer'
+  # The pointer generation method, for copying pointer values to the output property
+  #  'sym' is given the pointer as a return value
+  # - obj can be an object, and object pointer, or just a number equal to a pointer value
+  # - if sym is not provided, a property of the same name as the method is used
+  #   - by default, this is '.pointer'
+
+  # --- .call_method  obj, meth, ...
+  # A callback that invokes an object's method, through pointers
+  #  'obj' may be pointer value or the name of an actual object
+  #  'meth' is the name of a method that trails the object name
+
+  # --- .get_property  obj, ppt, sym
+  # A callback that copies an object's property, through pointers
+  #  'obj' may be pointer value or the name of an actual object
+  #  'ppt' is the name of a property
+  #  'sym' is the name of a symbol to copy the property to (if blank '.property' is used)
+
+  # --- .set_property  obj, ppt, val
+  # A callback that copies to an object's property, through pointers
+  #  'obj' may be pointer value or the name of an actual object
+  #  'ppt' is the name of a property
+  #  'val' is an expression to assign to the property (if blank '.property' is used)
+
+  # --- .meth          obj, method, ...
+  # Instantiate methods that hook directly into default mutators of the same names
+  # - these don't have to be given hook instances to function
+  # 'obj' is the name of an object to create methods for
+  #   - if blank, the methods are created for the class-level, instead
+  # 'method' is the name of an object method
+
+  # --- .call_\mut_ns  obj, hook, mode, ...
+  # Call an object method without having to invoke the object directly
+  # - if the hook instance isn't found, it will default to the given mode keyword
+  # - otherwise, it will prioritize a found hook instance directing to a specific mutator
+
+  # --- .obj           obj
+  # The object instantiater method, for registering an object namespace and giving it a pointer
+  # - obj can be any unused namespace that is appropriate for your class object
+
+
+
+    # --- Object Properties
+    # --- .\class_ppt - the property that holds an object pointer value for this object
+    # - this can be checked to verify that this object namespace is associated with this class
+
+
+
+
+# --- Class Methods
+
+# --- obj.hidden_constructor  self, constructor, ...
+# A special module-level method that passes a generated hidden namespace to a constructor
+# - self is the name of the object to use
+# - constructor is the name of the constructor macro that uses self and the hidden namespace
+# - ... is any number of trailing args that should go to the constructor.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module obj, 2
 .if module.included == 0; punkpc if, hidden, mut
 

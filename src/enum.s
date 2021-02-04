@@ -1,4 +1,229 @@
-.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- Enumerator Objects
+#>toc obj
+# - a powerful object class for parsing comma-separated inputs
+# - default behaviors are useful for counting named registers and offsets
+# - highly mutable objects may be individually mutated for custom behaviors
+
+
+
+# --- Constructor Methods
+
+# --- enum.new      self, prefix, suffix, ...    - default enumerator type
+# --- enumb.new     self, prefix, suffix, ...    - special 'bool mask' enumerator type
+# Constructors for making enumerator objects called 'self'
+#   'prefix' and 'suffix' can be used to give each symbol name input an implied beginning/ending
+#   - can be blank, to ignore concatenation
+# '...' can be used to input arguments into the new enumerator, after it is created
+# - alternatively, inputs can be made iteratively through calls to the object -- directly by name
+
+# --- enum.new_generic  self, prefix, suffix
+# --- enum.new_raw      self, prefix, suffix
+# Low level constructors used by enum.new, enumb.new, and any custom constructors that extend enum
+# - other functions can be written to wrap around it to make other types of enumerator objects
+# - this will accept '...' args for compatibility, but does nothing with them
+
+
+
+  # --- Generic (Default) Object Properties
+
+  # --- .is_enum - Object instance ID, for creating pointers
+  # --- .steps - keeps memory of the number of iterations made, ignoring step size
+  # --- .step  - keeps memory of how much to increase (or decrease) index by each step
+  # --- .step.restart  - overridable property given by the constructor arguments
+  # --- .last  - keeps memory of last assigned count
+  # --- .count - keeps memory of the current index being counted
+  # --- .count.restart - overridable property given by the constructor arguments
+  # --- .hook.enum_parse_iter.mode - ID indicating current parse mutator mode
+  # --- .hook.numerical.mode       - ID indicating current num mutator mode
+  # --- .hook.literal.mode         - ID indicating current nnum mutator mode
+  # --- .hook.count.mode           - ID indicating current count mutator mode
+  # --- .hook.step.mode            - ID indicating current step mutator mode
+  # --- .hook.restart.mode         - ID indicating current restart mutator mode
+  # 1 = default mode ID
+
+
+
+
+  # --- Generic (Default) Object Methods ---
+  # This is a mode of object generated with 'enum.new' constructor
+
+  # --- (self)  sym, sym ...
+  # Assigns a count to each given symbol name, according to enumeration property memory
+  # - if 'sym' starts with a letter or _.$ chars -- then it is couted like a symbol
+  # - if not, then the input is checked for special in-line syntaxes:
+  #   - inputs starting with '+' or '-' will set the '.step' property to a new value
+  #   - inputs enclosed in (parentheses) will set the '.count' property to a new value
+
+  # --- .enum_conc  pfx, sfx,  sym, sym, ...
+  # A version of main method 'self' that lets you use custom symbol prefixes/suffixes
+  # - 'pfx' will be concatenated to the front of each given symbol
+  # - 'sfx' will be concatenated to the end of each given symbol
+  #   - if 'pfx' or 'sfx' is blank, the resulting concatenations will also be blank
+  # - (self) method invokes this method
+
+  # --- .restart
+  # Restarts the enumerator object, setting it back to its first assigned count/step
+  # - these values are stored in '.restart.count' and '.restart.step'
+
+  # --- .mut   mut, hook, ...
+  # Apply mutator 'mut' macro in place of current behavior for given hook keyword
+  # - if multiple hooks are given through '...', they will all recieve the same mutator
+  # - see Hooks for more info, below
+
+  # --- .mode  hook, mode
+  # Apply a mode to a given hook name, undoing any mutations made to the hook
+  # - see Modes for more info, below
+
+  # --- .hook  hook, ...
+  # Register any number of hook names as new hooks for this object
+  # - if hook has already been created, then this will cause it to restart back to class default
+
+
+
+
+  # --- Bool Mask Object Mode Mutations ---
+  # This is a mode of object generated with the 'enumb.new'
+
+    # --- (self)  Sym, Sym ...
+    # Alternate enumerator sticks to an index between 0...31, and generates 'bool' and 'mask' syms
+    # - Each given 'Sym' produces a 'bSym' and an 'mSym' symbol with special index values
+    #   - 'bSym' is a bit index that matches syntax used in PPC cr instructions
+    #   - 'mSym' is a mask representing the bit index
+    # - if 'Sym' is an existing symbol, then its value as 0 (FALSE) or not 0 (TRUE) can build masks
+
+    # --- .mask   Sym, Sym, ...
+    # Generates a 32-bit mask out of a series of Symbols, and their corresponding mSymbol masks
+    # - 'Sym' is an input symbol that matches the name given to the '(self)' method, earlier
+    #   - if the value 'Sym' is not defined, it is assumed to be FALSE
+    #   - if the value is 0, it is assumed to be FALSE
+    #   - else, it is assumed to be TRUE
+    # - the value of 'Sym' will be ORed in using the corresponding 'mSym' mask bit(s)
+    # --- .mask - a return property, for the '.mask' method
+
+
+
+
+  # --- Modes ---
+  # Use '.mode' to set these keyword combinations '\hook, \mode' manually
+  #  'enum.new'  and  'enumb.new'  will handle these mode settings automatically on construction
+  #  You may create custom modes by defining macros with the syntax:  \self\().mut.\hook\().\mode
+
+    # --- enum_parse, default
+    # Parses for each given argument, unless the '.enum_exiting' property is set to true
+
+    # --- enum_parse_iter, default
+    # Simply checks the first char for numbers or math chars, and splits handle as 'num' or 'else'
+
+    # --- numerical, default
+    # Handles inputs that start with '(', '+', or '-' by invoking either the 'count' or 'step' hooks
+
+    # --- literal, default
+    # Handles inputs as symbol names, for assignment -- also increments '.count' by '.step'
+
+    # --- count, default
+    # Assignments to '.count' have no checks or limitations
+
+    # --- step, default
+    # Assignments to '.step' have no checks or limitations
+
+    # --- restart, default
+    # restarts '.count' and '.step' back to memorized init values, and sets '.steps' to 0
+
+
+    # --- literal, bool
+    # Assigns a calculated 'bit index' with the count hook, and a 'mask' symbol with the result
+
+    # --- count, bool
+    # Assigns count after ANDing it by 0x1F -- creating a modulo range of 0...31
+
+
+    # --- numerical, relative
+    # Causes adjustments to the count index to be relative instead of absolute
+
+
+
+  # --- Hooks ---
+  # Use '.mut' with these keywords to assign new macros in place of default hooks
+  # - Mutators will be called like callbacks, with the following provided arguments
+  # - '...' indicates any additional args will also be passed, for extending the hook functionality
+
+    # --- enum_parse  self, prefix, suffix, ...
+    # Override this to change how all given inputs get parsed
+
+    # --- enum_parse_iter  self, symbol, prefix, suffix, arg
+    # Override this to completely take control of the 'for each argument' loop in the main method
+
+    # --- numerical   self, arg, prefix, suffix, ...
+    # The method that gets invoked to handle inputs that trigger 'ifnum'
+    # - override this to change how inputs that start with '0123456789+-*%/&^!~()[]' are handled
+    # - 'char' is the ascii encoding for the detected character
+
+    # --- literal     self, symbol, prefix, suffix, arg, ...
+    # The method that gets invoked to handle each literal input
+    # - 'literal' inputs are just inputs that didn't trigger 'numerical' check, through 'ifnum'
+    # - override this to change how literal inputs are handled after counting
+
+    # --- count       self, symbol, prefix, suffix, arg, ...
+    # Responsible for setting the 'count' property
+    # - override this to create conditions, rules, and processing for the resulting value
+
+    # --- step        self, symbol, prefix, suffix, arg, ...
+    # Responsible for setting the 'step' property
+    # - override this to create conditions, rules, and processing for the resulting value
+
+    # --- restart     self, symbol, prefix, suffix, arg, ...
+    # Responsible for restartting the volatile properties used by this object
+
+
+# Calling '.hook' with any of these keywords will automatically set them to their 'default' modes
+# --- ex:  enum.temp.hook  count
+# - count hook has been set to default behavior
+
+# Calling '.mut' with a custom mutator name will override the current hook(s)
+# --- ex:  enum.temp.mut   my_mutator,  numerical, literal
+# - numerical and literal argument handlers have been mutated
+
+# Calling '.mut' with a blank mutator name will cause any assigned hooks to become nops
+# --- ex:  enum.temp.mut   , count, step
+# - count and step argument handlers now do nothing
+
+
+
+# --- Class level Objects
+
+# --- enum  - for global (volatile) use -- uses default modes
+# --- enumb - for global (volatile) use -- uses bool mask counter modes
+
+
+
+# --- Class Properties
+
+# --- Class Methods
+
+# --- enum.point   enum_pointer, macro, ...
+# Pass the name associated with a specific enum object pointer to a given macro
+# - a 'pointer' is just an id number, recorded at construction in the '.is_enum' property
+
+# '...' will become trailing arguments in the resulting call, like:   macro  obj, ...
+
+# --- enum.pointq  enum_pointer, macro, ...
+# A variation of 'enum.point' that inserts '...' BEFORE the object name argument, instead of after
+# - 'q' for 'queue'
+
+
+# --- enum.pointer  obj
+# Generate a pointer from either an enum object name, or an evaluation of the pointer (redundantly)
+# - allows obj names/pointers to be used interchangeably in cases where self-pointers are not used
+# --- enum.pointer - return property for 'enum.pointer' produces a pointer ID
+
+
+# --- enum.hook        hook, enum  - construct mutator hooks
+# --- enum.mode  mode, hook, enum  - mutate hook with a registered mode keyword
+# --- enum.mut   mut,  hook, enum  - mutate hook with unregistered mutation callback
+# --- enum.mut   enum   - alternative syntax constructs mutator methods for new obj
+# Class level mutator Macros
+# - 'enum' is the name of an enumerator object
+#   - you may use these at the object level, too.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module enum, 0x202
 .if module.included == 0
 
