@@ -1,9 +1,9 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module bcount, 1
+punkpc.module bcount, 2
 .if module.included == 0
-  .macro bcount.zbe,  i
+  .macro bcount.zbe,  i,  rtrn=bcount
     bcount = 0
     bcount.int = \i
     bcount.len = 32
@@ -18,8 +18,9 @@ punkpc.module bcount, 1
         .endif;
       .endr;
     .endif;
+    \rtrn = bcount
   .endm;
-  .macro bcount.zle,  i
+  .macro bcount.zle,  i,  rtrn=bcount
     bcount = 0
     bcount.int = \i
     bcount.len = 32
@@ -34,20 +35,24 @@ punkpc.module bcount, 1
         .endif;
       .endr;
     .endif;
+    \rtrn = bcount
   .endm;
-  .macro bcount.be,  i
+  .macro bcount.be,  i,  rtrn=bcount
     bcount.zle \i
     bcount = 32-bcount
+    \rtrn = bcount
   .endm;
-  .macro bcount.le,  i
+  .macro bcount.le,  i,  rtrn=bcount
     bcount.zbe \i
     bcount = 32-bcount
+    \rtrn = bcount
   .endm;
-  .macro bcount,  i
+  .macro bcount,  i,  rtrn=bcount
     bcount.zbe \i
     bcount = 32-bcount
+    \rtrn = bcount
   .endm;
-  .macro bcount.signed,  i
+  .macro bcount.signed,  i,  rtrn=bcount
     bcount.sign = \i>>31
     .if (\i==-1)||(\i==0)
       bcount = 2
@@ -59,10 +64,12 @@ punkpc.module bcount, 1
       .endif;
       bcount=bcount+1
     .endif;
+    \rtrn = bcount
   .endm;
-  .macro bcount.zsigned,  i
+  .macro bcount.zsigned,  i,  rtrn=bcount
     bcount.signed \i
     bcount = 32 - bcount
+    \rtrn = bcount
   .endm;
 .endif;
 
