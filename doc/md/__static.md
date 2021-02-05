@@ -4,8 +4,8 @@
 
 
 ## Modules
-**source** : commented source, with attribute information <br />
-**examples** : example usage, with guiding comments <br />
-**exploded** : exploded lines (uncommented, with limited language support in linguist)
+- **source** - commented source, with attribute information <br />
+- **examples** - example usage, with guiding comments <br />
+- **exploded** - exploded lines (uncommented, with limited language support in linguist)
 ---
 >toc : 
