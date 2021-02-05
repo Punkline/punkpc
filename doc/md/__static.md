@@ -4,8 +4,9 @@
 
 
 ## Modules
-- **source** - commented source, with attribute information <br />
-- **examples** - example usage, with guiding comments <br />
-- **exploded** - exploded lines (uncommented, with limited language support in linguist)
+[:pencil2:](/src) = ***commented source***, with attribute information <br />
+[:alembic:](/doc/s/examples) = ***example usage***, with guiding comments <br />
+[:boom:](/doc/s/exploded_lines) = ***exploded lines*** (uncommented)
+
 ---
->toc : 
+>toc :
