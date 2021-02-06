@@ -2,35 +2,39 @@
 
 Punkpc is a collection of several loose experiments made for use in GNU Assembler that may assist in writing small binaries. The tools are presented as importable modules with a special macro that handles `.include` statements as needed for branching prerequisites.
 
+- [Install Folder][inc]
+- [Documentation][doc]
+- [Source][src]
+
 ## About
 
-I started this project after exploring the kind of utility that could be squeezed out of basic symbol and macro primitives in GAS. It provides in-assembler tools that are useful for writing injection code, function libraries, and small files with just `as.exe`. It's intended to be usable without relying on a linker or a compiler for high level features.
+I started punkpc while exploring the kind of utility that could be squeezed out of basic symbol and macro primitives in GAS. It provides in-assembler tools that are useful for writing injection code, function libraries, and small files with just `as.exe`; usable without a linker or a compiler.
 
-Some of the modules offer convenient tweaks and extensions to the PowerPC language. They are all collected under the module called `ppc`:
+Some of the modules offer convenient tweaks and extensions to the PowerPC language. They are all collected under the module called [`ppc`](/doc#ppc):
 
 ![example use of the 'ppc' module][img_ppc]
 
 ---
 
-Punkpc is intended for use with the PowerPC instruction set, but contains tools that work with just GNU Assembler, as well. Other modules provide 'classes' in GAS that can instantiate objects for use in the assembler. These classes are simply strict uses of namespaces in macros and symbols.
+Punkpc is mainly intended for use with the PowerPC instruction set, but also contains tools that work with just GNU Assembler. Other modules provide fake 'classes' in GAS that can instantiate objects for use in the assembler. These classes are simply strict uses of namespaces in macros and symbols.
 
-For instance: the `str` module offers a useful class of 'string' objects for the GAS environment. These allow for scalar literal memory to be stored, appended, and emitted elsewhere in the assembly program as part of a statement:
+For instance: the [`str`](/doc#str) module offers a useful class of 'string' object for creating buffers in the GAS environment. These allow for scalar literal memory to be stored, appended, and emitted elsewhere in the assembly program as part of a statement:
 
 ![example use of the 'str' module][img_str]
 
 ---
 
-The `stack` module is another example of a useful class of object. They allow for a different type of scalar memory that uses integers through a scalar variable, or through references to discretely named symbols.
+The [`stack`](/doc#stack) module is another example of a useful class of object. Stacks allow for a different type of scalar memory that keep track of integers through a scalar variable, or through references to discretely named symbols.
 
-Stack objects are also made with the `obj` module, and can be extended and mutated.
+Stack objects are also made with the [`obj`](/doc#obj) module, and can be extended and mutated.
 
-Lists from the `list` module are an extended version of stacks that include features for iterating through a stack of integer values, or reading/writing to them more easily with random access:
+Lists from the [`list`](/doc#list) module are an extended version of stacks that include features for iterating through a stack of integer values, or reading/writing to them more easily with random access:
 
 ![example use of the 'list' module][img_list]
 
 ---
 
-It's possible to do tasks such as sorting, pointing, and concatenation with scalar buffers provided by these objects. These kinds of constructs are normally very tedious to create in GAS, but become much easier to implement and make use of through this meta-object system.
+It's possible to do tasks such as sorting, pointing, and concatenation with the scalar buffers provided by these objects, which are normally very tedious to create in GAS. They are much easier to implement using the punkpc meta-object system.
 
 - For a full list of the provided class modules, and some guides on how to use them -- see the table of contents in the extra readme in the [doc directory][doc].
 
@@ -63,13 +67,7 @@ Each 'module' argument `*` corresponds with a `*.s` file in the library object's
 
 Modules are imported through conditional use of the `.include` statement, which can be used as a manual alternative to using library objects, if desired.
 
-
-## More Info
-
-- See the [doc directory][doc] for examples, documentation, and guides
-- See the [src directory][src] for commented source and scratch notes
-
-[doc]: /doc/
+[doc]: /doc#Documentation
 [src]: /src/
 [inc]: /.include/
 
