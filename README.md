@@ -2,9 +2,13 @@
 
 Punkpc is a collection of several loose experiments made for use in GNU Assembler that may assist in writing small binaries. The tools are presented as importable modules with a special macro that handles `.include` statements as needed for branching prerequisites.
 
-- [Install Folder][inc]
-- [Documentation][doc]
-- [Source][src]
+
+- [Overview](#about)
+- [Installation](#installation)
+  - [Install Folder][inc]
+- [Usage](#usage)
+  - [Documentation][doc]
+  - [Source][src]
 
 ## About
 
