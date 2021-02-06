@@ -21,14 +21,15 @@
 
 ## Modules
 
-Documentation links use the following emojis: <br />
+Documentation links use the following emojis:
+
 [:pencil2:](/src) = ***commented source***, with attribute information <br />
 [:alembic:](/doc/s/examples) = ***example usage***, with guiding comments <br />
 [:boom:](/doc/s/exploded_lines) = ***exploded lines***, uncommented
 
 Some modules use other modules as dependencies. Loading them will load the dependencies alongside the module automatically, as required.
 
-A :heavy_plus_sign: sign is used to show these extra inclusions.
+A :arrow_right: arrow is used to show these extra inclusions.
 
 Note that -- when using the `punkpc` library object to include modules (like each module does, internally) -- a `.include` statement is only called if the file is not already in the GAS environment. Because of this, including multiple modules that have a common prerequisite will have faster load times because the prereq only needs to be loaded once between them all.
 
@@ -42,7 +43,7 @@ Alignment Tool (relative)
    - byte arrays and strings are examples of structs that commonly need re-alignment
 
 >[:pencil2:](/src/align.s)[:alembic:](/doc/s/examples/align_ex.s)[:boom:](/doc/s/exploded_lines/align.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`ifalt`](/doc#ifalt)
+[:top:](/doc#Documentation):arrow_right: [`ifalt`](/doc#ifalt)
 
 ---
 ### bcount
@@ -71,7 +72,7 @@ Condition/Comparison Register/Fields
  - used to more efficiently (and legibly) write binary trees in PowerPC functions
 
 >[:pencil2:](/src/cr.s)[:alembic:](/doc/s/examples/cr_ex.s)[:boom:](/doc/s/exploded_lines/cr.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`enum`](/doc#enum), [`regs`](/doc#regs)
+[:top:](/doc#Documentation):arrow_right: [`enum`](/doc#enum), [`regs`](/doc#regs)
 
 ---
 ### data
@@ -82,7 +83,7 @@ Inline Data Tables
  - also includes some utilities for creating binary data structs
 
 >[:pencil2:](/src/data.s)[:alembic:](/doc/s/examples/data_ex.s)[:boom:](/doc/s/exploded_lines/data.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`if`](/doc#if), [`sidx`](/doc#sidx)
+[:top:](/doc#Documentation):arrow_right: [`if`](/doc#if), [`sidx`](/doc#sidx)
 
 ---
 ### dbg
@@ -110,7 +111,7 @@ Encoder Stacks
  - may be used to create pseudo-regex-like parses of input literals
 
 >[:pencil2:](/src/enc.s)[:alembic:](/doc/s/examples/enc_ex.s)[:boom:](/doc/s/exploded_lines/enc.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`stack`](/doc#stack), [`if`](/doc#if)
+[:top:](/doc#Documentation):arrow_right: [`stack`](/doc#stack), [`if`](/doc#if)
 
 ---
 ### enum
@@ -121,7 +122,7 @@ Enumerator Objects
  - highly mutable objects may be individually mutated for custom behaviors
 
 >[:pencil2:](/src/enum.s)[:alembic:](/doc/s/examples/enum_ex.s)[:boom:](/doc/s/exploded_lines/enum.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`obj`](/doc#obj), [`en`](/doc#en), [`regs`](/doc#regs)
+[:top:](/doc#Documentation):arrow_right: [`obj`](/doc#obj), [`en`](/doc#en), [`regs`](/doc#regs)
 
 ---
 ### errata
@@ -133,7 +134,7 @@ Errata Objects
    - delaying the assignment of a constant until it is ready can be a useful concept in GAS
 
 >[:pencil2:](/src/errata.s)[:alembic:](/doc/s/examples/errata_ex.s)[:boom:](/doc/s/exploded_lines/errata.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`obj`](/doc#obj), [`sidx`](/doc#sidx), [`if`](/doc#if)
+[:top:](/doc#Documentation):arrow_right: [`obj`](/doc#obj), [`sidx`](/doc#sidx), [`if`](/doc#if)
 
 ---
 ### hidden
@@ -154,7 +155,7 @@ Index (Register)
  - useful for simulating load/store syntaxes, like `lwz r3, 0x20(r30)`
 
 >[:pencil2:](/src/idxr.s)[:alembic:](/doc/s/examples/idxr_ex.s)[:boom:](/doc/s/exploded_lines/idxr.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`xev`](/doc#xev)
+[:top:](/doc#Documentation):arrow_right: [`xev`](/doc#xev)
 
 ---
 ### if
@@ -164,7 +165,7 @@ Special If Statements
  - intended for making useful checks of difficult to compare things in GAS
 
 >[:pencil2:](/src/if.s)[:alembic:](/doc/s/examples/if_ex.s)[:boom:](/doc/s/exploded_lines/if.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum)
+[:top:](/doc#Documentation):arrow_right: [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum)
 
 ---
 ### ifalt
@@ -185,7 +186,7 @@ Check if Symbol is Defined
  - used to provide most protections for object and class namespaces
 
 >[:pencil2:](/src/ifdef.s)[:alembic:](/doc/s/examples/ifdef_ex.s)[:boom:](/doc/s/exploded_lines/ifdef.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`ifalt`](/doc#ifalt)
+[:top:](/doc#Documentation):arrow_right: [`ifalt`](/doc#ifalt)
 
 ---
 ### ifnum
@@ -228,7 +229,7 @@ List Objects
    - mutable iterator and indexing methods can be given custom behaviors
 
 >[:pencil2:](/src/list.s)[:alembic:](/doc/s/examples/list_ex.s)[:boom:](/doc/s/exploded_lines/list.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`stack`](/doc#stack)
+[:top:](/doc#Documentation):arrow_right: [`stack`](/doc#stack)
 
 ---
 ### lmf
@@ -240,7 +241,7 @@ Load Multiple Floats
  - does not change the number of instructions required for multiple registers
 
 >[:pencil2:](/src/lmf.s)[:alembic:](/doc/s/examples/lmf_ex.s)[:boom:](/doc/s/exploded_lines/lmf.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`regs`](/doc#regs), [`idxr`](/doc#idxr)
+[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`idxr`](/doc#idxr)
 
 ---
 ### load
@@ -251,7 +252,7 @@ Load Immediate(s)
    - you can use this macroinstruction to string together as many as you need for a given input
 
 >[:pencil2:](/src/load.s)[:alembic:](/doc/s/examples/load_ex.s)[:boom:](/doc/s/exploded_lines/load.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`regs`](/doc#regs)
+[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs)
 
 ---
 ### mut
@@ -262,7 +263,7 @@ Object Method Mutator Hooks
  - extended by the [`obj`](/doc#obj) module
 
 >[:pencil2:](/src/mut.s)[:alembic:](/doc/s/examples/mut_ex.s)[:boom:](/doc/s/exploded_lines/mut.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`ifdef`](/doc#ifdef)
+[:top:](/doc#Documentation):arrow_right: [`ifdef`](/doc#ifdef)
 
 ---
 ### obj
@@ -276,7 +277,7 @@ Objects (and Classes)
  - object properties may be given hidden names, used internally by the constructor
 
 >[:pencil2:](/src/obj.s)[:alembic:](/doc/s/examples/obj_ex.s)[:boom:](/doc/s/exploded_lines/obj.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`if`](/doc#if), [`hidden`](/doc#hidden), [`mut`](/doc#mut)
+[:top:](/doc#Documentation):arrow_right: [`if`](/doc#if), [`hidden`](/doc#hidden), [`mut`](/doc#mut)
 
 ---
 ### ppc
@@ -287,7 +288,7 @@ PowerPC Modules
  - if no args are given to `punkpc` when calling it, this module is loaded by default
 
 >[:pencil2:](/src/ppc.s)[:alembic:](/doc/s/examples/ppc_ex.s)[:boom:](/doc/s/exploded_lines/ppc.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`branch`](/doc#branch), [`cr`](/doc#cr), [`data`](/doc#data), [`idxr`](/doc#idxr), [`load`](/doc#load), [`small`](/doc#small), [`sp`](/doc#sp)
+[:top:](/doc#Documentation):arrow_right: [`branch`](/doc#branch), [`cr`](/doc#cr), [`data`](/doc#data), [`idxr`](/doc#idxr), [`load`](/doc#load), [`small`](/doc#small), [`sp`](/doc#sp)
 
 ---
 ### regs
@@ -298,7 +299,7 @@ Register Symbols
  - also includes names for cr bits and fields
 
 >[:pencil2:](/src/regs.s)[:alembic:](/doc/s/examples/regs_ex.s)[:boom:](/doc/s/exploded_lines/regs.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`xem`](/doc#xem), [`enum`](/doc#enum)
+[:top:](/doc#Documentation):arrow_right: [`xem`](/doc#xem), [`enum`](/doc#enum)
 
 ---
 ### sidx
@@ -310,7 +311,7 @@ Scalar Index Tools
      - '$' stands for 'Scalar Index'
 
 >[:pencil2:](/src/sidx.s)[:alembic:](/doc/s/examples/sidx_ex.s)[:boom:](/doc/s/exploded_lines/sidx.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`ifalt`](/doc#ifalt)
+[:top:](/doc#Documentation):arrow_right: [`ifalt`](/doc#ifalt)
 
 ---
 ### small
@@ -322,7 +323,7 @@ Small Integer Tools/Instructions
    - existing 4-argument and 5-argument syntaxes are reverted to, when detected
 
 >[:pencil2:](/src/small.s)[:alembic:](/doc/s/examples/small_ex.s)[:boom:](/doc/s/exploded_lines/small.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`bcount`](/doc#bcount), [`enum`](/doc#enum), [`ifalt`](/doc#ifalt)
+[:top:](/doc#Documentation):arrow_right: [`bcount`](/doc#bcount), [`enum`](/doc#enum), [`ifalt`](/doc#ifalt)
 
 ---
 ### sp
@@ -337,7 +338,7 @@ Runtime Stack Pointer (prolog/epilog block generators)
    - includes all special-purpose register names
 
 >[:pencil2:](/src/sp.s)[:alembic:](/doc/s/examples/sp_ex.s)[:boom:](/doc/s/exploded_lines/sp.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`regs`](/doc#regs), [`enc`](/doc#enc), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items)
+[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`enc`](/doc#enc), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items)
 
 ---
 ### spr
@@ -348,7 +349,7 @@ SPR utilities
  - includes a dictionary of spr keywords, unified by the `spr.*` namespace
 
 >[:pencil2:](/src/spr.s)[:alembic:](/doc/s/examples/spr_ex.s)[:boom:](/doc/s/exploded_lines/spr.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`idxr`](/doc#idxr), [`regs`](/doc#regs)
+[:top:](/doc#Documentation):arrow_right: [`idxr`](/doc#idxr), [`regs`](/doc#regs)
 
 ---
 ### stack
@@ -361,7 +362,7 @@ Stack Objects
  - can be easily extended to create more specific features that require scalar memory
 
 >[:pencil2:](/src/stack.s)[:alembic:](/doc/s/examples/stack_ex.s)[:boom:](/doc/s/exploded_lines/stack.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`sidx`](/doc#sidx), [`if`](/doc#if), [`obj`](/doc#obj)
+[:top:](/doc#Documentation):arrow_right: [`sidx`](/doc#sidx), [`if`](/doc#if), [`obj`](/doc#obj)
 
 ---
 ### str
@@ -374,7 +375,7 @@ String Objects
    - unlike the [`items`](/doc#items) class, no delimiting commas are implied, and buffers can use prefix concatenation methods
 
 >[:pencil2:](/src/str.s)[:alembic:](/doc/s/examples/str_ex.s)[:boom:](/doc/s/exploded_lines/str.s)<br />
-[:top:](/doc#Documentation):heavy_plus_sign: [`ifdef`](/doc#ifdef), [`ifalt`](/doc#ifalt), [`obj`](/doc#obj)
+[:top:](/doc#Documentation):arrow_right: [`ifdef`](/doc#ifdef), [`ifalt`](/doc#ifalt), [`obj`](/doc#obj)
 
 ---
 ### xem
