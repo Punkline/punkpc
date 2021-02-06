@@ -1,7 +1,7 @@
 # --- Inline Data Tables
 #>toc ppc
-# - creates macroinstructions that exploit the link register in `bl` and `blrl`
-# - instructions are capable of referencing data local to the program counter
+# - creates macroinstructions that exploit the link register in `bl` and `blrl` to make data tables
+#   - resulting instructions are capable of referencing data local to the runtime program counter
 # - also includes some utilities for creating binary data structs
 
 # --- Example use of the data module:

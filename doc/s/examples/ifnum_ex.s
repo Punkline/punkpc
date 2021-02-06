@@ -1,7 +1,8 @@
-# --- Check if Input Starts with a Numerical Expression
+# --- If Input Starts with a Numerical Expression
 #>toc if
 # - an if tool that checks the first char of input literals for a numerical expression
 # - useful for catching arguments that can't be treated like symbols before creating any errors
+#   - may also be useful for checking ascii in `enc` stacks
 
 # --- Example use of the ifnum module:
 

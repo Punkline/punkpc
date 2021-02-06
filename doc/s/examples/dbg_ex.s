@@ -1,7 +1,6 @@
 # --- Debug Tool
 #>toc library
 # - a simple evaluation tool, for debugging symbol values
-#
 
 # --- Example use of the dbg module:
 

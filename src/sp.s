@@ -1,12 +1,17 @@
 # --- Runtime Stack Pointer (prolog/epilog block generators)
 #>toc ppc
 # - dramatically simplifies function writing
+#   - use `prolog` and `epilog` to create a block context
 # - makes it very easy to create and use named registers, quickly
-# - supports nested and/or serial frame definitions
+#   - use `sp.gprs` and `sp.fprs` to create any register names you like
+#     - alternatively, give `prolog` arguments starting with `rName` or `fName` camel-case names
 # - comes with enumerators mutated to handle definition of all temporary memory in stack frame
 #   - includes anonymous and named register backups/restores
+#     - give `prolog` any normal register names, like `r30` or `f30` to back up a range
 #   - includes anonymous and named temporary memory allocation offset names
-#   - includes all special-purpose register names
+#     - give `prolog` an expression, or an `xName` camel-case name
+#   - includes support for all special-purpose register names
+# - includes support for nested and/or serial frame definitions
 
 # --- Updates:
 # version 0.0.2

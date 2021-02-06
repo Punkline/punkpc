@@ -1,7 +1,9 @@
 # --- Library Objects
 #>toc Modules : generic tools
 # - a class that enables library objects, like `punkpc`
+#   - `punkpc` is like the origin of all importable class modules
 # - can be used to define specialized sub-dirs for storing extra modules or binary files
+#   - new library objects can be made besides `punkpc`
 
 # --- Example use of the library module:
 

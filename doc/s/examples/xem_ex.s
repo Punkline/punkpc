@@ -1,6 +1,7 @@
 # --- Expression Emitter Tool
 #>toc library
-# - a tiny precursor to `sidx` that names things without any special delimiters
+# - a tiny utility that provides less-featured decimal literal evaluations, similar to `sidx`
+#   - input strings are not concatenated with special delimiter `$`
 # - used in the `regs` module to create register names
 
 # --- Example use of the xem module:

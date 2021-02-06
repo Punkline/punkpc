@@ -1,8 +1,9 @@
 # --- Enumerator Objects
 #>toc obj
 # - a powerful object class for parsing comma-separated inputs
-# - default behaviors are useful for counting named registers and offsets
-# - highly mutable objects may be individually mutated for custom behaviors
+#   - default behaviors are useful for counting named registers and offsets
+#   - highly mutable objects may be individually mutated for custom behaviors
+# - useful for creating methods that handle user inputs, or that consume `items` buffers
 
 # --- Updates:
 # version 0.2.2

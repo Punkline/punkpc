@@ -1,9 +1,10 @@
 # --- Scalar Index Tools
 #>toc obj : integer buffers
-# - useful for referencing object/dictionary elements as part of an array of indexed symbols
-#   - symbol arrays are indexed literally by casting evaluated indices into decimal literals
+# - create statements that include pre-evaluated decimal literals
+# - decimal literals may be used to create indexed integer arrays, using named symbols
 #   - the decimal literals are appended to symbol names with a `$` delimitter
-#     - '$' stands for 'Scalar Index'
+#     - `$` stands for 'Scalar Index'
+# - useful for creating buffers, and powers many object types in `punkpc`
 
 # --- Updates:
 # version 0.0.4

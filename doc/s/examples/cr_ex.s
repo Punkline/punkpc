@@ -1,7 +1,8 @@
 # --- Condition/Comparison Register/Fields
 #>toc ppc
-# - cr instruction fixes, and utilities for working with cr fields
-# - used to more efficiently (and legibly) write binary trees in PowerPC functions
+# - utilities for working with cr fields
+#   - also includes fixes for some cr instructions that are poory emulated in some environmnets
+# - useful for writing efficient (and legible) binary trees in PowerPC functions
 
 # --- Example use of the cr module:
 

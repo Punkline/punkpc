@@ -1,8 +1,9 @@
 # --- Argument Item Buffer Objects
 #>toc str
 # - a scalar buffer object pseudo-class that can efficiently store `:vararg` items
+# - buffers are similar to `str` objects, but are much lighter-weight and less featured
 # - useful for creating iterators that do not attempt to evaluate the contents
-#   - buffers are similar to `str` objects, but are much lighter-weight and less featured
+#   - may be used to buffer args that are consumed by `enum` parsers
 
 # --- Example use of the items module:
 

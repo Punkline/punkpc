@@ -1,6 +1,7 @@
 # --- Alignment Tool (relative)
 #>toc library
 # - an alternative to the `.align` directive that doesn't destroy absolute expressions
+#   - relative addresses (labels) can't be measured after normal aligns using this directive
 # - useful for measuring arbitrary body sizes that include un-aligned data
 #   - byte arrays and strings are examples of structs that commonly need re-alignment
 

@@ -1,7 +1,7 @@
 # --- Index (Register)
 #>toc library
 # - index (register) input extraction tool
-# - useful for simulating load/store syntaxes, like `lwz r3, 0x20(r30)`
+# - useful for simulating load/store syntaxes like the `0x20(r30)` part of `lwz r3, 0x20(r30)`
 
 # --- Example use of the idxr module:
 

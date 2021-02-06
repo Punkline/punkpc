@@ -1,6 +1,7 @@
 # --- Bit Counter Tools
 #>toc library
-# - useful for finding int sizes when creating masks, for compression
+# - fast checks for counting unused bits in an integer
+# - useful for finding integer sizes when creating masks, for compression
 
 # --- Updates:
 # version 0.0.2

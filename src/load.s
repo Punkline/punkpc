@@ -1,8 +1,9 @@
 # --- Load Immediate(s)
 #>toc ppc
-# - a tool for creating multi-immediate loads
-# - immediates larger than 16-bits will require multiple instructions
+# - a tool for creating multiple immediate loads
+#   - immediates larger than 16-bits will require multiple instructions
 #   - you can use this macroinstruction to string together as many as you need for a given input
+# - useful for writing functions that load absolute addresses, ascii keywords, and other things
 
 # --- Updates:
 # version 0.0.3

@@ -1,7 +1,6 @@
 # --- PowerPC Modules
 #>toc Modules : powerpc modules
 # - a collection of all of the modules that include PowerPC related macroinstructions
-# - version 0.0.2 includes: `branch`, `cr`, `data`, `idxr`, `load`, `small`, and `sp`
 # - if no args are given to `punkpc` when calling it, this module is loaded by default
 
 # --- Example use of the ppc module:

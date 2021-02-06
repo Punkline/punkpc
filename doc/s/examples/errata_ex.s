@@ -1,9 +1,8 @@
 # --- Errata Objects
-#>toc str
-# - for generating constants that can be referenced before they are defined
-# - requires that the errata doesn't need to be immediately evaluated after being emitted
-# - useful for making cumulative results of an arbitrary number of operations
-#   - delaying the assignment of a constant until it is ready can be a useful concept in GAS
+#>toc sidx
+# - generate constants that can be referenced before they are defined
+#   - requires that the errata doesn't need to be immediately evaluated after being emitted
+# - useful for making cumulative results of an arbitrary number of operations, like block contexts
 
 # --- Example use of the errata module:
 

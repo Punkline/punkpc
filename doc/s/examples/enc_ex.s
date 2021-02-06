@@ -1,6 +1,7 @@
 # --- Encoder Stacks
 #>toc sidx
-# - for converting source literals into ascii ints
+# - convert source literals into a stack of ascii ints
+#   - extended stack object constructor lets you create multiple encoder buffers
 # - may be used to create pseudo-regex-like parses of input literals
 
 # --- Example use of the enc module:

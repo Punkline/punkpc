@@ -2,10 +2,11 @@
 #>toc library : objects and classes
 # - a core module for defining classes that construct objects
 # - objects are uniquely named
-# - unique objects may be given pointer IDs, for identifying instances of a class
-# - object methods may be defined through hook callers, for creating mutable behaviors
+#   - unique objects may be given pointer IDs, for identifying instances of a class
+# - object methods may be defined through hook callers with `mut`, for creating mutable behaviors
 #   - mutable object methods may be reached via pointers, at the class level
-# - object properties may be given hidden names, used internally by the constructor
+# - object properties may be given `hidden` names, used internally by the constructor
+# - very useful for stream-lining the creation of object constructors
 
 # --- Example use of the obj module:
 

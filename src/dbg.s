@@ -1,7 +1,6 @@
 # --- Debug Tool
 #>toc library
 # - a simple evaluation tool, for debugging symbol values
-#
 
 # --- Updates:
 # version 0.0.2

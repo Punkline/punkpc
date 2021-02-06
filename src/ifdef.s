@@ -1,4 +1,4 @@
-# --- Check if Symbol is Defined
+# --- If Symbol is Defined
 #>toc if
 # - an if tool that circumvents the need for `\` chars in .ifdef checks
 #   - this is needed to prevent errors when testing argument names in macro definitions

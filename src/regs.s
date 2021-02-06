@@ -2,7 +2,7 @@
 #>toc ppc
 # - a module that defines normal register indices like `r3`, `r4`, `r5` as global symbols
 # - useful for enabling registers for use like indices as part of counters
-# - also includes names for cr bits and fields
+# - also includes names for `cr` bits and fields
 
 # --- Updates:
 # version 0.0.2

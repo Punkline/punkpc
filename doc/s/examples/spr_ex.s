@@ -3,6 +3,7 @@
 # - creates macroinstructions for loading and storing multiple special purpose registers
 #   - each load or store costs 2 sintructions (a 'move' and a 'read/write')
 # - includes a dictionary of spr keywords, unified by the `spr.*` namespace
+# - also includes support for some non-spr keywords, like `msr` and `sr`
 
 # --- Example use of the spr module:
 

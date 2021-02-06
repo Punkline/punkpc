@@ -1,8 +1,9 @@
 # --- Object Method Mutator Hooks
 #>toc obj
 # - a core module for defining mutable behavior hooks
+#   - 'hooks' create method calls that may have a default behavior that yields to a mutable mode
 # - useful for making your class/objects customizable
-# - extended by the `obj` module
+# - extensively used by the `obj` module
 
 # --- Updates:
 # Version 0.0.5

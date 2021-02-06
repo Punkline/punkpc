@@ -1,8 +1,8 @@
 # --- Hidden Symbol Names
 #>toc library
 # - a tool for creating hidden symbol names
-#   - exploits support of the `\001` char in temp labels
-# - intended for use without a linker
+#   - exploits support of the `\001` char in LOCAL labels in symbol names
+# - (intended for use without a linker)
 
 # --- Example use of the hidden module:
 

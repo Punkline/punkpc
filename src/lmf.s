@@ -1,5 +1,6 @@
 # --- Load Multiple Floats
 #>toc ppc
+# - handle loading and storing many floats in a sequence of instructions using single macro calls
 # - can be used similarly to the `lmw` and `stmw` instructions, but for various float types
 #   - `lmfs` and `stmfs` for single-precision
 #   - `lmfd` and `stmfd` for double-precision

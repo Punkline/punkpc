@@ -1,8 +1,8 @@
 # --- String Objects
 #>toc obj : literal buffers
 # - a scalar buffer object class that stores literal memory
-# - can store "quoted strings" for pretecting literals
-# - can store \<\<nestable\>, \<altmacro strings\>\> for creating complex tuples
+# - can store `"quoted strings"` for pretecting literals
+# - can store `<<nestable>, <altmacro strings>>` for creating complex tuples
 # - can store `literal strings` that are unprotected, and can be executed like macros
 #   - unlike the `items` class, no delimiting commas are implied, and buffers can use prefix concatenation methods
 

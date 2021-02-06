@@ -1,4 +1,4 @@
-# --- Check if in Altmacro Mode
+# --- If in Altmacro Mode
 #>toc if
 # - an if tool that can be used to check the current altmacro environment state
 # - used to preserve the altmacro mode, and avoid ruining string interpretations
