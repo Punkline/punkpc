@@ -80,7 +80,7 @@ Condition/Comparison Register/Fields
  - useful for writing efficient (and legible) binary trees in PowerPC functions
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/cr.s)[:alembic:](/doc/s/examples/cr_ex.s)[:boom:](/doc/s/exploded_lines/cr.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`enum`](/doc#enum), ` regs`, [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`en`](/doc#en)
+[:top:](/doc#Documentation):arrow_right: [`enum`](/doc#enum), [`regs`](/doc#regs), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`en`](/doc#en)
 
 ---
 ### [`data`](/doc#data)
@@ -91,7 +91,7 @@ Inline Data Tables
  - also includes some utilities for creating binary data structs
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/data.s)[:alembic:](/doc/s/examples/data_ex.s)[:boom:](/doc/s/exploded_lines/data.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`if`](/doc#if), ` sidx`, [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum)
+[:top:](/doc#Documentation):arrow_right: [`if`](/doc#if), [`sidx`](/doc#sidx), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum)
 
 ---
 ### [`dbg`](/doc#dbg)
@@ -121,7 +121,7 @@ Encoder Stacks
  - may be used to create pseudo-regex-like parses of input literals
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/enc.s)[:alembic:](/doc/s/examples/enc_ex.s)[:boom:](/doc/s/exploded_lines/enc.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`stack`](/doc#stack), ` if`, [`sidx`](/doc#sidx), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`obj`](/doc#obj)
+[:top:](/doc#Documentation):arrow_right: [`stack`](/doc#stack), [`if`](/doc#if), [`sidx`](/doc#sidx), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`obj`](/doc#obj)
 
 ---
 ### [`enum`](/doc#enum)
@@ -133,7 +133,7 @@ Enumerator Objects
  - useful for creating methods that handle user inputs, or that consume [`items`](/doc#items) buffers
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/enum.s)[:alembic:](/doc/s/examples/enum_ex.s)[:boom:](/doc/s/exploded_lines/enum.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`obj`](/doc#obj), ` en`, [`regs`](/doc#regs), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`enum`](/doc#enum)
+[:top:](/doc#Documentation):arrow_right: [`obj`](/doc#obj), [`en`](/doc#en), [`regs`](/doc#regs), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`enum`](/doc#enum)
 
 ---
 ### [`errata`](/doc#errata)
@@ -144,7 +144,7 @@ Errata Objects
  - useful for making cumulative results of an arbitrary number of operations, like block contexts
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/errata.s)[:alembic:](/doc/s/examples/errata_ex.s)[:boom:](/doc/s/exploded_lines/errata.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`obj`](/doc#obj), ` sidx`, ` if`, [`hidden`](/doc#hidden), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`mut`](/doc#mut)
+[:top:](/doc#Documentation):arrow_right: [`obj`](/doc#obj), [`sidx`](/doc#sidx), [`if`](/doc#if), [`hidden`](/doc#hidden), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`mut`](/doc#mut)
 
 ---
 ### [`hidden`](/doc#hidden)
@@ -175,7 +175,7 @@ Special If Statements
  - intended for making useful checks of difficult to compare things in GAS
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/if.s)[:alembic:](/doc/s/examples/if_ex.s)[:boom:](/doc/s/exploded_lines/if.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`ifalt`](/doc#ifalt), ` ifdef`, ` ifnum`
+[:top:](/doc#Documentation):arrow_right: [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum)
 
 ---
 ### [`ifalt`](/doc#ifalt)
@@ -256,7 +256,7 @@ Load Multiple Floats
  - does not change the number of instructions required for multiple registers
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/lmf.s)[:alembic:](/doc/s/examples/lmf_ex.s)[:boom:](/doc/s/exploded_lines/lmf.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), ` idxr`, [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en), [`xev`](/doc#xev)
+[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`idxr`](/doc#idxr), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en), [`xev`](/doc#xev)
 
 ---
 ### [`load`](/doc#load)
@@ -295,7 +295,7 @@ Objects (and Classes)
  - very useful for stream-lining the creation of object constructors
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/obj.s)[:alembic:](/doc/s/examples/obj_ex.s)[:boom:](/doc/s/exploded_lines/obj.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`if`](/doc#if), ` hidden`, ` mut`, [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum)
+[:top:](/doc#Documentation):arrow_right: [`if`](/doc#if), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum)
 
 ---
 ### [`ppc`](/doc#ppc)
@@ -305,7 +305,7 @@ PowerPC Modules
  - if no args are given to `punkpc` when calling it, this module is loaded by default
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/ppc.s)[:alembic:](/doc/s/examples/ppc_ex.s)[:boom:](/doc/s/exploded_lines/ppc.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`branch`](/doc#branch), ` cr`, ` data`, ` idxr`, ` load`, ` small`, ` sp`, [`enum`](/doc#enum), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`en`](/doc#en), [`regs`](/doc#regs), [`sidx`](/doc#sidx), [`xev`](/doc#xev), [`bcount`](/doc#bcount), [`enc`](/doc#enc), [`stack`](/doc#stack), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items)
+[:top:](/doc#Documentation):arrow_right: [`branch`](/doc#branch), [`cr`](/doc#cr), [`data`](/doc#data), [`idxr`](/doc#idxr), [`load`](/doc#load), [`small`](/doc#small), [`sp`](/doc#sp), [`enum`](/doc#enum), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`en`](/doc#en), [`regs`](/doc#regs), [`sidx`](/doc#sidx), [`xev`](/doc#xev), [`bcount`](/doc#bcount), [`enc`](/doc#enc), [`stack`](/doc#stack), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items)
 
 ---
 ### [`regs`](/doc#regs)
@@ -316,7 +316,7 @@ Register Symbols
  - also includes names for [`cr`](/doc#cr) bits and fields
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/regs.s)[:alembic:](/doc/s/examples/regs_ex.s)[:boom:](/doc/s/exploded_lines/regs.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`xem`](/doc#xem), ` enum`, [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`en`](/doc#en), [`regs`](/doc#regs)
+[:top:](/doc#Documentation):arrow_right: [`xem`](/doc#xem), [`enum`](/doc#enum), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`en`](/doc#en), [`regs`](/doc#regs)
 
 ---
 ### [`sidx`](/doc#sidx)
@@ -341,7 +341,7 @@ Small Integer Tools/Instructions
    - existing 4-argument and 5-argument syntaxes are reverted to, when detected
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/small.s)[:alembic:](/doc/s/examples/small_ex.s)[:boom:](/doc/s/exploded_lines/small.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`bcount`](/doc#bcount), ` enum`, ` ifalt`, [`obj`](/doc#obj), [`if`](/doc#if), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`en`](/doc#en), [`regs`](/doc#regs)
+[:top:](/doc#Documentation):arrow_right: [`bcount`](/doc#bcount), [`enum`](/doc#enum), [`ifalt`](/doc#ifalt), [`obj`](/doc#obj), [`if`](/doc#if), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`en`](/doc#en), [`regs`](/doc#regs)
 
 ---
 ### [`sp`](/doc#sp)
@@ -361,7 +361,7 @@ Runtime Stack Pointer (prolog/epilog block generators)
  - includes support for nested and/or serial frame definitions
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/sp.s)[:alembic:](/doc/s/examples/sp_ex.s)[:boom:](/doc/s/exploded_lines/sp.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), ` enc`, ` lmf`, ` spr`, ` items`, [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en), [`stack`](/doc#stack), [`sidx`](/doc#sidx), [`idxr`](/doc#idxr), [`xev`](/doc#xev)
+[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`enc`](/doc#enc), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en), [`stack`](/doc#stack), [`sidx`](/doc#sidx), [`idxr`](/doc#idxr), [`xev`](/doc#xev)
 
 ---
 ### [`spr`](/doc#spr)
@@ -373,7 +373,7 @@ SPR utilities
  - also includes support for some non-spr keywords, like `msr` and `sr`
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/spr.s)[:alembic:](/doc/s/examples/spr_ex.s)[:boom:](/doc/s/exploded_lines/spr.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`idxr`](/doc#idxr), ` regs`, [`xev`](/doc#xev), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en)
+[:top:](/doc#Documentation):arrow_right: [`idxr`](/doc#idxr), [`regs`](/doc#regs), [`xev`](/doc#xev), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en)
 
 ---
 ### [`stack`](/doc#stack)
@@ -386,7 +386,7 @@ Stack Objects
  - can be easily extended to create more specific features that require scalar memory
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/stack.s)[:alembic:](/doc/s/examples/stack_ex.s)[:boom:](/doc/s/exploded_lines/stack.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`sidx`](/doc#sidx), ` if`, ` obj`, [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut)
+[:top:](/doc#Documentation):arrow_right: [`sidx`](/doc#sidx), [`if`](/doc#if), [`obj`](/doc#obj), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut)
 
 ---
 ### [`str`](/doc#str)
@@ -399,7 +399,7 @@ String Objects
    - unlike the [`items`](/doc#items) class, no delimiting commas are implied, and buffers can use prefix concatenation methods
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/str.s)[:alembic:](/doc/s/examples/str_ex.s)[:boom:](/doc/s/exploded_lines/str.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`ifdef`](/doc#ifdef), ` ifalt`, ` obj`, [`if`](/doc#if), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut)
+[:top:](/doc#Documentation):arrow_right: [`ifdef`](/doc#ifdef), [`ifalt`](/doc#ifalt), [`obj`](/doc#obj), [`if`](/doc#if), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut)
 
 ---
 ### [`xem`](/doc#xem)
