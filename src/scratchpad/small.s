@@ -105,78 +105,84 @@
 punkpc small
 # Use the 'punkpc' statement to load this module, or include the module file directly
 
+# --- NORMAL RLWINM AND RLWIMI SYNTAXES ---
+# 'rlwinm' and 'rlwimi' are 'rotate left word' insert/extract instructions
+# - rlwinm : 'rotate left word immediate and mask'
+# - rlwimi : 'rotate left word immediate masked insertion'
 
-# --- INSERT AND EXTRACT SYNTAXES ---
-# rlwinm and rlwimi can summarize a 'rotate' and '32-bit mask' operation
-# - these are then combined with AND or (ANDC + OR) operations to insert or extract rotated bits
+# They are both instructions that have 5 arguments:
+# -        rDest : the reg where the product of the operation is stored
+# -        rArg  : the reg containing bits we want to insert or extract
+# -     rotation : a left-orient rotation to be applied before/after masking
+# --- mask begin : the bit index where the AND mask begins
+# ---   mask end : the bit index where the AND mask ends
 
+# The last 2 arguments describe a mask range using bit indices
 
-# a new 3-arg rlwinm syntax is made available with this module for extracting:
+rlwinm r31, r3, 12, 28, 31
+# +0x00F00000 : this EXTRACTS a 4-bit value
+# -- for rlwinm, the mask indices reflect the mask AFTER rotation
 
-rlwinm r4, r3, 0xF8000000  # r4 = extracted 5-bit value
-rlwinm r5, r3, 0x07C00000  # r5 = extracted 5-bit value
-rlwinm r6, r3, 0x003FF000  # r6 = extracted 10-bit value
-rlwinm r7, r3, 0x00000800  # r7 = extracted 1-bit value
-rlwinm r8, r3, 0x00000700  # r8 = extracted 3-bit value
-rlwinm r9, r3, 0x000000FF  # r9 = extracted 8-bit value
-# masks with no rotation argument will imply an automatic zero-shifted extraction of small integers
-
-
-# rlwimi now also supports an identical insertion syntax:
-
-li r0, 0
-rlwimi r0, r4, 0xF8000000  # inserted 5-bit value
-rlwimi r0, r5, 0x07C00000  # inserted 5-bit value
-rlwimi r0, r6, 0x003FF000  # inserted 10-bit value
-rlwimi r0, r7, 0x00000800  # inserted 1-bit value
-rlwimi r0, r8, 0x00000700  # inserted 3-bit value
-rlwimi r0, r9, 0x000000FF  # inserted 8-bit value
-# -- these inserted masks are identical to the extractions
-# If saved to symbols, mask values like this can be used interchangably between inserts/extracts
-
-
-mMyMask=0x0001FF80
-# this mask value has all the information necessary to extract an int of given size and location
-# - the mask is 10 contiguous bits
-# - the mask is leftshifted by 7 (from a zero-shifted value)
-#   - these are values that can be used to inform rlwimi and rlwinm instructions
-
-
-li r0, 1000
-# r0 = zero-shifted integer value '1000'
-# - this will become a new packed value in r3
-
-# normally, the instructions would look like this when 'packing' or 'unpacking' small integers:
-
-rlwinm r31, r3, (32-7)&31, mMyMask>>7     # r31 = unpacked 10-bit int   (from r3)
-rlwimi r3, r0, 7, mMyMask          # r3  = packed 10-bit integer (from r0)
-# MASK syntaxes require a rotation value and a mask
-# - the extraction requires a mask of the RESULT - making it different than insertion
-# - the insertion requires a mask of the RESULT - making it different than extraction
-# - right-rotation requires you to subtract the amount from 32, and shift the mask
+rlwimi r3, r31, 20, 8, 11
+# +0x00F00000 : this INSERTS a 4-bit value
+# -- unintuitively -- rlwimi does the opposite...
 
 
 
-rlwinm r31, r3, (32-7)&31, 22, 31  # r31 = unpacked 10-bit int   (from r3)
-rlwimi r3, r0, 7, 15, 24           # r3  = packed 10-bit integer (from r0)
-# BIT INDEX syntaxes are the same, but you have to describe bit indices instead of a mask
 
-# The differences between extracting and inserting bits is syntactically confusing
-# ...but the 'instr' and 'extr' syntaxes can re-use the exact same mask to create an i/o interface:
+# Both instructions also have a shorter 4 argument syntax:
+# -    rDest : the reg where the product of the operation is stored
+# -    rArg  : the reg containing bits we want to insert or extract
+# - rotation : a left-orient rotation to be applied before/after masking
+# ---   mask : a 32 bit mask that has no breaks (unless inverted)
+
+mask = 0x00F00000
+# This mask helps us abstract away an ugly-looking expression behind a name
+
+rlwinm r31, r3, 12, mask>>20
+rlwimi r3, r31, 20, mask
+# -- this syntax is a bit easier to work with, if you have named mask symbols
+# The rotation argument is still not communicative between the two instructions, though
 
 
 
-rlwinm r31, r3, mMyMask  # r31 = unpacked 10-bit int   (from r3)
-rlwimi r3, r0, mMyMask   # r3 = packed 10-bit integer  (from r0)
-# The new ZEROED syntax assumes the rotation math needed to zero-shift input masks
-# - masks can be represented as named symbols, abstracting away all of the rotation math on use
-# - this becomes a much more user-friendly tool for packing and unpacking integers
 
 
-# The above 3 pairs of instructions assemble identically:
-# >>> 547FCDBE 50033BF0
-# >>> 547FCDBE 50033BF0
-# >>> 547FCDBE 50033BF0
+# --- THE NEW 3 ARGUMENT SYNTAX ---
+# This module adds a new 3-arg syntax that completely abstracts away the rotation math
+# -  rDest : the reg where the product of the operation is stored
+# -  rArg  : the reg containing bits we want to insert or extract
+# --- mask : a 32 bit mask that has no breaks (unless inverted)
+
+rlwinm r31, r3, mask
+rlwimi r3, r31, mask
+# -- these are identical to the above 2 pairs of instructions
+# All of the rotation math is implied when the rotation value is simply omitted
+
+mask = 0xFF0FFFFF
+rlwinm r31, r3, mask
+rlwimi r3, r31, mask
+# Inverted masks will be rotated so that all bits are aligned to zero, when extracted
+
+mask = 0xF
+rlwinm r31, r3, mask
+rlwimi r3, r31, mask
+# Zeroed masks will have no rotation at all
+
+
+mOp     = 0xFC000000  # in r3
+mArg    = 0x03F80000  # in r4
+mBools  = 0x00070000  # in r5
+mOffset = 0x0000FFFF  # in r6
+# These are examples of small integer masks that can be used in the new syntax
+# - this example builds an opcode out of argument ints
+
+rlwimi r3, r4, mArg
+rlwimi r3, r5, mBools
+rlwimi r3, r6, mOffset
+# opcode has been constructed in r3 from args r3...r6
+# - this is a form of compression, for integers
+
 
 
 
@@ -274,23 +280,20 @@ bf- bEnable, 0f
 
 ##*/
 /*## Results:
-54642EFE 546556FE
-5466A5BE 5467AFFE
-5468C77E 5469B850
-38000000 5080D808
-50A0B152 50C062A6
-50E05D28 5100456E
-51204E3E 380003E8
-547FCDBE 50033BF0
-547FCDBE 50033BF0
-547FCDBE 50033BF0
-0D0E0A13 00120000
-E0000000 540307BD
-540307BD 5403FFFF
-5000D884 00000003
-7C001120 409F0014
-409D0008 60000000
-41BE0008 60000000
+547F673E 53E3A216
+547F673E 53E3A216
+547F673E 53E3A216
+547F413E 53E3C30E
+547F073E 53E3073E
+50839998 50A3835E
+50C3043E 0D0E0A13
+00120000 E0000000
+540307BD 540307BD
+5403FFFF 5000D884
+00000003 7C001120
+409F0014 409D0008
+60000000 41BE0008
+60000000
 
 ##*/
 
@@ -302,7 +305,7 @@ punkpc.module small, 0x101
   .macro small.__instr_build, rlw
     .macro \rlw, va:vararg; small.__instr_handle \rlw, \va; .endm
 
-  .endm; .macro small.__instr_handle, \va; small.__altm = alt
+  .endm; .macro small.__instr_handle, va:vararg; small.__altm = alt
     ifalt; small.__alt = alt; .noaltmacro; small.__instr \va;
     ifalt.reset small.__alt; alt = ifalt.__altm
 
@@ -313,81 +316,119 @@ punkpc.module small, 0x101
     .ifnb \va; \rlw \d, \a, (\m)&31, \va;
       # run normal instruction if 4 or more args are given
 
-    .else; small.__instr_logic \rlw, \m
+    .else; small.__instr_logic \rlw, \d, \a, \m; .endif
 
+    small.__instr_build \rlw
+    # rebuild instruction hook
 
-  .endm; .macro small.__instr_logic, rlw, m
+  .endm; .macro small.__instr_logic, rlw, d, a, m
     small.__beg = 0
     small.__end = 0
     small.__rot = 0
     small.__inv = 0
     small.__ins = 0
+
+    ## 00F00000
+    #rlwinm r31, r3, 12, 28, 31
+    #rlwimi r3,  r0, 20,  8, 11
+    #+ 00000000 00F00000   # 8, 11, >> 20
+    #+ 00000008 00000014   # zbe=8,  zle=20
+    #+ 0000000C 00000018   # be=12,  le=24
+    #+ 00000019 00000007   # signed=25, zsigned=7
+    #rlwinm r31, r3,  8, 12, 31
+    #rlwimi r3,  r0, 24, 20,  7
+    ## 00FFF000
+    #wimi.beg = zbe
+    #wimi.end = (be-1)&31
+    #.if both are 0
+    #  wimi.end = zsigned
+    #  wimi.rot = signed-1
+    #  m = mask << wimi.end+1
+    #  winm.beg = zbe
+    #  wimi.beg = winm.beg + wimi.end+1
+    #  winm.end = 31
+    #  winm.rot = (32-wimi.rot)&31
+    #.else
+    #  wimi.rot = (31-wimi.end)&31
+    #  winm.end = 31
+    #  winm.beg = (wimi.beg + wimi.rot)&31
+    #  winm.rot = (32-wimi.rot)&31
+    #
+    ## FF0FFFFF
+    #rlwinm r31, r3,  8,  4, 31
+    #rlwimi r3,  r0, 24, 12,  7
+    #+ 00000000 FF0FFFFF   # 12, 7, >> 24
+    #+ 00000000 00000000   # zbe=0, zle=0
+    #+ 00000020 00000020   # be=32, le=32
+    #+ 00000019 00000007   # signed=25, zsigned=7
+    #
+    #+ # zeroed
+    #+ 00000000 0000000F   # 28, 31, >> 0
+    #+ 0000001C 00000000   # zbe=28, zle=0
+    #+ 00000020 00000004   # be=32, le=4
+    #+ 00000005 0000001B   # signed=5, zsigned=23
+
     .ifc \rlw, rlwimi; small.__ins = 1
     .else; .ifc \rlw, rlwimi.; small.__ins = 1; .endif; .endif
     .if \m
-      bcount.zbe \m
-      small.__beg = bcount
-      bcount.zle \m
-      small.__end = bcount
-      small.__rot = bcount
-      small.__inv = (small.__beg == 0) && (small.__end == 0)  # inversion flag
-      .if small.__inv
-        bcount.signed \m
-        small.__end = bcount
-        bcount.zbe (\m << bcount)
-        small.__beg = bcount
-      .endif
 
-
-
-      bcount.zbe \m
-      small.__beg = bcount
+      # if not 0
+      bcount.zbe \m, small.__beg
       bcount.be \m
-      small.__end = bcount
-      .if (small.__beg == 0) && (small.__end == 31)
-        bcount
+      small.__end = (bcount-1)&31
+      small.__inv = (small.__beg == 0) && (small.__end == 31)
+      .if small.__inv
 
+      #  # if inverted...
+      #  bcount.zsigned \m, small.__end
+      #  bcount.signed \m
+      #  small.__rot = (bcount - 1)&31
+      #  bcount.zbe (\m << (small.__end +1)&31), small.__beg
+      #  .if small.__ins
 
-      small.rot_bits = 0
-      .ifc \rlw, rlwimi; small.rot_bits = 1;
-      .else; .ifc \rlw, rlwimi.; small.rot_bits = 1; .endif; .endif
-      # check if inserting or extracting
+      #    # if inserting inverted...
+      #    small.__beg = (small.__beg + small.__end + 1)&31
+      #  .else
 
-      .if \m
-        .if (\m)&1
-          bcount.zsigned \m
-          .if bcount.sign
-            bcount = 1 + bcount
-          .endif
-        .else;
-          bcount.be \m
-        .endif
-        # bcount = number of bits to rotate mask left by
+      #    # if extracting inverted...
+      #    small.__rot = (32-small.__rot)&31
+      #    small.__end = 31
+      #  .endif
+       #.else
 
-        .if small.rot_bits
-          small.rot_mask = \m
-          small.rot_bits = 32 - bcount
-          # use mask and inverted bits if inserting
+        bcount.zbe ~(\m), small.__end
+        bcount.be ~(\m)
+        small.__beg = bcount + 1
+        .if small.__ins
 
+          # if inverted insert...
+          small.__rot = (32-small.__end)&31
+          small.__end = small.__end - 1
         .else
-          small.rot_bits = bcount
-          small.rot_mask = \m << bcount
-          small.rot_mask = small.rot_mask | (\m >> ((32-bcount)&31))
-          # use bits and rotated mask if extracting
 
+          # if inverted extract...
+          small.__rot = small.__end
+          small.__beg = small.__beg - small.__end
+          small.__end = 31
         .endif
-        small.rot_bits = small.rot_bits & 31
-        \rlw \d, \a, small.rot_bits, small.rot_mask
-        # invoke normal instruction with interpreted custom syntax
-
       .else
-        .if small.rot_bits == 0
-          li \d, 0
-        .endif # if mask is null, and we're extracting a number, then just load '0' as an immediate
+
+        # if not inverted...
+        small.__rot = (31-small.__end)&31
+        .if small.__ins == 0
+
+          # if extracting...
+          small.__end = 31
+          small.__beg = (small.__beg + small.__rot)&31
+          small.__rot = (32-small.__rot)&31
+        .endif
       .endif
+      \rlw \d, \a, (small.__rot&31), (small.__beg&31), (small.__end&31)
+    .elseif small.__ins == 0
+      li \d, 0
+      # if mask is null, and we're extracting a number, then just load '0' as an immediate
+
     .endif
-    small.__instr_build \rlw
-    # rebuild instruction hook
 
   .endm; .macro small.enable_insr_extr
     .if small.enable_insr_extr == 0
