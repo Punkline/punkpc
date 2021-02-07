@@ -11,78 +11,84 @@
 punkpc small
 # Use the 'punkpc' statement to load this module, or include the module file directly
 
+# --- NORMAL RLWINM AND RLWIMI SYNTAXES ---
+# 'rlwinm' and 'rlwimi' are 'rotate left word' insert/extract instructions
+# - rlwinm : 'rotate left word immediate and mask'
+# - rlwimi : 'rotate left word immediate masked insertion'
 
-# --- INSERT AND EXTRACT SYNTAXES ---
-# rlwinm and rlwimi can summarize a 'rotate' and '32-bit mask' operation
-# - these are then combined with AND or (ANDC + OR) operations to insert or extract rotated bits
+# They are both instructions that have 5 arguments:
+# -        rDest : the reg where the product of the operation is stored
+# -        rArg  : the reg containing bits we want to insert or extract
+# -     rotation : a left-orient rotation to be applied before/after masking
+# --- mask begin : the bit index where the AND mask begins
+# ---   mask end : the bit index where the AND mask ends
 
+# The last 2 arguments describe a mask range using bit indices
 
-# a new 3-arg rlwinm syntax is made available with this module for extracting:
+rlwinm r31, r3, 12, 28, 31
+# +0x00F00000 : this EXTRACTS a 4-bit value
+# -- for rlwinm, the mask indices reflect the mask AFTER rotation
 
-rlwinm r4, r3, 0xF8000000  # r4 = extracted 5-bit value
-rlwinm r5, r3, 0x07C00000  # r5 = extracted 5-bit value
-rlwinm r6, r3, 0x003FF000  # r6 = extracted 10-bit value
-rlwinm r7, r3, 0x00000800  # r7 = extracted 1-bit value
-rlwinm r8, r3, 0x00000700  # r8 = extracted 3-bit value
-rlwinm r9, r3, 0x000000FF  # r9 = extracted 8-bit value
-# masks with no rotation argument will imply an automatic zero-shifted extraction of small integers
-
-
-# rlwimi now also supports an identical insertion syntax:
-
-li r0, 0
-rlwimi r0, r4, 0xF8000000  # inserted 5-bit value
-rlwimi r0, r5, 0x07C00000  # inserted 5-bit value
-rlwimi r0, r6, 0x003FF000  # inserted 10-bit value
-rlwimi r0, r7, 0x00000800  # inserted 1-bit value
-rlwimi r0, r8, 0x00000700  # inserted 3-bit value
-rlwimi r0, r9, 0x000000FF  # inserted 8-bit value
-# -- these inserted masks are identical to the extractions
-# If saved to symbols, mask values like this can be used interchangably between inserts/extracts
-
-
-mMyMask=0x0001FF80
-# this mask value has all the information necessary to extract an int of given size and location
-# - the mask is 10 contiguous bits
-# - the mask is leftshifted by 7 (from a zero-shifted value)
-#   - these are values that can be used to inform rlwimi and rlwinm instructions
-
-
-li r0, 1000
-# r0 = zero-shifted integer value '1000'
-# - this will become a new packed value in r3
-
-# normally, the instructions would look like this when 'packing' or 'unpacking' small integers:
-
-rlwinm r31, r3, (32-7)&31, mMyMask>>7     # r31 = unpacked 10-bit int   (from r3)
-rlwimi r3, r0, 7, mMyMask          # r3  = packed 10-bit integer (from r0)
-# MASK syntaxes require a rotation value and a mask
-# - the extraction requires a mask of the RESULT - making it different than insertion
-# - the insertion requires a mask of the RESULT - making it different than extraction
-# - right-rotation requires you to subtract the amount from 32, and shift the mask
+rlwimi r3, r31, 20, 8, 11
+# +0x00F00000 : this INSERTS a 4-bit value
+# -- unintuitively -- rlwimi does the opposite...
 
 
 
-rlwinm r31, r3, (32-7)&31, 22, 31  # r31 = unpacked 10-bit int   (from r3)
-rlwimi r3, r0, 7, 15, 24           # r3  = packed 10-bit integer (from r0)
-# BIT INDEX syntaxes are the same, but you have to describe bit indices instead of a mask
 
-# The differences between extracting and inserting bits is syntactically confusing
-# ...but the 'instr' and 'extr' syntaxes can re-use the exact same mask to create an i/o interface:
+# Both instructions also have a shorter 4 argument syntax:
+# -    rDest : the reg where the product of the operation is stored
+# -    rArg  : the reg containing bits we want to insert or extract
+# - rotation : a left-orient rotation to be applied before/after masking
+# ---   mask : a 32 bit mask that has no breaks (unless inverted)
+
+mask = 0x00F00000
+# This mask helps us abstract away an ugly-looking expression behind a name
+
+rlwinm r31, r3, 12, mask>>20
+rlwimi r3, r31, 20, mask
+# -- this syntax is a bit easier to work with, if you have named mask symbols
+# The rotation argument is still not communicative between the two instructions, though
 
 
 
-rlwinm r31, r3, mMyMask  # r31 = unpacked 10-bit int   (from r3)
-rlwimi r3, r0, mMyMask   # r3 = packed 10-bit integer  (from r0)
-# The new ZEROED syntax assumes the rotation math needed to zero-shift input masks
-# - masks can be represented as named symbols, abstracting away all of the rotation math on use
-# - this becomes a much more user-friendly tool for packing and unpacking integers
 
 
-# The above 3 pairs of instructions assemble identically:
-# >>> 547FCDBE 50033BF0
-# >>> 547FCDBE 50033BF0
-# >>> 547FCDBE 50033BF0
+# --- THE NEW 3 ARGUMENT SYNTAX ---
+# This module adds a new 3-arg syntax that completely abstracts away the rotation math
+# -  rDest : the reg where the product of the operation is stored
+# -  rArg  : the reg containing bits we want to insert or extract
+# --- mask : a 32 bit mask that has no breaks (unless inverted)
+
+rlwinm r31, r3, mask
+rlwimi r3, r31, mask
+# -- these are identical to the above 2 pairs of instructions
+# All of the rotation math is implied when the rotation value is simply omitted
+
+mask = 0xFF0FFFFF
+rlwinm r31, r3, mask
+rlwimi r3, r31, mask
+# Inverted masks will be rotated so that all bits are aligned to zero, when extracted
+
+mask = 0xF
+rlwinm r31, r3, mask
+rlwimi r3, r31, mask
+# Zeroed masks will have no rotation at all
+
+
+mOp     = 0xFC000000  # in r3
+mArg    = 0x03F80000  # in r4
+mBools  = 0x00070000  # in r5
+mOffset = 0x0000FFFF  # in r6
+# These are examples of small integer masks that can be used in the new syntax
+# - this example builds an opcode out of argument ints
+
+rlwimi r3, r4, mArg
+rlwimi r3, r5, mBools
+rlwimi r3, r6, mOffset
+# opcode has been constructed in r3 from args r3...r6
+# - this is a form of compression, for integers
+
 
 
 
@@ -179,20 +185,17 @@ bf- bEnable, 0f
 
 # --- Example Results:
 
-## 54642EFE 546556FE
-## 5466A5BE 5467AFFE
-## 5468C77E 5469B850
-## 38000000 5080D808
-## 50A0B152 50C062A6
-## 50E05D28 5100456E
-## 51204E3E 380003E8
-## 547FCDBE 50033BF0
-## 547FCDBE 50033BF0
-## 547FCDBE 50033BF0
-## 0D0E0A13 00120000
-## E0000000 540307BD
-## 540307BD 5403FFFF
-## 5000D884 00000003
-## 7C001120 409F0014
-## 409D0008 60000000
-## 41BE0008 60000000
+## 547F673E 53E3A216
+## 547F673E 53E3A216
+## 547F673E 53E3A216
+## 547F413E 53E3C30E
+## 547F073E 53E3073E
+## 50839998 50A3835E
+## 50C3043E 0D0E0A13
+## 00120000 E0000000
+## 540307BD 540307BD
+## 5403FFFF 5000D884
+## 00000003 7C001120
+## 409F0014 409D0008
+## 60000000 41BE0008
+## 60000000

@@ -6,6 +6,11 @@
 #   - existing 4-argument and 5-argument syntaxes are reverted to, when detected
 
 # --- Updates:
+# version 0.1.1
+# - added ifalt protections
+# - reworked method of masking to better handle zeroed and inverted masks
+# - removed mask memory symbols
+
 # --- version 0.1.0
 # - renamed to 'small' for 'small integers'
 # - included 'bcount' module
@@ -48,9 +53,6 @@
 
 # --- Class Properties
 
-# --- small.rot_bits - record of the bits used in last shorthand rlwnim/rlwimi instruction
-# --- small.rot_mask - record of the mask used in last shorthand rlwnim/rlwimi instruction
-
 # --- bcount      - return value; to be copied to other symbols or used directly on macro return
 # --- bcount.sign - returned sign of integer as 1 or 0, for signed methods
 
@@ -84,69 +86,85 @@
 # Count the number of bits in use by a little-endian value (by inverting bcound.zle)
 
 # --- See 'enum.s' for details about 'enumb' bool mask counters.ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module small, 0x100
+punkpc.module small, 0x101
 .if module.included == 0
-  punkpc bcount, enum
+  punkpc bcount, enum, ifalt
 
-  .macro small.__build, rlw
-    .macro \rlw, va:vararg; small.__instr \rlw, \va; .endm
-  .endm
+  .macro small.__instr_build, rlw
+    .macro \rlw, va:vararg; small.__instr_handle \rlw, \va; .endm
 
-  .macro small.__instr, rlw, d, a, m, va:vararg
+  .endm; .macro small.__instr_handle, va:vararg; small.__altm = alt
+    ifalt; small.__alt = alt; .noaltmacro; small.__instr \va;
+    ifalt.reset small.__alt; alt = ifalt.__altm
+
+  .endm; .macro small.__instr, rlw, d, a, m, va:vararg
     .purgem \rlw
     # temporarily purge instruction hook
 
     .ifnb \va; \rlw \d, \a, (\m)&31, \va;
       # run normal instruction if 4 or more args are given
 
-    .else
+    .else; small.__instr_logic \rlw, \d, \a, \m; .endif
 
-      small.rot_bits = 0
-      .ifc \rlw, rlwimi; small.rot_bits = 1;
-      .else; .ifc \rlw, rlwimi.; small.rot_bits = 1; .endif; .endif
-      # check if inserting or extracting
-
-      .if \m
-        .if (\m)&1
-          bcount.zsigned \m
-          .if bcount.sign
-            bcount = 1 + bcount
-          .endif
-        .else;
-          bcount.be \m
-        .endif
-        # bcount = number of bits to rotate mask left by
-
-        .if small.rot_bits
-          small.rot_mask = \m
-          small.rot_bits = 32 - bcount
-          # use mask and inverted bits if inserting
-
-        .else
-          small.rot_bits = bcount
-          small.rot_mask = \m << bcount
-          small.rot_mask = small.rot_mask | (\m >> ((32-bcount)&31))
-          # use bits and rotated mask if extracting
-
-        .endif
-        small.rot_bits = small.rot_bits & 31
-        \rlw \d, \a, small.rot_bits, small.rot_mask
-        # invoke normal instruction with interpreted custom syntax
-
-      .else
-        .if small.rot_bits == 0
-          li \d, 0
-        .endif # if mask is null, and we're extracting a number, then just load '0' as an immediate
-      .endif
-    .endif
-    small.__build \rlw
+    small.__instr_build \rlw
     # rebuild instruction hook
+
+  .endm; .macro small.__instr_logic, rlw, d, a, m
+    small.__beg = 0
+    small.__end = 0
+    small.__rot = 0
+    small.__inv = 0
+    small.__ins = 0
+
+    .ifc \rlw, rlwimi; small.__ins = 1
+    .else; .ifc \rlw, rlwimi.; small.__ins = 1; .endif; .endif
+    .if \m
+
+      # if not 0
+      bcount.zbe \m, small.__beg
+      bcount.be \m
+      small.__end = (bcount-1)&31
+      small.__inv = (small.__beg == 0) && (small.__end == 31)
+      .if small.__inv
+
+        bcount.zbe ~(\m), small.__end
+        bcount.be ~(\m), small.__beg
+        .if small.__ins
+
+          # if inverted insert...
+          small.__rot = (32-small.__end)&31
+          small.__end = small.__end - 1
+        .else
+
+          # if inverted extract...
+          small.__rot = small.__end
+          small.__beg = small.__beg - small.__end
+          small.__end = 31
+        .endif
+      .else
+
+        # if not inverted...
+        small.__rot = (31-small.__end)&31
+        .if small.__ins == 0
+
+          # if extracting...
+          small.__end = 31
+          small.__beg = (small.__beg + small.__rot)&31
+          small.__rot = (32-small.__rot)&31
+        .endif
+      .endif
+      \rlw \d, \a, (small.__rot&31), (small.__beg&31), (small.__end&31)
+    .elseif small.__ins == 0
+      li \d, 0
+      # if mask is null, and we're extracting a number, then just load '0' as an immediate
+
+    .endif
 
   .endm; .macro small.enable_insr_extr
     .if small.enable_insr_extr == 0
       small.enable_insr_extr = 1
       .irp rlw, rlwinm, rlwinm., rlwimi, rlwimi.
-        small.__build \rlw
+        small.__instr_build \rlw
       .endr
     .endif
   .endm; .macro small.disable_insr_extr
