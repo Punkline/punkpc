@@ -1,5 +1,5 @@
 ## Guides
-- [Project Overview](#punkpc)
+- [Project Overview](https://github.com/Punkline/punkpc#punkpc)
 - [Creating New Library Objects](/doc/md/guide_library_objects.md)
 >toc
 
