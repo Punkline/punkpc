@@ -5,6 +5,8 @@
 #   - may also be useful for checking ascii in `enc` stacks
 
 # --- Updates:
+# version 0.0.5
+# - added argument for '.check_ascii' method
 # version 0.0.4
 # - separated ascii check into a separate method, for checking ascii from encoder stacks
 # version 0.0.3
@@ -26,12 +28,18 @@
 
 # --- Class Methods
 
-# --- ifnum arg
+# --- ifnum  arg
 # checks if given arg is a literal number, or an arg that starts with a non-number
 
-# --- ifnum_ascii arg
-#.ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module ifnum, 4
+# --- ifnum_ascii  arg
+# similar to ifnum, but returned 'num' is an ascii number instead of just being '1'
+
+# --- ifnum.check_ascii  arg
+# this version of ifnum_ascii checks integers that have already been evaluated
+# - if 'arg' is not given, it will check 'num'
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+punkpc.module ifnum, 5
 .if module.included == 0
 
   num=0; nnum=1;
@@ -46,7 +54,7 @@ punkpc.module ifnum, 4
     nnum=!num
   .endm; .macro ifnum_ascii, n
     num=0; .irpc c,\n; ifnum.__get_ascii "'\c"; .exitm; .endr; ifnum.check_ascii
-  .endm; .macro ifnum.check_ascii; nnum = 1
+  .endm; .macro ifnum.check_ascii, set_num=num; num=\set_num nnum = 1
     .if num >= 0x28; .if num <= 0x2D; nnum=0; .exitm ;.endif; .endif
     .if num >= 0x2F; .if num <= 0x39; nnum=0; .exitm ;.endif; .endif
     .irp x, 0x21, 0x25, 0x26, 0x5B, 0x5D, 0x7C, 0x7E
