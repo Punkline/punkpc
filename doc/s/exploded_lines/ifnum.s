@@ -35,7 +35,8 @@ punkpc.module ifnum, 5
     ifnum.check_ascii
   .endm;
   .macro ifnum.check_ascii,  set_num=num
-    num=\set_num nnum = 1
+    num=\set_num
+    nnum = 1
     .if num >= 0x28
       .if num <= 0x2D
         nnum=0

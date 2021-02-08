@@ -54,7 +54,7 @@ punkpc.module ifnum, 5
     nnum=!num
   .endm; .macro ifnum_ascii, n
     num=0; .irpc c,\n; ifnum.__get_ascii "'\c"; .exitm; .endr; ifnum.check_ascii
-  .endm; .macro ifnum.check_ascii, set_num=num; num=\set_num nnum = 1
+  .endm; .macro ifnum.check_ascii, set_num=num; num=\set_num; nnum = 1
     .if num >= 0x28; .if num <= 0x2D; nnum=0; .exitm ;.endif; .endif
     .if num >= 0x2F; .if num <= 0x39; nnum=0; .exitm ;.endif; .endif
     .irp x, 0x21, 0x25, 0x26, 0x5B, 0x5D, 0x7C, 0x7E

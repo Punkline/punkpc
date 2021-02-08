@@ -10,7 +10,7 @@
           .ifc \c,  \d;  num=2;.exitm;.endif;.endr;.endif;.exitm;.endr;nnum=!num
   .endm;.macro ifnum_ascii,  n;  num=0
     .irpc c,  \n;  ifnum.__get_ascii "'\c";.exitm;.endr;ifnum.check_ascii
-  .endm;.macro ifnum.check_ascii,  set_num=num;  num=\set_num nnum = 1
+  .endm;.macro ifnum.check_ascii,  set_num=num;  num=\set_num;nnum = 1
     .if num >= 0x28
       .if num <= 0x2D
         nnum=0;.exitm;.endif;.endif;
