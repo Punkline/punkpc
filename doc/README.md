@@ -12,7 +12,7 @@
       - [`str`](/doc#str) : *literal buffers*
         - [`items`](/doc#items)
   - [`ppc`](/doc#ppc) : *powerpc modules*
-    - [`branch`](/doc#branch), [`cr`](/doc#cr), [`data`](/doc#data), [`lmf`](/doc#lmf), [`load`](/doc#load), [`regs`](/doc#regs), [`small`](/doc#small), [`sp`](/doc#sp), [`spr`](/doc#spr)
+    - [`branch`](/doc#branch), [`cr`](/doc#cr), [`data`](/doc#data), [`gecko`](/doc#gecko), [`lmf`](/doc#lmf), [`load`](/doc#load), [`regs`](/doc#regs), [`small`](/doc#small), [`sp`](/doc#sp), [`spr`](/doc#spr)
 
 
 ## Guides
@@ -145,6 +145,17 @@ Errata Objects
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/errata.s)[:alembic:](/doc/s/examples/errata_ex.s)[:boom:](/doc/s/exploded_lines/errata.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`obj`](/doc#obj), [`sidx`](/doc#sidx), [`if`](/doc#if), [`hidden`](/doc#hidden), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`mut`](/doc#mut)
+
+---
+### [`gecko`](/doc#gecko)
+
+Gecko Injection and Overwrite Ops
+ - in-assembler gecko opcodes, for writing injection and overwrite patches
+   - injection ops create blocks that are written as `C2` codes
+   - overwrite ops create individual `04` codes
+
+>[*Links*](/doc#modules) : [:pencil2:](/src/gecko.s)[:alembic:](/doc/s/examples/gecko_ex.s)[:boom:](/doc/s/exploded_lines/gecko.s)<br />
+[:top:](/doc#Documentation):arrow_right: [`errata`](/doc#errata), [`align`](/doc#align), [`if`](/doc#if), [`obj`](/doc#obj), [`hidden`](/doc#hidden), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`mut`](/doc#mut), [`sidx`](/doc#sidx)
 
 ---
 ### [`hidden`](/doc#hidden)
