@@ -5,6 +5,8 @@
 # - also includes some utilities for creating binary data structs
 
 # --- Updates:
+# version 0.0.2
+# - added 'align' to dependencies, to help prevent issues with '.align' label expressions
 # version 0.0.1
 # - added to punkpc module library
 
@@ -92,8 +94,8 @@
 #   - you can make forward references this way
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module data, 1
-.if module.included == 0; punkpc if, sidx
+punkpc.module data, 2
+.if module.included == 0; punkpc if, sidx, align
 
 # --- data - user layer
 data.start.inline = 1    # this will cause data.start to create a branch over inline tables

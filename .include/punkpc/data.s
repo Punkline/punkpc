@@ -1,6 +1,6 @@
 .ifndef punkpc.library.included
-  .include "punkpc.s";.endif;punkpc.module data, 1
-.if module.included == 0;  punkpc if, sidx;data.start.inline = 1;data.start.use_blrl = 1
+  .include "punkpc.s";.endif;punkpc.module data, 2
+.if module.included == 0;  punkpc if, sidx, align;data.start.inline = 1;data.start.use_blrl = 1
   data.base_reg = 12
   .ifndef punkpc.data.custom_namespace
     .macro data.table,  name,  loc;  punkpc.data.table \name, \loc
