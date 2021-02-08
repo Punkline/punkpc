@@ -4,8 +4,10 @@
 # - if no args are given to `punkpc` when calling it, this module is loaded by default
 
 # --- Updates:
+# version 0.0.3
+# - added new 'gecko' module
 # version 0.0.2
-# - updated list to include sp module, as intended
+# - updated list to include 'sp' module, as intended
 # version 0.0.1
 # - added to punkpc module library
 
@@ -48,9 +50,9 @@
 # - these are also include, as part of the prereqs for the other modules
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module ppc, 2
+punkpc.module ppc, 3
 .if module.included == 0
 
-  punkpc branch, cr, data, idxr, load, small, sp
+  punkpc branch, cr, data, idxr, load, small, sp, gecko
 
 .endif
