@@ -82,7 +82,9 @@
 
 
 # --- Class Level Object ---
-# --- items - generic buffer, for volatile use.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- items - generic buffer, for volatile use
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module items, 2
 .if module.included == 0
 items.__free$ = 0

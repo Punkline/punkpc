@@ -193,7 +193,9 @@
 # --- Callback Methods
 
 # indexed class methods str.__strbuf_event$ 0-31 are used to handle object method cases
-# indexed class methods $_str.point$ n are used to handle string pointers.ifndef punkpc.library.included;
+# indexed class methods $_str.point$ n are used to handle string pointers
+
+.ifndef punkpc.library.included;
 .include "punkpc.s"; .endif
 punkpc.module str, 0x101
 .if module.included == 0; punkpc ifdef, ifalt, obj

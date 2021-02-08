@@ -22,7 +22,9 @@
 # --- stmfd  fStart, idx(r),  [ fEnd ]
 # These can be used to load/store multiple floating points to/from an array of registers/RAM
 # if 'fEnd' is left blank, then the argumen becomes 'f31' automatically -- simulating lmw, stmw
-# if 'fEnd' is smaller than 'fStart' -- then the register sequence descends instead of ascends.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# if 'fEnd' is smaller than 'fStart' -- then the register sequence descends instead of ascends
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module lmf, 2
 .if module.included == 0; punkpc regs, idxr
 

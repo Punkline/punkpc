@@ -265,7 +265,9 @@
 # --- enum.mut   enum   - alternative syntax constructs mutator methods for new obj
 # Class level mutator Macros
 # - 'enum' is the name of an enumerator object
-#   - you may use these at the object level, too.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+#   - you may use these at the object level, too
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module enum, 0x202
 .if module.included == 0
 

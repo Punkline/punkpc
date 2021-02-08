@@ -93,7 +93,9 @@
   # --- solve       self, arg, ...
   # --- ref_iter    self, arg, ...
   # --- solve_iter  self, arg, ...
-  # Override these with custom mutators.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+  # Override these with custom mutators
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module errata, 1
 .if module.included == 0
 

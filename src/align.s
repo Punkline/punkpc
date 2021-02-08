@@ -26,7 +26,9 @@
 
 # --- align.to  exp, label
 # This version of align accepts a base offset in the form of a label
-# 'label' can be used to override the default '_align.__start' base label.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# 'label' can be used to override the default '_align.__start' base label
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module align, 1
 .if module.included == 0
 

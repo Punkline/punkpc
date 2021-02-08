@@ -45,7 +45,9 @@
 # Enables generic gpr, fpr, and cr names as symbols with an expression emitter
 
 # --- bcount, hidden, if, mut, obj, sidx, stack, items
-# - these are also include, as part of the prereqs for the other modules.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# - these are also include, as part of the prereqs for the other modules
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module ppc, 2
 .if module.included == 0
 

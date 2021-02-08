@@ -19,7 +19,9 @@
 
 # --- cr.enable_overrides
 # --- cr.disable_overrides
-# Use these macros to toggle the syntax on or off.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# Use these macros to toggle the syntax on or off
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module cr, 1
 .if module.included == 0
   punkpc enum, regs

@@ -89,7 +89,9 @@
 #  Else, if a valid temporary, variable, or constant label name is given, it will be used
 #   - A variable can only be referenced if it has been defined already, so a backwards reference
 #  Else, if undefined -- it's assumed that the keyword is the name of a future table
-#   - you can make forward references this way.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+#   - you can make forward references this way
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module data, 1
 .if module.included == 0; punkpc if, sidx
 

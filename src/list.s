@@ -156,7 +156,9 @@
   # --- oob_iter  self, sym, ...
   # --- oob_i,    self, idx, ...
   # --- idx_i     self, idx, ...
-  # Override these to implement custom exceptions/navigation methods.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+  # Override these to implement custom exceptions/navigation methods
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module list, 0x200
 .if module.included == 0; punkpc stack
 

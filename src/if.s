@@ -39,7 +39,9 @@
 # checks if given arg is a literal number, or an arg that starts with a non-number
 
 # --- ifnum_ascii  arg
-# A version of ifnum that returns the ascii value of positive matches, instead of just a bool value.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# A version of ifnum that returns the ascii value of positive matches, instead of just a bool value
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module if, 1
 .if module.included == 0; punkpc ifalt, ifdef, ifnum
 .endif

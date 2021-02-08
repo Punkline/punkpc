@@ -155,7 +155,9 @@
 
 
 
-# 'lmf' and 'spr' modules are available for multiple float/spr loads/stores external from the stack.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# 'lmf' and 'spr' modules are available for multiple float/spr loads/stores external from the stack
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module sp, 2
 .if module.included == 0; punkpc regs, enc, lmf, spr, items
 

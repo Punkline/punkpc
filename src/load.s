@@ -36,7 +36,9 @@
 #        -  ex: 31 = r31, r30, r29, r28  for a 16-byte value
 #        if blank, then a default of decrementing r31 is used to compliment lmw/stmw syntax
 # arg : can be be either a value or a string that starts with '>'
-# ... : multiple 32-bit args or variable-length strings can be loaded at once, in register sequence.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# ... : multiple 32-bit args or variable-length strings can be loaded at once, in register sequence
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module load, 3
 .if module.included == 0; punkpc regs
 .ifndef load.purgem; load.purgem = 0; .endif

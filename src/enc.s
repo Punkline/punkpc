@@ -49,7 +49,9 @@
 
   # --- .enc_raw    start, end, input
   # Variation of '.enc_range' that does not escape quotes or backslashes for special chars
-  # - can be used to detect quotes in quoted inputs.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+  # - can be used to detect quotes in quoted inputs
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module enc, 1
 .if module.included == 0; punkpc stack, if
 

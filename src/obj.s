@@ -130,7 +130,9 @@
 # A special module-level method that passes a generated hidden namespace to a constructor
 # - self is the name of the object to use
 # - constructor is the name of the constructor macro that uses self and the hidden namespace
-# - ... is any number of trailing args that should go to the constructor.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# - ... is any number of trailing args that should go to the constructor
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module obj, 2
 .if module.included == 0; punkpc if, hidden, mut
 

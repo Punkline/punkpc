@@ -81,7 +81,9 @@
 # A loop dispatcher that passes p$i, for sequence start...end
 # - 'macro' is the name of a macro, instruction, or directive that handles the outputs
 # - '...' may contain any args that come after the output
-# - if start and/or end are blank, they will be set to '0'.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# - if start and/or end are blank, they will be set to '0'
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module sidx, 4
 .if module.included == 0
 punkpc ifalt

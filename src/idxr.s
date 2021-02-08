@@ -33,7 +33,9 @@
 ## Binary from examples:
 
 ## 00000400 0000001F
-## 00000400 0000001F.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+## 00000400 0000001F
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module idxr, 2
 .if module.included == 0; punkpc xev
 

@@ -36,7 +36,9 @@
 
 # Class methods override the following instructions in the -mgekko machine architecture:
 # --- bla - branch link absolute
-# --- ba - branch absolute.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- ba - branch absolute
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module branch, 3
 .if module.included == 0
 .ifndef branchl.purgem; branchl.purgem = 0; .endif

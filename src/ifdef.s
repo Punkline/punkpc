@@ -33,7 +33,9 @@
 # - altmacro mode does not require '\' when escaping arguments
 #   - the parsing bug is bypassed by reading the name as an argument and escaping it internally
 # If a symbol name requires concatenating many escapes, you may provide them as '...'
-# - for example:  ifdef \myClass, ., \myProperty.ifndef punkpc.library.included;
+# - for example:  ifdef \myClass, ., \myProperty
+
+.ifndef punkpc.library.included;
 .include "punkpc.s"; .endif
 punkpc.module ifdef, 3
 .if module.included == 0

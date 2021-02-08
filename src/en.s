@@ -21,7 +21,9 @@
 # Enumerate args in '...' with 'en.count' index, using 'en.step' increments
 
 # --- en.restart
-# Restart the counter/step using saved 'en.*.restart' properties.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# Restart the counter/step using saved 'en.*.restart' properties
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module en, 1
 .if module.included == 0
 

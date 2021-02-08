@@ -38,7 +38,9 @@
 #  - ex:   "+ 1",    ">> 1",   "* 12",   "+ (my_step * my_stride)"
 
 # --- xem  pfx, expr, sfx
-# Emit an evaluated expression as decimal literals, with optional literal prefix/suffix.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# Emit an evaluated expression as decimal literals, with optional literal prefix/suffix
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module regs, 1; .if module.included == 0; punkpc xem, enum
 .macro regs.enumerate, pfx, sfx, start=0, op="+1", cstart, cop, count=32
   .ifb \cop; regs.enumerate \pfx, \sfx, \start, \op, \cstart, \op, \count; .exitm; .endif

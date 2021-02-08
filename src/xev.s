@@ -22,7 +22,9 @@
 # Extract a substring from target range
 #   beg    : beginning index of range (inclusive)
 #   end    : ending index of range (inclusive)
-#   string : a string to extract a range of characters from.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+#   string : a string to extract a range of characters from
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module xev, 1
 .if module.included == 0
 

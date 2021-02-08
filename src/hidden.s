@@ -37,7 +37,9 @@
 
 # --- hidden.get.sfx  pfx, sfx, sym
 # --- hidden.set.sfx  pfx, sfx, val
-# Allows you to apply a suffix to the hidden char, if needed.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# Allows you to apply a suffix to the hidden char, if needed
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module hidden, 1
 .if module.included == 0;
 

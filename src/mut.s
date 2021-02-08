@@ -173,7 +173,9 @@
   # - for (obj).(hook_ns).(hook).(mode) namespace...
   # --- Mode Properties
   # --- (self) - registered mode ID for this keyword
-  # --- .is_mutator_mode - instance of Mutator Mode Callback Object.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+  # --- .is_mutator_mode - instance of Mutator Mode Callback Object
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module mut, 5
 .if module.included == 0; punkpc ifdef
 

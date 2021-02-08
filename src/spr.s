@@ -25,7 +25,9 @@
 # --- lmspr   a, idx(r), spr, ...
 # These can be used to load/store multiple special purpose registers using working register
 # - any number of SPR IDs, or keywords may be provided as a sequence of comma-separated 'spr' args
-# - in addition to SPRs -- CR, SR, and MSR are supported as special keywords.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# - in addition to SPRs -- CR, SR, and MSR are supported as special keywords
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module spr, 3
 .if module.included == 0; punkpc idxr, regs
 

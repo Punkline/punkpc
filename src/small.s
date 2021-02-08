@@ -85,7 +85,9 @@
 # --- bcount.le   int
 # Count the number of bits in use by a little-endian value (by inverting bcound.zle)
 
-# --- See 'enum.s' for details about 'enumb' bool mask counters.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# --- See 'enum.s' for details about 'enumb' bool mask counters
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module small, 0x101
 .if module.included == 0
   punkpc bcount, enum, ifalt

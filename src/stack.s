@@ -198,7 +198,9 @@
   # --- oob_push  self, sym, ...
   # --- oob_pop   self, sym, ...
   # --- oob_deq   self, sym, ...
-  # Override these to implement custom exceptions/navigation methods.ifndef punkpc.library.included; .include "punkpc.s"; .endif
+  # Override these to implement custom exceptions/navigation methods
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module stack, 0x202
 .if module.included == 0; punkpc sidx, if, obj
 

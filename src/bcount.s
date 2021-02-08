@@ -39,7 +39,9 @@
 # --- bcount.be   int, sym
 # Count the number of bits in use by a big-endian value (by inverting bcount.zbe)
 # --- bcount.le   int, sym
-# Count the number of bits in use by a little-endian value (by inverting bcound.zle).ifndef punkpc.library.included; .include "punkpc.s"; .endif
+# Count the number of bits in use by a little-endian value (by inverting bcound.zle)
+
+.ifndef punkpc.library.included; .include "punkpc.s"; .endif
 punkpc.module bcount, 2
 .if module.included == 0
 
