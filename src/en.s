@@ -1,7 +1,7 @@
 # --- Enumerator (quick)
 #>toc library
 # - a fast, featureless enumeration tool for naming offset and register symbols
-# - intended to be as small and quick as possible
+#   - intended to work similarly to `enum`, but as small and quick as possible
 
 # --- Updates:
 # version 0.0.1

@@ -2,7 +2,7 @@
 - [Guides](/doc#Guides)
 - [Modules](/doc#Modules) : 
   - [`library`](/doc#library) : *generic tools*
-    - [`align`](/doc#align), [`bcount`](/doc#bcount), [`dbg`](/doc#dbg), [`en`](/doc#en), [`hidden`](/doc#hidden), [`idxr`](/doc#idxr), [`xem`](/doc#xem), [`xev`](/doc#xev)
+    - [`align`](/doc#align), [`bcount`](/doc#bcount), [`dbg`](/doc#dbg), [`en`](/doc#en), [`hex`](/doc#hex), [`hidden`](/doc#hidden), [`idxr`](/doc#idxr), [`xem`](/doc#xem), [`xev`](/doc#xev)
     - [`if`](/doc#if) : *special if blocks*
       - [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum)
     - [`obj`](/doc#obj) : *objects and classes*
@@ -107,7 +107,7 @@ Debug Tool
 
 Enumerator (quick)
  - a fast, featureless enumeration tool for naming offset and register symbols
- - intended to be as small and quick as possible
+   - intended to work similarly to [`enum`](/doc#enum), but as small and quick as possible
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/en.s)[:alembic:](/doc/s/examples/en_ex.s)[:boom:](/doc/s/exploded_lines/en.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
@@ -156,6 +156,23 @@ Gecko Injection and Overwrite Ops
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/gecko.s)[:alembic:](/doc/s/examples/gecko_ex.s)[:boom:](/doc/s/exploded_lines/gecko.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`errata`](/doc#errata), [`align`](/doc#align), [`if`](/doc#if), [`obj`](/doc#obj), [`hidden`](/doc#hidden), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`mut`](/doc#mut), [`sidx`](/doc#sidx)
+
+---
+### [`hex`](/doc#hex)
+
+Hex Emitter Objects (with Array of Byte History)
+ - extends the 'enc' object class
+   - emit bytes from raw hex literals, as user inputs
+     - accepts a mix of whitespace, commas, and '0x' prefixes
+     - buffers nibbles as partial bytes, for odd char inputs
+     - skips non-hex literals, save for a couple of special syntaxes:
+       - use `.` chars to align the buffer to various powers of 2
+       - use `"` chars to enter raw ascii in place of hex literals
+   - saves input bytes as an array of readable/writable bytes
+   - can emit bytes after saving and modifying them in memory
+
+>[*Links*](/doc#modules) : [:pencil2:](/src/hex.s)[:alembic:](/doc/s/examples/hex_ex.s)[:boom:](/doc/s/exploded_lines/hex.s)<br />
+[:top:](/doc#Documentation):arrow_right: [`enc`](/doc#enc), [`align`](/doc#align), [`stack`](/doc#stack), [`sidx`](/doc#sidx), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`if`](/doc#if), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`obj`](/doc#obj)
 
 ---
 ### [`hidden`](/doc#hidden)
@@ -404,7 +421,7 @@ Stack Objects
 
 String Objects
  - a scalar buffer object class that stores literal memory
- - can store `"quoted strings"` for pretecting literals
+ - can store `"quoted strings"` for protecting literals
  - can store `<<nestable>, <altmacro strings>>` for creating complex tuples
  - can store `literal strings` that are unprotected, and can be executed like macros
    - unlike the [`items`](/doc#items) class, no delimiting commas are implied, and buffers can use prefix concatenation methods
