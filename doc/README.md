@@ -91,7 +91,7 @@ Inline Data Tables
  - also includes some utilities for creating binary data structs
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/data.s)[:alembic:](/doc/s/examples/data_ex.s)[:boom:](/doc/s/exploded_lines/data.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`if`](/doc#if), [`sidx`](/doc#sidx), [`align`](/doc#align), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum)
+[:top:](/doc#Documentation):arrow_right: [`if`](/doc#if), [`sidx`](/doc#sidx), [`hex`](/doc#hex), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`enc`](/doc#enc), [`stack`](/doc#stack), [`obj`](/doc#obj), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`align`](/doc#align)
 
 ---
 ### [`dbg`](/doc#dbg)
@@ -333,7 +333,7 @@ PowerPC Modules
  - if no args are given to `punkpc` when calling it, this module is loaded by default
 
 >[*Links*](/doc#modules) : [:pencil2:](/src/ppc.s)[:alembic:](/doc/s/examples/ppc_ex.s)[:boom:](/doc/s/exploded_lines/ppc.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`branch`](/doc#branch), [`cr`](/doc#cr), [`data`](/doc#data), [`idxr`](/doc#idxr), [`load`](/doc#load), [`small`](/doc#small), [`sp`](/doc#sp), [`gecko`](/doc#gecko), [`enum`](/doc#enum), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`en`](/doc#en), [`regs`](/doc#regs), [`sidx`](/doc#sidx), [`align`](/doc#align), [`xev`](/doc#xev), [`bcount`](/doc#bcount), [`enc`](/doc#enc), [`stack`](/doc#stack), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items), [`errata`](/doc#errata)
+[:top:](/doc#Documentation):arrow_right: [`branch`](/doc#branch), [`cr`](/doc#cr), [`data`](/doc#data), [`idxr`](/doc#idxr), [`load`](/doc#load), [`small`](/doc#small), [`sp`](/doc#sp), [`gecko`](/doc#gecko), [`enum`](/doc#enum), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`en`](/doc#en), [`regs`](/doc#regs), [`sidx`](/doc#sidx), [`enc`](/doc#enc), [`stack`](/doc#stack), [`align`](/doc#align), [`hex`](/doc#hex), [`xev`](/doc#xev), [`bcount`](/doc#bcount), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items), [`errata`](/doc#errata)
 
 ---
 ### [`regs`](/doc#regs)

@@ -1,9 +1,9 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module data, 2
+punkpc.module data, 3
 .if module.included == 0
-  punkpc if, sidx, align
+  punkpc if, sidx, hex
   data.start.inline = 1
   data.start.use_blrl = 1
   data.base_reg = 12
