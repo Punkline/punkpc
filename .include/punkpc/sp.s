@@ -34,7 +34,8 @@
   .endm;.macro enum.mut.enum_parse.sp.fprs,  va:vararg
     .ifnb \va;  enum.mut.enum_parse.default \va;.endif;
     .if (sp.fprs.high - sp.fprs.low) > sp.fprs.__has_items
-      .rept (sp.fprs.high - sp.fprs.low) - sp.fprs.__has_items sidx.noalt "<stfd 32-(sp.fprs.__has_items+1),  (sp.fprs.__has_items!<!<sp.fprs.byte_align) + sp.fprs.base>",  sp.mem_ID,  "<(sp)>"
+      .rept (sp.fprs.high - sp.fprs.low) - sp.fprs.__has_items
+        sidx.noalt "<stfd 32-(sp.fprs.__has_items+1), (sp.fprs.__has_items!<!<sp.fprs.byte_align) + sp.fprs.base>", sp.mem_ID, "<(sp)>"
         sp.fprs.__has_items = sp.fprs.__has_items + 1;.endr;.endif;
   .endm;.macro enum.mut.enum_parse_iter.sp.sprs,  self,  spr,  va:vararg
     enum.mut.count.sp_obj \self, sp.sprs.count + sp.sprs.step

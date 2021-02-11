@@ -78,7 +78,8 @@ punkpc.module sp, 3
       enum.mut.enum_parse.default \va
     .endif;
     .if (sp.fprs.high - sp.fprs.low) > sp.fprs.__has_items
-      .rept (sp.fprs.high - sp.fprs.low) - sp.fprs.__has_items sidx.noalt "<stfd 32-(sp.fprs.__has_items+1),  (sp.fprs.__has_items!<!<sp.fprs.byte_align) + sp.fprs.base>",  sp.mem_ID,  "<(sp)>"
+      .rept (sp.fprs.high - sp.fprs.low) - sp.fprs.__has_items
+        sidx.noalt "<stfd 32-(sp.fprs.__has_items+1), (sp.fprs.__has_items!<!<sp.fprs.byte_align) + sp.fprs.base>", sp.mem_ID, "<(sp)>"
         sp.fprs.__has_items = sp.fprs.__has_items + 1
       .endr;
     .endif;
