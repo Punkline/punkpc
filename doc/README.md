@@ -48,8 +48,7 @@ Alignment Tool (relative)
  - useful for measuring arbitrary body sizes that include un-aligned data
    - byte arrays and strings are examples of structs that commonly need re-alignment
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/align.s)[:alembic:](/doc/s/examples/align_ex.s)[:boom:](/doc/s/exploded_lines/align.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/align.s)[:alembic:](/doc/s/examples/align_ex.s)[:boom:](/doc/s/exploded_lines/align.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`ifalt`](/doc#ifalt)
 
 ---
@@ -60,8 +59,7 @@ Bit Counter Tools
  - fast checks for counting unused bits in an integer
  - useful for finding integer sizes when creating masks, for compression
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/bcount.s)[:alembic:](/doc/s/examples/bcount_ex.s)[:boom:](/doc/s/exploded_lines/bcount.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/bcount.s)[:alembic:](/doc/s/examples/bcount_ex.s)[:boom:](/doc/s/exploded_lines/bcount.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
 
 ---
@@ -72,8 +70,7 @@ Branch (absolute)
  - absolute branch macroinstructions that replace the `bla` and `ba` instructions
    - these create long-form 4-instruction absolute calls/branches via `blrl` or `bctr`
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/branch.s)[:alembic:](/doc/s/examples/branch_ex.s)[:boom:](/doc/s/exploded_lines/branch.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/branch.s)[:alembic:](/doc/s/examples/branch_ex.s)[:boom:](/doc/s/exploded_lines/branch.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
 
 ---
@@ -85,8 +82,7 @@ Condition/Comparison Register/Fields
    - also includes fixes for some cr instructions that are poory emulated in some environmnets
  - useful for writing efficient (and legible) binary trees in PowerPC functions
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/cr.s)[:alembic:](/doc/s/examples/cr_ex.s)[:boom:](/doc/s/exploded_lines/cr.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/cr.s)[:alembic:](/doc/s/examples/cr_ex.s)[:boom:](/doc/s/exploded_lines/cr.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`enum`](/doc#enum), [`regs`](/doc#regs), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`en`](/doc#en)
 
 ---
@@ -98,8 +94,7 @@ Inline Data Tables
    - resulting instructions are capable of referencing data local to the runtime program counter
  - also includes some utilities for creating binary data structs
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/data.s)[:alembic:](/doc/s/examples/data_ex.s)[:boom:](/doc/s/exploded_lines/data.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/data.s)[:alembic:](/doc/s/examples/data_ex.s)[:boom:](/doc/s/exploded_lines/data.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`if`](/doc#if), [`sidx`](/doc#sidx), [`hex`](/doc#hex), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`enc`](/doc#enc), [`stack`](/doc#stack), [`obj`](/doc#obj), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`align`](/doc#align)
 
 ---
@@ -109,8 +104,7 @@ Inline Data Tables
 Debug Tool
  - a simple evaluation tool, for debugging symbol values
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/dbg.s)[:alembic:](/doc/s/examples/dbg_ex.s)[:boom:](/doc/s/exploded_lines/dbg.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/dbg.s)[:alembic:](/doc/s/examples/dbg_ex.s)[:boom:](/doc/s/exploded_lines/dbg.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
 
 ---
@@ -121,8 +115,7 @@ Enumerator (quick)
  - a fast, featureless enumeration tool for naming offset and register symbols
    - intended to work similarly to [`enum`](/doc#enum), but as small and quick as possible
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/en.s)[:alembic:](/doc/s/examples/en_ex.s)[:boom:](/doc/s/exploded_lines/en.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/en.s)[:alembic:](/doc/s/examples/en_ex.s)[:boom:](/doc/s/exploded_lines/en.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
 
 ---
@@ -134,8 +127,7 @@ Encoder Stacks
    - extended stack object constructor lets you create multiple encoder buffers
  - may be used to create pseudo-regex-like parses of input literals
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/enc.s)[:alembic:](/doc/s/examples/enc_ex.s)[:boom:](/doc/s/exploded_lines/enc.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/enc.s)[:alembic:](/doc/s/examples/enc_ex.s)[:boom:](/doc/s/exploded_lines/enc.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`stack`](/doc#stack), [`if`](/doc#if), [`sidx`](/doc#sidx), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`obj`](/doc#obj)
 
 ---
@@ -148,8 +140,7 @@ Enumerator Objects
    - highly mutable objects may be individually mutated for custom behaviors
  - useful for creating methods that handle user inputs, or that consume [`items`](/doc#items) buffers
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/enum.s)[:alembic:](/doc/s/examples/enum_ex.s)[:boom:](/doc/s/exploded_lines/enum.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/enum.s)[:alembic:](/doc/s/examples/enum_ex.s)[:boom:](/doc/s/exploded_lines/enum.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`obj`](/doc#obj), [`en`](/doc#en), [`regs`](/doc#regs), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`enum`](/doc#enum)
 
 ---
@@ -161,8 +152,7 @@ Errata Objects
    - requires that the errata doesn't need to be immediately evaluated after being emitted
  - useful for making cumulative results of an arbitrary number of operations, like block contexts
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/errata.s)[:alembic:](/doc/s/examples/errata_ex.s)[:boom:](/doc/s/exploded_lines/errata.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/errata.s)[:alembic:](/doc/s/examples/errata_ex.s)[:boom:](/doc/s/exploded_lines/errata.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`obj`](/doc#obj), [`sidx`](/doc#sidx), [`if`](/doc#if), [`hidden`](/doc#hidden), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`mut`](/doc#mut)
 
 ---
@@ -174,8 +164,7 @@ Gecko Injection and Overwrite Ops
    - injection ops create blocks that are written as `C2` codes
    - overwrite ops create individual `04` codes
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/gecko.s)[:alembic:](/doc/s/examples/gecko_ex.s)[:boom:](/doc/s/exploded_lines/gecko.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/gecko.s)[:alembic:](/doc/s/examples/gecko_ex.s)[:boom:](/doc/s/exploded_lines/gecko.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`errata`](/doc#errata), [`align`](/doc#align), [`if`](/doc#if), [`obj`](/doc#obj), [`hidden`](/doc#hidden), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`mut`](/doc#mut), [`sidx`](/doc#sidx)
 
 ---
@@ -193,8 +182,7 @@ Hex Emitter Objects (with Array of Byte History)
    - saves input bytes as an array of readable/writable bytes
    - can emit bytes after saving and modifying them in memory
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/hex.s)[:alembic:](/doc/s/examples/hex_ex.s)[:boom:](/doc/s/exploded_lines/hex.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/hex.s)[:alembic:](/doc/s/examples/hex_ex.s)[:boom:](/doc/s/exploded_lines/hex.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`enc`](/doc#enc), [`align`](/doc#align), [`stack`](/doc#stack), [`sidx`](/doc#sidx), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`if`](/doc#if), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`obj`](/doc#obj)
 
 ---
@@ -206,8 +194,7 @@ Hidden Symbol Names
    - exploits support of the `\001` char in LOCAL labels in symbol names
  - (intended for use without a linker)
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/hidden.s)[:alembic:](/doc/s/examples/hidden_ex.s)[:boom:](/doc/s/exploded_lines/hidden.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/hidden.s)[:alembic:](/doc/s/examples/hidden_ex.s)[:boom:](/doc/s/exploded_lines/hidden.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
 
 ---
@@ -218,8 +205,7 @@ Index (Register)
  - index (register) input extraction tool
  - useful for simulating load/store syntaxes like the `0x20(r30)` part of `lwz r3, 0x20(r30)`
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/idxr.s)[:alembic:](/doc/s/examples/idxr_ex.s)[:boom:](/doc/s/exploded_lines/idxr.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/idxr.s)[:alembic:](/doc/s/examples/idxr_ex.s)[:boom:](/doc/s/exploded_lines/idxr.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`xev`](/doc#xev)
 
 ---
@@ -230,8 +216,7 @@ Special If Statements
  - a collection of various checks that may be used with `.if` block directives
  - intended for making useful checks of difficult to compare things in GAS
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/if.s)[:alembic:](/doc/s/examples/if_ex.s)[:boom:](/doc/s/exploded_lines/if.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/if.s)[:alembic:](/doc/s/examples/if_ex.s)[:boom:](/doc/s/exploded_lines/if.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum)
 
 ---
@@ -242,8 +227,7 @@ If in Altmacro Mode
  - an if tool that can be used to check the current altmacro environment state
  - used to preserve the altmacro mode, and avoid ruining string interpretations
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/ifalt.s)[:alembic:](/doc/s/examples/ifalt_ex.s)[:boom:](/doc/s/exploded_lines/ifalt.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/ifalt.s)[:alembic:](/doc/s/examples/ifalt_ex.s)[:boom:](/doc/s/exploded_lines/ifalt.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
 
 ---
@@ -255,8 +239,7 @@ If Symbol is Defined
    - this is needed to prevent errors when testing argument names in macro definitions
  - used to provide most protections for object and class namespaces
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/ifdef.s)[:alembic:](/doc/s/examples/ifdef_ex.s)[:boom:](/doc/s/exploded_lines/ifdef.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/ifdef.s)[:alembic:](/doc/s/examples/ifdef_ex.s)[:boom:](/doc/s/exploded_lines/ifdef.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`ifalt`](/doc#ifalt)
 
 ---
@@ -268,8 +251,7 @@ If Input Starts with a Numerical Expression
  - useful for catching arguments that can't be treated like symbols before creating any errors
    - may also be useful for checking ascii in [`enc`](/doc#enc) stacks
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/ifnum.s)[:alembic:](/doc/s/examples/ifnum_ex.s)[:boom:](/doc/s/exploded_lines/ifnum.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/ifnum.s)[:alembic:](/doc/s/examples/ifnum_ex.s)[:boom:](/doc/s/exploded_lines/ifnum.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
 
 ---
@@ -282,8 +264,7 @@ Argument Item Buffer Objects
  - useful for creating iterators that do not attempt to evaluate the contents
    - may be used to buffer args that are consumed by [`enum`](/doc#enum) parsers
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/items.s)[:alembic:](/doc/s/examples/items_ex.s)[:boom:](/doc/s/exploded_lines/items.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/items.s)[:alembic:](/doc/s/examples/items_ex.s)[:boom:](/doc/s/exploded_lines/items.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
 
 ---
@@ -296,8 +277,7 @@ Library Objects
  - can be used to define specialized sub-dirs for storing extra modules or binary files
    - new library objects can be made besides `punkpc`
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/library.s)[:alembic:](/doc/s/examples/library_ex.s)[:boom:](/doc/s/exploded_lines/library.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/library.s)[:alembic:](/doc/s/examples/library_ex.s)[:boom:](/doc/s/exploded_lines/library.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
 
 ---
@@ -310,8 +290,7 @@ List Objects
    - indexing allows for random-access get/set features at the object-level
    - mutable iterator and indexing methods can be given custom behaviors
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/list.s)[:alembic:](/doc/s/examples/list_ex.s)[:boom:](/doc/s/exploded_lines/list.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/list.s)[:alembic:](/doc/s/examples/list_ex.s)[:boom:](/doc/s/exploded_lines/list.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`stack`](/doc#stack), [`sidx`](/doc#sidx), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`if`](/doc#if), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`obj`](/doc#obj)
 
 ---
@@ -325,8 +304,7 @@ Load Multiple Floats
    - `lmfd` and `stmfd` for double-precision
  - does not change the number of instructions required for multiple registers
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/lmf.s)[:alembic:](/doc/s/examples/lmf_ex.s)[:boom:](/doc/s/exploded_lines/lmf.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/lmf.s)[:alembic:](/doc/s/examples/lmf_ex.s)[:boom:](/doc/s/exploded_lines/lmf.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`idxr`](/doc#idxr), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en), [`xev`](/doc#xev)
 
 ---
@@ -339,8 +317,7 @@ Load Immediate(s)
    - you can use this macroinstruction to string together as many as you need for a given input
  - useful for writing functions that load absolute addresses, ascii keywords, and other things
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/load.s)[:alembic:](/doc/s/examples/load_ex.s)[:boom:](/doc/s/exploded_lines/load.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/load.s)[:alembic:](/doc/s/examples/load_ex.s)[:boom:](/doc/s/exploded_lines/load.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en)
 
 ---
@@ -353,8 +330,7 @@ Object Method Mutator Hooks
  - useful for making your class/objects customizable
  - extensively used by the [`obj`](/doc#obj) module
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/mut.s)[:alembic:](/doc/s/examples/mut_ex.s)[:boom:](/doc/s/exploded_lines/mut.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/mut.s)[:alembic:](/doc/s/examples/mut_ex.s)[:boom:](/doc/s/exploded_lines/mut.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`ifdef`](/doc#ifdef), [`ifalt`](/doc#ifalt)
 
 ---
@@ -370,8 +346,7 @@ Objects (and Classes)
  - object properties may be given [`hidden`](/doc#hidden) names, used internally by the constructor
  - very useful for stream-lining the creation of object constructors
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/obj.s)[:alembic:](/doc/s/examples/obj_ex.s)[:boom:](/doc/s/exploded_lines/obj.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/obj.s)[:alembic:](/doc/s/examples/obj_ex.s)[:boom:](/doc/s/exploded_lines/obj.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`if`](/doc#if), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum)
 
 ---
@@ -382,8 +357,7 @@ PowerPC Modules
  - a collection of all of the modules that include PowerPC related macroinstructions
  - if no args are given to `punkpc` when calling it, this module is loaded by default
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/ppc.s)[:alembic:](/doc/s/examples/ppc_ex.s)[:boom:](/doc/s/exploded_lines/ppc.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/ppc.s)[:alembic:](/doc/s/examples/ppc_ex.s)[:boom:](/doc/s/exploded_lines/ppc.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`branch`](/doc#branch), [`cr`](/doc#cr), [`data`](/doc#data), [`idxr`](/doc#idxr), [`load`](/doc#load), [`small`](/doc#small), [`sp`](/doc#sp), [`gecko`](/doc#gecko), [`enum`](/doc#enum), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`en`](/doc#en), [`regs`](/doc#regs), [`sidx`](/doc#sidx), [`enc`](/doc#enc), [`stack`](/doc#stack), [`align`](/doc#align), [`hex`](/doc#hex), [`xev`](/doc#xev), [`bcount`](/doc#bcount), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items), [`errata`](/doc#errata)
 
 ---
@@ -395,8 +369,7 @@ Register Symbols
  - useful for enabling registers for use like indices as part of counters
  - also includes names for [`cr`](/doc#cr) bits and fields
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/regs.s)[:alembic:](/doc/s/examples/regs_ex.s)[:boom:](/doc/s/exploded_lines/regs.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/regs.s)[:alembic:](/doc/s/examples/regs_ex.s)[:boom:](/doc/s/exploded_lines/regs.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`xem`](/doc#xem), [`enum`](/doc#enum), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`en`](/doc#en), [`regs`](/doc#regs)
 
 ---
@@ -410,8 +383,7 @@ Scalar Index Tools
      - `$` stands for 'Scalar Index'
  - useful for creating buffers, and powers many object types in `punkpc`
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/sidx.s)[:alembic:](/doc/s/examples/sidx_ex.s)[:boom:](/doc/s/exploded_lines/sidx.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/sidx.s)[:alembic:](/doc/s/examples/sidx_ex.s)[:boom:](/doc/s/exploded_lines/sidx.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`ifalt`](/doc#ifalt)
 
 ---
@@ -424,8 +396,7 @@ Small Integer Tools/Instructions
    - 3-argument syntax implies all rotation math, requiring only a mask symbol, and registers
    - existing 4-argument and 5-argument syntaxes are reverted to, when detected
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/small.s)[:alembic:](/doc/s/examples/small_ex.s)[:boom:](/doc/s/exploded_lines/small.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/small.s)[:alembic:](/doc/s/examples/small_ex.s)[:boom:](/doc/s/exploded_lines/small.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`bcount`](/doc#bcount), [`enum`](/doc#enum), [`ifalt`](/doc#ifalt), [`obj`](/doc#obj), [`if`](/doc#if), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`en`](/doc#en), [`regs`](/doc#regs)
 
 ---
@@ -446,8 +417,7 @@ Runtime Stack Pointer (prolog/epilog block generators)
    - includes support for all special-purpose register names
  - includes support for nested and/or serial frame definitions
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/sp.s)[:alembic:](/doc/s/examples/sp_ex.s)[:boom:](/doc/s/exploded_lines/sp.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/sp.s)[:alembic:](/doc/s/examples/sp_ex.s)[:boom:](/doc/s/exploded_lines/sp.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`enc`](/doc#enc), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en), [`stack`](/doc#stack), [`sidx`](/doc#sidx), [`idxr`](/doc#idxr), [`xev`](/doc#xev)
 
 ---
@@ -460,8 +430,7 @@ SPR utilities
  - includes a dictionary of spr keywords, unified by the `spr.*` namespace
  - also includes support for some non-spr keywords, like `msr` and `sr`
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/spr.s)[:alembic:](/doc/s/examples/spr_ex.s)[:boom:](/doc/s/exploded_lines/spr.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/spr.s)[:alembic:](/doc/s/examples/spr_ex.s)[:boom:](/doc/s/exploded_lines/spr.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`idxr`](/doc#idxr), [`regs`](/doc#regs), [`xev`](/doc#xev), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en)
 
 ---
@@ -475,8 +444,7 @@ Stack Objects
  - can be easily fashioned into arrays, structs, or pointer tables
  - can be easily extended to create more specific features that require scalar memory
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/stack.s)[:alembic:](/doc/s/examples/stack_ex.s)[:boom:](/doc/s/exploded_lines/stack.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/stack.s)[:alembic:](/doc/s/examples/stack_ex.s)[:boom:](/doc/s/exploded_lines/stack.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`sidx`](/doc#sidx), [`if`](/doc#if), [`obj`](/doc#obj), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut)
 
 ---
@@ -490,8 +458,7 @@ String Objects
  - can store `literal strings` that are unprotected, and can be executed like macros
    - unlike the [`items`](/doc#items) class, no delimiting commas are implied, and buffers can use prefix concatenation methods
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/str.s)[:alembic:](/doc/s/examples/str_ex.s)[:boom:](/doc/s/exploded_lines/str.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/str.s)[:alembic:](/doc/s/examples/str_ex.s)[:boom:](/doc/s/exploded_lines/str.s)<br />
 [:top:](/doc#Documentation):arrow_right: [`ifdef`](/doc#ifdef), [`ifalt`](/doc#ifalt), [`obj`](/doc#obj), [`if`](/doc#if), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut)
 
 ---
@@ -503,8 +470,7 @@ Expression Emitter Tool
    - input strings are not concatenated with special delimiter `$`
  - used in the [`regs`](/doc#regs) module to create register names
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/xem.s)[:alembic:](/doc/s/examples/xem_ex.s)[:boom:](/doc/s/exploded_lines/xem.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/xem.s)[:alembic:](/doc/s/examples/xem_ex.s)[:boom:](/doc/s/exploded_lines/xem.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
 
 ---
@@ -515,8 +481,7 @@ Extract Evaluation Tool
  - for extracting evaluable literals from 2 known character indices in a given string argument
  - useful when parsing complex inputs for evaluable sub-expressions
 
-<br />
->[*Links*](/doc#modules) : [:pencil2:](/src/xev.s)[:alembic:](/doc/s/examples/xev_ex.s)[:boom:](/doc/s/exploded_lines/xev.s)<br />
+[*Links*](/doc#modules) : [:pencil2:](/src/xev.s)[:alembic:](/doc/s/examples/xev_ex.s)[:boom:](/doc/s/exploded_lines/xev.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
 
 ---
