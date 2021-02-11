@@ -1,7 +1,7 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module sp, 2
+punkpc.module sp, 3
 .if module.included == 0
   punkpc regs, enc, lmf, spr, items
   .macro sp_obj.init
@@ -233,9 +233,9 @@ punkpc.module sp, 2
       sidx.noalt "<sp.sprs.total = sp.sprs.total>", sp.mem_ID
       sidx.noalt "<sp.gprs.total = sp.gprs.total>", sp.mem_ID
       sidx.noalt "<sp.fprs.total = sp.fprs.total>", sp.mem_ID
-      sidx.noalt "<sp.sprs.base =  sp.temp.total>", sp.mem_ID
-      sidx.noalt "<sp.gprs.base = sp.sprs.base + sp.sprs.total>", sp.mem_ID
-      sidx.noalt "<sp.fprs.base = sp.gprs.base + sp.gprs.total>", sp.mem_ID
+      sidx.noalt "<sp.sprs.base =  (sp.temp.total>", sp.mem_ID, "< + 3) !& ~3>"
+      sidx.noalt "<sp.gprs.base = (sp.sprs.base + sp.sprs.total>", sp.mem_ID, "< + 3) !& ~3>"
+      sidx.noalt "<sp.fprs.base = (sp.gprs.base + sp.gprs.total>", sp.mem_ID, "< + 7) !& ~7>"
       sidx.noalt "<sp.gprs.lowest = sp.gprs.lowest>", sp.mem_ID
       sidx.noalt "<sp.fprs.lowest = sp.fprs.lowest>", sp.mem_ID
     .endif;

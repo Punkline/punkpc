@@ -14,6 +14,9 @@
 # - includes support for nested and/or serial frame definitions
 
 # --- Updates:
+# version 0.0.3
+# - fixed alignment issue caused by difference in loading math vs storing math
+# - updated results binary to reflect fix to 'xer' keyword
 # version 0.0.2
 # - added check to .push syntax for 'x' that allows lowercase 'xer' spr keyword to be recognized
 # version 0.0.1
@@ -158,7 +161,7 @@
 # 'lmf' and 'spr' modules are available for multiple float/spr loads/stores external from the stack
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module sp, 2
+punkpc.module sp, 3
 .if module.included == 0; punkpc regs, enc, lmf, spr, items
 
 .macro sp_obj.init
@@ -404,15 +407,14 @@ punkpc.module sp, 2
     sidx.noalt "<sp.sprs.total = sp.sprs.total>", sp.mem_ID
     sidx.noalt "<sp.gprs.total = sp.gprs.total>", sp.mem_ID
     sidx.noalt "<sp.fprs.total = sp.fprs.total>", sp.mem_ID
-    sidx.noalt "<sp.sprs.base =  sp.temp.total>", sp.mem_ID
-    sidx.noalt "<sp.gprs.base = sp.sprs.base + sp.sprs.total>", sp.mem_ID
-    sidx.noalt "<sp.fprs.base = sp.gprs.base + sp.gprs.total>", sp.mem_ID
+    sidx.noalt "<sp.sprs.base =  (sp.temp.total>", sp.mem_ID, "< + 3) !& ~3>"
+    sidx.noalt "<sp.gprs.base = (sp.sprs.base + sp.sprs.total>", sp.mem_ID, "< + 3) !& ~3>"
+    sidx.noalt "<sp.fprs.base = (sp.gprs.base + sp.gprs.total>", sp.mem_ID, "< + 7) !& ~7>"
     sidx.noalt "<sp.gprs.lowest = sp.gprs.lowest>", sp.mem_ID
     sidx.noalt "<sp.fprs.lowest = sp.fprs.lowest>", sp.mem_ID
   .endif  # Generate new errata for this context
   # - 'sidx' will create assignments using scalar names generated from the 'sp.mem_ID' index
   # - all of this will be resolved in a corresponding 'sp.pop' call that ends this context
-
 .endm; .macro sp.__lmspr, va:vararg
   lmspr r0, sp.sprs.base(sp), \va
 
