@@ -9,8 +9,7 @@ punkpc.module branch, 3
   .if branchl.purgem
     branchl.purgem = 0
     .purgem branch
-    .purgem
-    branchl
+    .purgem branchl
   .endif;
   .irp x,  branchl,  branch,  bla,  ba
     .irp y,  .purgem

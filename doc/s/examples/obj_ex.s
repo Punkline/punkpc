@@ -30,7 +30,7 @@ obj.class myClass, is_myClass
   # initialize object pointers using the '.obj' method
   # it will return 'def' and 'ndef' as true/false if object name is already defined, or not defined
 
-  .if ndef
+  .if obj.ndef
     \self = \myProperty
     # initialize an initial property, using given input
     # - if the caller gives no value to 'myProperty' then it will use '100' by default

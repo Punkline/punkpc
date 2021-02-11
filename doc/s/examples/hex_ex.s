@@ -1,5 +1,5 @@
 # --- Hex Emitter Objects (with Array of Byte History)
-# >toc library
+# >toc sidx
 # - extends the 'enc' object class
 #   - emit bytes from raw hex literals, as user inputs
 #     - accepts a mix of whitespace, commas, and '0x' prefixes

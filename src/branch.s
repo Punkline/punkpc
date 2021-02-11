@@ -42,7 +42,7 @@
 punkpc.module branch, 3
 .if module.included == 0
 .ifndef branchl.purgem; branchl.purgem = 0; .endif
-.if branchl.purgem; branchl.purgem = 0; .purgem branch; .purgem; branchl; .endif
+.if branchl.purgem; branchl.purgem = 0; .purgem branch; .purgem branchl; .endif
 .irp x, branchl, branch, bla, ba; .irp y, .purgem; \x\y = 1; .endr; .endr
 # provides compatibility with other macros that do not use this class module system
 
