@@ -112,8 +112,9 @@ Debug Tool
 ### [`en`](/doc#en)
 
 Enumerator (quick)
- - a fast, featureless enumeration tool for naming offset and register symbols
-   - intended to work similarly to [`enum`](/doc#enum), but as small and quick as possible
+ - a fast enumeration tool for naming offset and register symbols
+ - intended to work similarly to default [`enum`](/doc#enum) objects, but with no class/object features
+   - this makes loading this module a lighter alternative to the [`enum`](/doc#enum) module
 
 [*Links*](/doc#modules) : [:pencil2:](/src/en.s)[:alembic:](/doc/s/examples/en_ex.s)[:boom:](/doc/s/exploded_lines/en.s)<br />
 [:top:](/doc#Documentation) :negative_squared_cross_mark: -- no dependencies
@@ -141,7 +142,7 @@ Enumerator Objects
  - useful for creating methods that handle user inputs, or that consume [`items`](/doc#items) buffers
 
 [*Links*](/doc#modules) : [:pencil2:](/src/enum.s)[:alembic:](/doc/s/examples/enum_ex.s)[:boom:](/doc/s/exploded_lines/enum.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`obj`](/doc#obj), [`en`](/doc#en), [`regs`](/doc#regs), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem), [`enum`](/doc#enum)
+[:top:](/doc#Documentation):arrow_right: [`obj`](/doc#obj), [`en`](/doc#en), [`regs`](/doc#regs), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`xem`](/doc#xem)
 
 ---
 
@@ -305,7 +306,7 @@ Load Multiple Floats
  - does not change the number of instructions required for multiple registers
 
 [*Links*](/doc#modules) : [:pencil2:](/src/lmf.s)[:alembic:](/doc/s/examples/lmf_ex.s)[:boom:](/doc/s/exploded_lines/lmf.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`idxr`](/doc#idxr), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en), [`xev`](/doc#xev)
+[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`idxr`](/doc#idxr), [`xem`](/doc#xem), [`en`](/doc#en), [`xev`](/doc#xev)
 
 ---
 
@@ -318,7 +319,7 @@ Load Immediate(s)
  - useful for writing functions that load absolute addresses, ascii keywords, and other things
 
 [*Links*](/doc#modules) : [:pencil2:](/src/load.s)[:alembic:](/doc/s/examples/load_ex.s)[:boom:](/doc/s/exploded_lines/load.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en)
+[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`xem`](/doc#xem), [`en`](/doc#en)
 
 ---
 
@@ -370,7 +371,7 @@ Register Symbols
  - also includes names for [`cr`](/doc#cr) bits and fields
 
 [*Links*](/doc#modules) : [:pencil2:](/src/regs.s)[:alembic:](/doc/s/examples/regs_ex.s)[:boom:](/doc/s/exploded_lines/regs.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`xem`](/doc#xem), [`enum`](/doc#enum), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`en`](/doc#en), [`regs`](/doc#regs)
+[:top:](/doc#Documentation):arrow_right: [`xem`](/doc#xem), [`en`](/doc#en)
 
 ---
 
@@ -418,7 +419,7 @@ Runtime Stack Pointer (prolog/epilog block generators)
  - includes support for nested and/or serial frame definitions
 
 [*Links*](/doc#modules) : [:pencil2:](/src/sp.s)[:alembic:](/doc/s/examples/sp_ex.s)[:boom:](/doc/s/exploded_lines/sp.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`enc`](/doc#enc), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en), [`stack`](/doc#stack), [`sidx`](/doc#sidx), [`idxr`](/doc#idxr), [`xev`](/doc#xev)
+[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`enc`](/doc#enc), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items), [`xem`](/doc#xem), [`en`](/doc#en), [`stack`](/doc#stack), [`sidx`](/doc#sidx), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`if`](/doc#if), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`obj`](/doc#obj), [`idxr`](/doc#idxr), [`xev`](/doc#xev)
 
 ---
 
@@ -431,7 +432,7 @@ SPR utilities
  - also includes support for some non-spr keywords, like `msr` and `sr`
 
 [*Links*](/doc#modules) : [:pencil2:](/src/spr.s)[:alembic:](/doc/s/examples/spr_ex.s)[:boom:](/doc/s/exploded_lines/spr.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`idxr`](/doc#idxr), [`regs`](/doc#regs), [`xev`](/doc#xev), [`xem`](/doc#xem), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`enum`](/doc#enum), [`en`](/doc#en)
+[:top:](/doc#Documentation):arrow_right: [`idxr`](/doc#idxr), [`regs`](/doc#regs), [`xev`](/doc#xev), [`xem`](/doc#xem), [`en`](/doc#en)
 
 ---
 

@@ -5,6 +5,11 @@
 # - also includes names for `cr` bits and fields
 
 # --- Updates:
+# version 0.0.3
+# - changed 'enum' dependency to new, simplified 'en' module
+#   - en behaves like the default 'enum' object does, but doesn't have any object features
+#   - 'regs' doesn't need any object features, so using 'en' makes it load faster
+#   - this should prune many prerequisite dependencies from other modules that rely on named regs
 # version 0.0.2
 # - re-added initial call to regs.rebuild
 # - now includes 'enum' module to provide a default 'regs' enumerator, for volatile register names
@@ -41,7 +46,7 @@
 # Emit an evaluated expression as decimal literals, with optional literal prefix/suffix
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module regs, 1; .if module.included == 0; punkpc xem, enum
+punkpc.module regs, 3; .if module.included == 0; punkpc xem, en
 .macro regs.enumerate, pfx, sfx, start=0, op="+1", cstart, cop, count=32
   .ifb \cop; regs.enumerate \pfx, \sfx, \start, \op, \cstart, \op, \count; .exitm; .endif
   .ifb \cstart; regs.__c = \start; .else; regs.__c = \cstart; .endif;regs.__i=\start; .rept \count
@@ -53,7 +58,13 @@ punkpc.module regs, 1; .if module.included == 0; punkpc xem, enum
   sp=r1; rtoc=r2; lt=0; gt=1; eq=2; so=3; xem = 0
   .rept 8; .irp s, lt,gt,eq,so; xem cr,xem,"<.\s=(xem*4)+\s>"; .endr
     xem = xem + 1; .endr
-.endm; regs.rebuild
-enum.new regs,,, (3), +1
+.endm; .macro regs, va:vararg;
+  en.save regs.__backup  # backup global 'en' properties
+    en.load regs         # replace them with private 'regs' properties
+      en \va             # invoke global method
+    en.save regs         # save modifications to 'regs' properties
+  en.load regs.__backup  # restore global 'en' properties
+.endm; .macro regs.restart; regs.count = 3;  regs.step = +1
+.endm; regs.rebuild; regs.restart
 
 .endif
