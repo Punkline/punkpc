@@ -1,7 +1,8 @@
 # --- Enumerator (quick)
 #>toc library
-# - a fast, featureless enumeration tool for naming offset and register symbols
-#   - intended to work similarly to `enum`, but as small and quick as possible
+# - a fast enumeration tool for naming offset and register symbols
+# - intended to work similarly to default `enum` objects, but with no class/object features
+#   - this makes loading this module a lighter alternative to the `enum` module
 
 # --- Example use of the en module:
 
@@ -14,24 +15,20 @@ punkpc en
 # - no inline property opdate syntaxes
 
 
-en A B C D  # enumerate given symbols with a count; starting with 0, and incrementing by +1
-en E F G H  # ... next call will continue previous enumerations...
+en A, B, C, D  # enumerate given symbols with a count; starting with 0, and incrementing by +1
+en E, F, G, H  # ... next call will continue previous enumerations...
 # >>>  A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7
 
-en.count = 31 # re-orient enumeration value so that count will start at 31, using ( ) parentheses
-en.step  = -4 # set enumeration to increment/decrement by a specific amount with +/-
-en I; en.step = +1; en J K L
+en (31), -4, I, +1, J, K, L
 # >>>  I=31, J=27, K=28, L=29
+# re-orient enumeration value so that count will start at 31, using ( ) parentheses
+# set enumeration to increment/decrement by a specific amount with +/-
 
-en.count = 31
-en.step  = -1
-en rPlayer,rGObj,rIndex,rCallback,rBools,rCount
+en (31), -1, rPlayer,rGObj,rIndex,rCallback,rBools,rCount
 # enumerate register names ...
 
 sp.xWorkspace=0x220
-en.count = sp.xWorkspace
-en.step  = +4
-en VelX,VelY,RotX,RotY,RGBA
+en (sp.xWorkspace), +4, VelX,VelY,RotX,RotY,RGBA
 # enumerate offset names ...
 # etc..
 
