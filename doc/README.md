@@ -419,7 +419,7 @@ Runtime Stack Pointer (prolog/epilog block generators)
  - includes support for nested and/or serial frame definitions
 
 [*Links*](/doc#modules) : [:pencil2:](/src/sp.s)[:alembic:](/doc/s/examples/sp_ex.s)[:boom:](/doc/s/exploded_lines/sp.s)<br />
-[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`enc`](/doc#enc), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items), [`xem`](/doc#xem), [`en`](/doc#en), [`stack`](/doc#stack), [`sidx`](/doc#sidx), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`if`](/doc#if), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`obj`](/doc#obj), [`idxr`](/doc#idxr), [`xev`](/doc#xev)
+[:top:](/doc#Documentation):arrow_right: [`regs`](/doc#regs), [`enum`](/doc#enum), [`enc`](/doc#enc), [`lmf`](/doc#lmf), [`spr`](/doc#spr), [`items`](/doc#items), [`xem`](/doc#xem), [`en`](/doc#en), [`obj`](/doc#obj), [`if`](/doc#if), [`ifalt`](/doc#ifalt), [`ifdef`](/doc#ifdef), [`ifnum`](/doc#ifnum), [`hidden`](/doc#hidden), [`mut`](/doc#mut), [`stack`](/doc#stack), [`sidx`](/doc#sidx), [`idxr`](/doc#idxr), [`xev`](/doc#xev)
 
 ---
 

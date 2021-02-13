@@ -1,9 +1,9 @@
 .ifndef punkpc.library.included
   .include "punkpc.s"
 .endif;
-punkpc.module sp, 3
+punkpc.module sp, 4
 .if module.included == 0
-  punkpc regs, enc, lmf, spr, items
+  punkpc regs, enum, enc, lmf, spr, items
   .macro sp_obj.init
     .purgem sp_obj.init
     sp.frame = 0

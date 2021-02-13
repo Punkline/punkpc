@@ -14,6 +14,8 @@
 # - includes support for nested and/or serial frame definitions
 
 # --- Updates:
+# version 0.0.4
+# - refactored dependencies according to changes in the 'regs' module
 # version 0.0.3
 # - fixed alignment issue caused by difference in loading math vs storing math
 # - updated results binary to reflect fix to 'xer' keyword
@@ -161,8 +163,8 @@
 # 'lmf' and 'spr' modules are available for multiple float/spr loads/stores external from the stack
 
 .ifndef punkpc.library.included; .include "punkpc.s"; .endif
-punkpc.module sp, 3
-.if module.included == 0; punkpc regs, enc, lmf, spr, items
+punkpc.module sp, 4
+.if module.included == 0; punkpc regs, enum, enc, lmf, spr, items
 
 .macro sp_obj.init
   .purgem sp_obj.init
