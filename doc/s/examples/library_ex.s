@@ -27,27 +27,39 @@
 
 .endif
 
-myLib.subdir ".include/_myLib/", ".s"
-# This will redirect the path used by myLib to use the relative path /.include/myLib/*
+myLib.maindir "testing/"
+# This will redirect the include path used by 'myLib' to a folder called "testing" when loading
+# The path is relative to the working directory, or -I specifications: /testing/*
+
+myLib.subdir "_myLib/", ".s"
+# This will concatenate a subdirectory path to the maindir path:  /testing/_myLib/*.s
 # The second argument is a file extension that will be used with all of our module name inputs
 # - if the extension is blank, then you will need to specify the file extension with each input
-# - using '.s' allows us to import /.include/myLib/*.s files
 
 
-# --- These lines could go in a file called 'myLib' or 'myLib.s'
-# Note that if you have a library file that is the same name as the dir, you need a file extension
+# --- The above lines go in a main file that needs to be loaded with a `.include` directive
+# For example, putting them in 'myLib.s' in the working directory can be loaded from the line:
+.include "myLib.s"
+# -- by loading this file, you can access the 'myLib' macro to load files in a protected manner
+
+
+# You don't necessarily need to use a file extension when creating this file, so:
+.include "myLib"
+# -- this would also be fine, so long as the file actually doesn't use an extension
 
 
 
 
 # --- DEFINING A CLASS MODULE ---
-# Modules for 'myLib' can now be defined in the specified subdirectory  '.include/_myLib/*.s'
+# Modules for 'myLib' can now be defined in the specified subdirectory  'testing/_myLib/*.s'
 # A Module is kept track of with a non-0 version value, given to a predictably named symbol property
 # - this symbol property can be checked for in order to test if the module is currently loaded
 
+# Assuming we have an extensionless file called "myLib" containing the above library definition...
+
 .ifndef myLib.library.included; .include "myLib"; .endif
-# This will invoke the 'myLib' file we created the library object inside of
-# Wrapping .ifndef around this is optional, but possibly more efficient
+# ... we can use this to invoke the 'myLib' file we created the library object inside of
+# Wrapping .ifndef around this is optional, but more efficient
 # - now we have access to the 'myLib' object inside our module file
 
 myLib.module myModule, 0x1337
@@ -62,11 +74,11 @@ myLib.module myModule, 0x1337
 .endif
 
 # The class property 'module.included' can be checked after a library object invokes '.module'
-# If it is True, then the module has already been included and doesn't need to be defined
+# If it is True, then the module has already been included and doesn't need to be defined again
 # - this is important for protecting the class definitions, to prevent errors
 
 
-# --- These lines could go in a file called 'myModule.s' in the '.include/_myLib/' subdir
+# --- The above lines go in a separate file, located in the directory used by the library object
 # This defines our class module file, for the library object to reach
 
 
@@ -105,7 +117,7 @@ l.push 1, 2, 3, 4, hello
 # These can contain pre-assembled machine-code or data that you want to include with your assembly
 
 
-myLib.subdir ".include/_myLib/", ""
+myLib.subdir "_myLib/", ""
 # A blank file extension will allow us to specify them in the arguments
 
 myLib.raw myImage.bmp, mySound.wav, myCode.bin
