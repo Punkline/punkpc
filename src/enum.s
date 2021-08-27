@@ -6,6 +6,8 @@
 # - useful for creating methods that handle user inputs, or that consume `items` buffers
 
 # --- Updates:
+# version 0.2.3
+# - fixed bug in .irp loop that made suffix concatenations create parsing errors
 # version 0.2.2
 # - added 'en' module, for fast (featureless) enumeration processes
 # - added 'quick' 'enum_parse_iter' mutator mode, for implementing 'en'-like enumerator objects
@@ -391,7 +393,11 @@ punkpc.module enum, 0x202
         mut.call \self, mask, default, enum, , , \prefix, \suffix, \va
       .endm
     .endif
-  .endm
+
+
+  .endm; .macro enum.__enum_conc.mut.call, self, pfx, sfx, arg
+    mut.call \self, enum_parse_iter, default, enum, , , \pfx\arg\sfx, \pfx, \sfx, \arg
+  .endm  # - this is used to get around a concatenation bug, with \arg coming from a .irp list
 
 
 enum.meth, enum_parse, enum_parse_iter, numerical, literal, count, step, mask
@@ -412,7 +418,7 @@ enum.meth, enum_parse, enum_parse_iter, numerical, literal, count, step, mask
       \self\().enum_exiting = 0
       .ifnb \arg # for each arg in varargs
 
-        mut.call \self, enum_parse_iter, default, enum, , , \pfx\arg\sfx, \pfx, \sfx, \arg
+        enum.__enum_conc.mut.call \self, \pfx, \sfx, \arg
         # execute parse iteration hook, with
 
         .if \self\().enum_exiting > 0  # if the exiting countdown is a positive number...

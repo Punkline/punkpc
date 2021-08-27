@@ -70,6 +70,9 @@ punkpc.module enum, 0x202
       .endm;
     .endif;
   .endm;
+  .macro enum.__enum_conc.mut.call,  self,  pfx,  sfx,  arg
+    mut.call \self, enum_parse_iter, default, enum, , , \pfx\arg\sfx, \pfx, \sfx, \arg
+  .endm;
   enum.meth, enum_parse, enum_parse_iter, numerical, literal, count, step, mask
   .macro enum.mut.enum_conc.default,  self,  va:vararg
     ifalt
@@ -82,7 +85,7 @@ punkpc.module enum, 0x202
     .irp arg,  \va
       \self\().enum_exiting = 0
       .ifnb \arg
-        mut.call \self, enum_parse_iter, default, enum, , , \pfx\arg\sfx, \pfx, \sfx, \arg
+        enum.__enum_conc.mut.call \self, \pfx, \sfx, \arg
         .if \self\().enum_exiting > 0
           \self\().enum_exiting = \self\().enum_exiting -1
           .if \self\().enum_exiting == 0

@@ -98,13 +98,18 @@ bf- bEnable, 0f
 
 # --- ENUM PREFIXES AND SUFFIXES ---
 
-enum.enum_conc "myNamespace.", "", -4, (0x10), A, B, C, D
+enum.enum_conc "myNamespace.", "", -4, (0xC), A, B, C, D
 # "myNamespace." is a prefix
 # "" is a blank suffix, which can also just be left blank, or as a space character
 # - doesn't need to be in quotes, but it makes the syntax a bit more readible and doesn't interfere
 
 .byte myNamespace.A, myNamespace.B, myNamespace.C, myNamespace.D
 # 'enum_conc' allows you to imply a static part of a namespace in the resulting symbol assignments
+
+
+enum.enum_conc "myClass.", ".myAttr", +0x20, (0), A, B, C, D
+.byte myClass.A.myAttr, myClass.B.myAttr, myClass.C.myAttr, myClass.D.myAttr
+# Suffixes may be useful for creating attributes common to many object-like symbol names
 
 
 
@@ -493,30 +498,31 @@ hex hello, world
 ## 00000003 7C001120
 ## 409F0014 409D0008
 ## 60000000 41BE0008
-## 60000000 100C0804
-## 83E30000 83C30004
-## 83A30008 8383000C
-## 83630010 8B430014
-## 8B230015 A3030016
-## 83E40000 83C40010
-## BFC10010 83E50000
-## 83C40008 3BA00018
-## BFA10020 63180000
-## B3030016 7F000120
-## 409F0014 409D0008
-## 60000000 41BE0008
-## 60000000 00000009
-## 00000009 00000009
-## 00000000 00000001
-## 00000002 00000003
-## 00000003 00000009
-## 0000000F 00000000
-## 00000003 00000009
-## 0000000F 00000000
-## 00010203 04000102
-## 00010001 20112028
-## 202F202F 20321A20
-## 20203220 35202F20
-## 2720EC00 1337BEEF
+## 60000000 0C080400
+## 00204060 83E30000
+## 83C30004 83A30008
+## 8383000C 83630010
+## 8B430014 8B230015
+## A3030016 83E40000
+## 83C40010 BFC10010
+## 83E50000 83C40008
+## 3BA00018 BFA10020
+## 63180000 B3030016
+## 7F000120 409F0014
+## 409D0008 60000000
+## 41BE0008 60000000
+## 00000008 00000008
+## 00000008 00000000
+## 00000001 00000002
+## 00000003 00000003
+## 00000009 0000000F
+## 00000000 00000003
+## 00000009 0000000F
+## 00000000 00010203
+## 04000102 00010001
+## 20112028 202F202F
+## 20321A20 20203220
+## 35202F20 2720EC00
 ## 1337BEEF 1337BEEF
-## 00000000 00000001
+## 1337BEEF 00000000
+## 00000001
