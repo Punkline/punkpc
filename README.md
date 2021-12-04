@@ -9,6 +9,7 @@ Punkpc is a collection of several loose experiments made for use in GNU Assemble
 - [Usage](#usage)
   - [Documentation][doc]
   - [Source][src]
+  - [License][license]
 
 ## About
 
@@ -71,9 +72,18 @@ Each 'module' argument `*` corresponds with a `*.s` file in the library object's
 
 Modules are imported through conditional use of the `.include` statement, which can be used as a manual alternative to using library objects, if desired.
 
+## License
+
+  This work is [dual-licensed][license] under MIT or GPL 2.0 (or any later version).
+  You can choose between one of them if you use this work.
+
+`SPDX-License-Identifier: MIT OR GPL-2.0-or-later`
+
 [doc]: /doc#Documentation
 [src]: /src/
 [inc]: /.include/
+
+[license]: /LICENSE.md
 
 [img_ppc]:  /doc/img/readme_main_ppc.png
 [img_str]:  /doc/img/readme_main_str.png
